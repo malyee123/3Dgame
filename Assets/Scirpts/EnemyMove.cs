@@ -1,84 +1,95 @@
 using UnityEngine;
 
-/// <summary>
-/// Enemy 오브젝트가 웨이포인트를 순서대로 따라 이동하는 스크립트
-/// 마지막 웨이포인트 도착 후 첫 번째로 돌아와 무한 반복 이동
-/// </summary>
 public class EnemyMove : MonoBehaviour
 {
-    // Inspector에서 조절 가능한 이동 속도 (숫자가 클수록 빠름, 기본값: 2)
     public float speed = 2f;
 
-    // 현재 이동 목표 웨이포인트 번호 (0 = 첫 번째 웨이포인트)
     private int waypointIndex = 0;
 
-    // PathManager 참조 변수
-    // EnemySpawner에서 직접 주입받거나, Start()에서 자동으로 찾음
     private PathManager pathManager;
 
-
-    /// <summary>
-    /// EnemySpawner가 Enemy 생성 직후 PathManager를 직접 넘겨주는 함수
-    /// FindObjectOfType보다 안전하고 성능도 좋음
-    /// </summary>
     public void SetPathManager(PathManager pm)
     {
         pathManager = pm;
     }
 
+    public float GetPathProgress()
+    {
+        if (pathManager == null)
+        {
+            return 0f;
+        }
+
+        int waypointCount = pathManager.GetWaypointCount();
+        if (waypointCount <= 0)
+        {
+            return 0f;
+        }
+
+        int currentIndex = waypointIndex;
+        int prevIndex = (currentIndex - 1 + waypointCount) % waypointCount;
+
+        Transform prevWaypoint = pathManager.GetWaypoint(prevIndex);
+        Transform currentWaypoint = pathManager.GetWaypoint(currentIndex);
+
+        if (prevWaypoint == null || currentWaypoint == null)
+        {
+            return currentIndex;
+        }
+
+        Vector2 a = prevWaypoint.position;
+        Vector2 b = currentWaypoint.position;
+        Vector2 p = transform.position;
+
+        Vector2 ab = b - a;
+        float abLenSqr = ab.sqrMagnitude;
+        float t = 0f;
+
+        if (abLenSqr > 0f)
+        {
+            t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / abLenSqr);
+        }
+
+        return prevIndex + t;
+    }
 
     void Start()
     {
-        // SetPathManager()로 미리 받은 게 없을 때만 Scene에서 자동으로 찾음
-        // (Enemy를 Scene에 직접 배치했을 때를 대비한 안전망)
         if (pathManager == null)
         {
             pathManager = FindFirstObjectByType<PathManager>();
         }
 
-        // PathManager를 끝내 못 찾으면 → 스크립트 비활성화로 크래시 방지
         if (pathManager == null)
         {
-            Debug.LogError("[EnemyMove] PathManager를 찾을 수 없습니다! Scene에 PathManager가 있는지 확인하세요.");
-            enabled = false; // Update() 실행을 막아서 NullReferenceException 방지
+            Debug.LogError("[EnemyMove] PathManager not found.");
+            enabled = false;
             return;
         }
 
-        // 웨이포인트가 하나도 없으면 이동 불가 → 마찬가지로 비활성화
         if (pathManager.GetWaypointCount() == 0)
         {
-            Debug.LogError("[EnemyMove] 웨이포인트가 0개입니다! PathManager에 웨이포인트를 추가해주세요.");
+            Debug.LogError("[EnemyMove] Waypoint count is 0.");
             enabled = false;
             return;
         }
     }
 
-
     void Update()
     {
-        // 현재 목표 웨이포인트의 위치 정보를 가져옴
         Transform target = pathManager.GetWaypoint(waypointIndex);
-
-        // GetWaypoint()가 null을 반환하면 이동하지 않고 종료 (크래시 방지)
         if (target == null) return;
 
-        // ── 이동 처리 ──
-        // MoveTowards: 현재 위치 → 목표 위치 방향으로 일정 속도로 이동
-        // Time.deltaTime을 곱하면 FPS와 상관없이 항상 일정한 속도로 이동
         transform.position = Vector2.MoveTowards(
-            transform.position,     // 현재 Enemy 위치
-            target.position,        // 목표 웨이포인트 위치
-            speed * Time.deltaTime  // 이번 프레임에 이동할 거리
+            transform.position,
+            target.position,
+            speed * Time.deltaTime
         );
 
-        // ── 도착 판정 ──
-        // 목표와의 거리가 0.1f 미만이면 "도착"으로 판단
-        // (정확히 0을 기다리면 부동소수점 오차로 영원히 못 도착할 수 있음)
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
-            waypointIndex++; // 다음 웨이포인트로 번호 증가
+            waypointIndex++;
 
-            // 마지막 웨이포인트까지 모두 도착했으면 → 첫 번째로 되돌아가 무한 반복
             if (waypointIndex >= pathManager.GetWaypointCount())
             {
                 waypointIndex = 0;
