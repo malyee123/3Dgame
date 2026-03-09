@@ -1,9 +1,13 @@
 using UnityEngine;
 
+/// <summary>
+/// Enemy 오브젝트가 웨이포인트를 따라 이동하는 스크립트
+/// </summary>
 public class EnemyMove : MonoBehaviour
 {
     public float speed = 2f;
 
+    // 현재 이동 목표 웨이포인트 인덱스
     private int waypointIndex = 0;
 
     private PathManager pathManager;
@@ -13,6 +17,10 @@ public class EnemyMove : MonoBehaviour
         pathManager = pm;
     }
 
+    /// <summary>
+    /// Path 상에서 현재 Enemy의 진행도를 반환합니다.
+    /// 값이 작을수록 뒤쪽(후미)입니다.
+    /// </summary>
     public float GetPathProgress()
     {
         if (pathManager == null)

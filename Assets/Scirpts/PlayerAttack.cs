@@ -1,24 +1,47 @@
 using UnityEngine;
 
+/// <summary>
+/// ������ �ֱ�� ���� ����� Enemy�� �����ϴ� ��ũ��Ʈ
+/// Player �����տ� �ٿ��� ���
+/// </summary>
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("공격 설정")]
+    // ��������������������������������������������������������������������������������������
+    // Inspector���� ���� ������ ���� ����
+    // ��������������������������������������������������������������������������������������
+
+    [Header("���� ����")]
     public float attackRange = 3f;
     public float attackDamage = 10f;
     public float attackCooldown = 0.5f;
 
-    [Header("플레이어 정보")]
+    [Header("�÷��̾� ����")]
+    // �� �� ���� ����Ʈ���� �����ƴ��� ���� (PlayerSpawner���� ����)
     public int spawnIndex = -1;
 
+
+    // ��������������������������������������������������������������������������������������
+    // ���ο����� ����ϴ� ����
+    // ��������������������������������������������������������������������������������������
     private float cooldownTimer;
     private EnemyMove currentTarget;
 
+
+    // ��������������������������������������������������������������������������������������
+    // ���� ���� �� �� �� �� ����
+    // ��������������������������������������������������������������������������������������
     void Start()
     {
         cooldownTimer = attackCooldown;
-        Debug.Log($"[Player {spawnIndex}] Spawned at {transform.position}");
+
+        // ���� ��ġ �α� ���
+        Debug.Log($"[Player {spawnIndex}��] ��ġ: {transform.position} �� ������!");
     }
 
+
+    // ��������������������������������������������������������������������������������������
+    // �� ������ ���� �� ��ٿ� ó��
+    // ��������������������������������������������������������������������������������������
     void Update()
     {
         cooldownTimer += Time.deltaTime;
@@ -51,10 +74,40 @@ public class PlayerAttack : MonoBehaviour
             return;
         }
 
+    // ��������������������������������������������������������������������������������������
+    // ��Ÿ� �ȿ��� ���� ����� Enemy�� ã�� �����ϴ� �Լ�
+    // ��������������������������������������������������������������������������������������
+    void AttackWithLockedTarget()
+    {
+        if (!IsTargetInRange(currentTarget))
+        {
+            currentTarget = FindNearestEnemyInRange();
+        }
+
+        if (currentTarget == null)
+        {
+            Debug.Log($"[Player {spawnIndex}�� | ��ġ: {transform.position}] ��Ÿ� �ȿ� Enemy ����");
+            return;
+        }
+
+        EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
+
+        if (health == null)
+        {
+            currentTarget = null;
+            return;
+        }
+
+        float distance = Vector2.Distance(transform.position, currentTarget.transform.position);
         health.TakeDamage(attackDamage);
+
+        Debug.Log($"[Player {spawnIndex}�� | ��ġ: {transform.position}] " +
+                  $"�� {currentTarget.gameObject.name} ����! " +
+                  $"�Ÿ�: {distance:F2} / ������: {attackDamage}");
     }
 
-    EnemyMove FindBackmostEnemyInRange()
+
+    EnemyMove FindNearestEnemyInRange()
     {
         EnemyMove[] enemies = FindObjectsOfType<EnemyMove>();
 
@@ -70,23 +123,9 @@ public class PlayerAttack : MonoBehaviour
                 continue;
             }
 
-            float progress = enemy.GetPathProgress();
-
-            if (progress < smallestProgress)
-            {
-                smallestProgress = progress;
-                fallbackNearestDistance = distance;
-                backmostEnemy = enemy;
-            }
-            else if (Mathf.Approximately(progress, smallestProgress) && distance < fallbackNearestDistance)
-            {
-                fallbackNearestDistance = distance;
-                backmostEnemy = enemy;
-            }
-        }
-
-        return backmostEnemy;
+        return nearestEnemy;
     }
+
 
     bool IsTargetInRange(EnemyMove enemy)
     {
@@ -94,6 +133,9 @@ public class PlayerAttack : MonoBehaviour
         {
             return false;
         }
+
+        return Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
+    }
 
         return Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
     }
