@@ -1,84 +1,95 @@
 using UnityEngine;
 
-/// <summary>
-/// Enemy ¿ÀºêÁ§Æ®°¡ ¿şÀÌÆ÷ÀÎÆ®¸¦ ¼ø¼­´ë·Î µû¶ó ÀÌµ¿ÇÏ´Â ½ºÅ©¸³Æ®
-/// ¸¶Áö¸· ¿şÀÌÆ÷ÀÎÆ® µµÂø ÈÄ Ã¹ ¹øÂ°·Î µ¹¾Æ¿Í ¹«ÇÑ ¹İº¹ ÀÌµ¿
-/// </summary>
 public class EnemyMove : MonoBehaviour
 {
-    // Inspector¿¡¼­ Á¶Àı °¡´ÉÇÑ ÀÌµ¿ ¼Óµµ (¼ıÀÚ°¡ Å¬¼ö·Ï ºü¸§, ±âº»°ª: 2)
     public float speed = 2f;
 
-    // ÇöÀç ÀÌµ¿ ¸ñÇ¥ ¿şÀÌÆ÷ÀÎÆ® ¹øÈ£ (0 = Ã¹ ¹øÂ° ¿şÀÌÆ÷ÀÎÆ®)
     private int waypointIndex = 0;
 
-    // PathManager ÂüÁ¶ º¯¼ö
-    // EnemySpawner¿¡¼­ Á÷Á¢ ÁÖÀÔ¹Ş°Å³ª, Start()¿¡¼­ ÀÚµ¿À¸·Î Ã£À½
     private PathManager pathManager;
 
-
-    /// <summary>
-    /// EnemySpawner°¡ Enemy »ı¼º Á÷ÈÄ PathManager¸¦ Á÷Á¢ ³Ñ°ÜÁÖ´Â ÇÔ¼ö
-    /// FindObjectOfTypeº¸´Ù ¾ÈÀüÇÏ°í ¼º´Éµµ ÁÁÀ½
-    /// </summary>
     public void SetPathManager(PathManager pm)
     {
         pathManager = pm;
     }
 
+    public float GetPathProgress()
+    {
+        if (pathManager == null)
+        {
+            return 0f;
+        }
+
+        int waypointCount = pathManager.GetWaypointCount();
+        if (waypointCount <= 0)
+        {
+            return 0f;
+        }
+
+        int currentIndex = waypointIndex;
+        int prevIndex = (currentIndex - 1 + waypointCount) % waypointCount;
+
+        Transform prevWaypoint = pathManager.GetWaypoint(prevIndex);
+        Transform currentWaypoint = pathManager.GetWaypoint(currentIndex);
+
+        if (prevWaypoint == null || currentWaypoint == null)
+        {
+            return currentIndex;
+        }
+
+        Vector2 a = prevWaypoint.position;
+        Vector2 b = currentWaypoint.position;
+        Vector2 p = transform.position;
+
+        Vector2 ab = b - a;
+        float abLenSqr = ab.sqrMagnitude;
+        float t = 0f;
+
+        if (abLenSqr > 0f)
+        {
+            t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / abLenSqr);
+        }
+
+        return prevIndex + t;
+    }
 
     void Start()
     {
-        // SetPathManager()·Î ¹Ì¸® ¹ŞÀº °Ô ¾øÀ» ¶§¸¸ Scene¿¡¼­ ÀÚµ¿À¸·Î Ã£À½
-        // (Enemy¸¦ Scene¿¡ Á÷Á¢ ¹èÄ¡ÇßÀ» ¶§¸¦ ´ëºñÇÑ ¾ÈÀü¸Á)
         if (pathManager == null)
         {
             pathManager = FindFirstObjectByType<PathManager>();
         }
 
-        // PathManager¸¦ ³¡³» ¸ø Ã£À¸¸é ¡æ ½ºÅ©¸³Æ® ºñÈ°¼ºÈ­·Î Å©·¡½Ã ¹æÁö
         if (pathManager == null)
         {
-            Debug.LogError("[EnemyMove] PathManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù! Scene¿¡ PathManager°¡ ÀÖ´ÂÁö È®ÀÎÇÏ¼¼¿ä.");
-            enabled = false; // Update() ½ÇÇàÀ» ¸·¾Æ¼­ NullReferenceException ¹æÁö
+            Debug.LogError("[EnemyMove] PathManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+            enabled = false;
             return;
         }
 
-        // ¿şÀÌÆ÷ÀÎÆ®°¡ ÇÏ³ªµµ ¾øÀ¸¸é ÀÌµ¿ ºÒ°¡ ¡æ ¸¶Âù°¡Áö·Î ºñÈ°¼ºÈ­
         if (pathManager.GetWaypointCount() == 0)
         {
-            Debug.LogError("[EnemyMove] ¿şÀÌÆ÷ÀÎÆ®°¡ 0°³ÀÔ´Ï´Ù! PathManager¿¡ ¿şÀÌÆ÷ÀÎÆ®¸¦ Ãß°¡ÇØÁÖ¼¼¿ä.");
+            Debug.LogError("[EnemyMove] Waypointê°€ 0ê°œì…ë‹ˆë‹¤.");
             enabled = false;
             return;
         }
     }
 
-
     void Update()
     {
-        // ÇöÀç ¸ñÇ¥ ¿şÀÌÆ÷ÀÎÆ®ÀÇ À§Ä¡ Á¤º¸¸¦ °¡Á®¿È
         Transform target = pathManager.GetWaypoint(waypointIndex);
-
-        // GetWaypoint()°¡ nullÀ» ¹İÈ¯ÇÏ¸é ÀÌµ¿ÇÏÁö ¾Ê°í Á¾·á (Å©·¡½Ã ¹æÁö)
         if (target == null) return;
 
-        // ¦¡¦¡ ÀÌµ¿ Ã³¸® ¦¡¦¡
-        // MoveTowards: ÇöÀç À§Ä¡ ¡æ ¸ñÇ¥ À§Ä¡ ¹æÇâÀ¸·Î ÀÏÁ¤ ¼Óµµ·Î ÀÌµ¿
-        // Time.deltaTimeÀ» °öÇÏ¸é FPS¿Í »ó°ü¾øÀÌ Ç×»ó ÀÏÁ¤ÇÑ ¼Óµµ·Î ÀÌµ¿
         transform.position = Vector2.MoveTowards(
-            transform.position,     // ÇöÀç Enemy À§Ä¡
-            target.position,        // ¸ñÇ¥ ¿şÀÌÆ÷ÀÎÆ® À§Ä¡
-            speed * Time.deltaTime  // ÀÌ¹ø ÇÁ·¹ÀÓ¿¡ ÀÌµ¿ÇÒ °Å¸®
+            transform.position,
+            target.position,
+            speed * Time.deltaTime
         );
 
-        // ¦¡¦¡ µµÂø ÆÇÁ¤ ¦¡¦¡
-        // ¸ñÇ¥¿ÍÀÇ °Å¸®°¡ 0.1f ¹Ì¸¸ÀÌ¸é "µµÂø"À¸·Î ÆÇ´Ü
-        // (Á¤È®È÷ 0À» ±â´Ù¸®¸é ºÎµ¿¼Ò¼öÁ¡ ¿ÀÂ÷·Î ¿µ¿øÈ÷ ¸ø µµÂøÇÒ ¼ö ÀÖÀ½)
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
-            waypointIndex++; // ´ÙÀ½ ¿şÀÌÆ÷ÀÎÆ®·Î ¹øÈ£ Áõ°¡
+            waypointIndex++;
 
-            // ¸¶Áö¸· ¿şÀÌÆ÷ÀÎÆ®±îÁö ¸ğµÎ µµÂøÇßÀ¸¸é ¡æ Ã¹ ¹øÂ°·Î µÇµ¹¾Æ°¡ ¹«ÇÑ ¹İº¹
             if (waypointIndex >= pathManager.GetWaypointCount())
             {
                 waypointIndex = 0;
