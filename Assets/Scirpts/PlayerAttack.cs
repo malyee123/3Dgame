@@ -55,6 +55,24 @@ public class PlayerAttack : MonoBehaviour
         AttackWithLockedTarget();
     }
 
+    void AttackWithLockedTarget()
+    {
+        if (!IsTargetInRange(currentTarget))
+        {
+            currentTarget = FindBackmostEnemyInRange();
+        }
+
+        if (currentTarget == null)
+        {
+            return;
+        }
+
+        EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
+        if (health == null)
+        {
+            currentTarget = null;
+            return;
+        }
 
     // ��������������������������������������������������������������������������������������
     // ��Ÿ� �ȿ��� ���� ����� Enemy�� ã�� �����ϴ� �Լ�
@@ -93,19 +111,17 @@ public class PlayerAttack : MonoBehaviour
     {
         EnemyMove[] enemies = FindObjectsOfType<EnemyMove>();
 
-        EnemyMove nearestEnemy = null;
-        float minDistance = Mathf.Infinity;
+        EnemyMove backmostEnemy = null;
+        float smallestProgress = Mathf.Infinity;
+        float fallbackNearestDistance = Mathf.Infinity;
 
         foreach (EnemyMove enemy in enemies)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
-
-            if (distance <= attackRange && distance < minDistance)
+            if (distance > attackRange)
             {
-                minDistance = distance;
-                nearestEnemy = enemy;
+                continue;
             }
-        }
 
         return nearestEnemy;
     }
@@ -121,6 +137,8 @@ public class PlayerAttack : MonoBehaviour
         return Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
     }
 
+        return Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
+    }
 
     void OnDrawGizmosSelected()
     {
