@@ -1,17 +1,12 @@
-// PlayerSpawner.cs
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// V키 입력 시 5x5 스폰 포인트 중 아직 사용되지 않은 위치에 Player를 생성하는 스크립트
-/// 빈 게임오브젝트에 붙여서 사용
-/// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
-    [Header("Player 설정")]
+    [Header("Player Settings")]
     public GameObject playerPrefab;
 
-    [Header("스폰 포인트 설정")]
+    [Header("Spawn Point Settings")]
     public Transform[] spawnPoints;
 
     private List<int> availableIndexes = new List<int>();
@@ -20,13 +15,13 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (spawnPoints == null || spawnPoints.Length == 0)
         {
-            Debug.LogError("[PlayerSpawner] 스폰 포인트가 없습니다! Inspector에서 연결해주세요.");
+            Debug.LogError("[PlayerSpawner] No spawn points found. Assign spawn points in Inspector.");
             return;
         }
 
         if (playerPrefab == null)
         {
-            Debug.LogError("[PlayerSpawner] playerPrefab이 없습니다! Inspector에서 연결해주세요.");
+            Debug.LogError("[PlayerSpawner] playerPrefab is missing. Assign a prefab in Inspector.");
             return;
         }
 
@@ -48,7 +43,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (availableIndexes.Count == 0)
         {
-            Debug.Log("[PlayerSpawner] 모든 스폰 포인트가 가득 찼습니다! (25/25)");
+            Debug.Log("[PlayerSpawner] All spawn points are occupied.");
             return;
         }
 
@@ -65,6 +60,6 @@ public class PlayerSpawner : MonoBehaviour
 
         availableIndexes.RemoveAt(listPos);
 
-        Debug.Log($"[PlayerSpawner] {spawnIndex}번 위치 {spawnPoints[spawnIndex].position}에 Player 생성! 남은 슬롯: {availableIndexes.Count}/25");
+        Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}, position {spawnPoints[spawnIndex].position}. Remaining slots: {availableIndexes.Count}");
     }
 }
