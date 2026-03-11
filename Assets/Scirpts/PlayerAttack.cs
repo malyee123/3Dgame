@@ -7,12 +7,20 @@ public class PlayerAttack : MonoBehaviour
     public float attackDamage = 10f;
     public float attackCooldown = 0.5f;
 
+    [Header("Merge Settings")]
+    [SerializeField] private string unitType = "Default";
+    [SerializeField] private int unitLevel = 1;
+    [SerializeField] private float damageIncreasePerMerge = 1.5f;
+
     [Header("Player Info")]
     public int spawnIndex = -1;
 
     private float cooldownTimer;
     private EnemyMove currentTarget;
     [SerializeField] private Animator anim;
+
+    public string UnitType => unitType;
+    public int UnitLevel => unitLevel;
 
     void Awake()
     {
@@ -45,15 +53,36 @@ public class PlayerAttack : MonoBehaviour
         AttackWithLockedTarget();
     }
 
+    public bool CanMergeWith(PlayerAttack other)
+    {
+        if (other == null || other == this)
+        {
+            return false;
+        }
+
+        return other.UnitType == unitType;
+    }
+
+    public void MergeFrom(PlayerAttack consumedUnit)
+    {
+        if (!CanMergeWith(consumedUnit))
+        {
+            return;
+        }
+
+        unitLevel += 1;
+        attackDamage *= damageIncreasePerMerge;
+        attackRange += 0.2f;
+        Debug.Log($"[Player {spawnIndex}] Merged with same type. New level: {unitLevel}, damage: {attackDamage}");
+    }
+
     void AttackWithLockedTarget()
     {
-        // 1. 타겟이 범위 밖이면 새로 찾기
         if (!IsTargetInRange(currentTarget))
         {
             currentTarget = FindBackmostEnemyInRange();
         }
 
-        // 2. 타겟이 없으면 여기서 중단 (쿨타임 리셋 하지 않음)
         if (currentTarget == null)
         {
             return;
@@ -66,23 +95,16 @@ public class PlayerAttack : MonoBehaviour
             return;
         }
 
-        // --- [중요] 실제 공격이 일어나는 지점 ---
-
-        // 1. 데미지 입히기
         health.TakeDamage(attackDamage);
         cooldownTimer = 0f;
 
-        // 2. 애니메이터 확인 및 강제 재생
         if (anim != null)
         {
-            // 트리거 대신 애니메이션 이름을 직접 불러서 강제 재생합니다.
-            // 세 번째 인자 0f는 애니메이션의 처음부터 재생하라는 뜻입니다.
             anim.SetTrigger("2_Attack");
             Debug.Log("애니메이션 실행됨!");
         }
         else
         {
-            // 만약 애니메이터를 못 찾았다면 콘솔에 에러를 띄웁니다.
             Debug.LogError("Player 자식에게서 Animator를 찾을 수 없습니다!");
         }
     }

@@ -3,13 +3,25 @@ using System.Collections.Generic;
 
 public class PlayerSpawner : MonoBehaviour
 {
+    public static PlayerSpawner Instance { get; private set; }
+
     [Header("Player Settings")]
     public GameObject playerPrefab;
 
     [Header("Spawn Point Settings")]
     public Transform[] spawnPoints;
 
-    private List<int> availableIndexes = new List<int>();
+    private readonly List<int> availableIndexes = new List<int>();
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[PlayerSpawner] Duplicate instance found. Replacing previous instance.");
+        }
+
+        Instance = this;
+    }
 
     void Start()
     {
@@ -58,8 +70,31 @@ public class PlayerSpawner : MonoBehaviour
             playerAttack.spawnIndex = spawnIndex;
         }
 
+        PlayerDragMerge dragMerge = obj.GetComponent<PlayerDragMerge>();
+        if (dragMerge == null)
+        {
+            dragMerge = obj.AddComponent<PlayerDragMerge>();
+        }
+
+        dragMerge.SetSpawnIndex(spawnIndex);
+
         availableIndexes.RemoveAt(listPos);
 
         Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}, position {spawnPoints[spawnIndex].position}. Remaining slots: {availableIndexes.Count}");
+    }
+
+    public void RegisterFreedSlot(int spawnIndex)
+    {
+        if (spawnIndex < 0)
+        {
+            return;
+        }
+
+        if (availableIndexes.Contains(spawnIndex))
+        {
+            return;
+        }
+
+        availableIndexes.Add(spawnIndex);
     }
 }
