@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -112,12 +113,14 @@ public class PlayerSpawner : MonoBehaviour
         if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
         int currentTier = -1;
+        string mergeGroupKey = "";
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
             if (baseData == null) continue;
 
             currentTier = Mathf.Max(1, baseData.tier);
+            mergeGroupKey = GetMergeGroupKey(baseData);
             break;
         }
 
@@ -133,6 +136,7 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterData data = characterDataList[i];
                 if (data == null) continue;
                 if (Mathf.Max(1, data.tier) != targetTier) continue;
+                if (GetMergeGroupKey(data) != mergeGroupKey) continue;
 
                 candidates.Add(data);
             }
@@ -146,18 +150,20 @@ public class PlayerSpawner : MonoBehaviour
 
  
 
-    public bool CanManualMerge(int spawnIndex, string unitTag)
+    public bool CanManualMerge(int spawnIndex, string unitTag, CharacterData selectedData)
     {
         SyncSlotStateFromScene();
-        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag);
+        int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
+        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
         return sameTagUnits.Count >= maxUnitsPerSlot;
     }
 
-    public bool TryManualMerge(int spawnIndex, string unitTag)
+    public bool TryManualMerge(int spawnIndex, string unitTag, CharacterData selectedData)
     {
         SyncSlotStateFromScene();
 
-        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag);
+        int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
+        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
         if (sameTagUnits.Count < maxUnitsPerSlot)
             return false;
 
@@ -185,7 +191,7 @@ public class PlayerSpawner : MonoBehaviour
     }
 
 
-    List<PlayerAttack> GetUnitsInSlot(int spawnIndex, string unitTag)
+    List<PlayerAttack> GetUnitsInSlot(int spawnIndex, string unitTag, int requiredTier = -1)
     {
         List<PlayerAttack> result = new List<PlayerAttack>();
 
@@ -200,6 +206,13 @@ public class PlayerSpawner : MonoBehaviour
                 : GetUnitTag(player.characterData);
 
             if (playerTag != unitTag) continue;
+
+            if (requiredTier > 0)
+            {
+                int playerTier = player.characterData != null ? Mathf.Max(1, player.characterData.tier) : -1;
+                if (playerTier != requiredTier) continue;
+            }
+
             result.Add(player);
         }
 
@@ -341,5 +354,14 @@ public class PlayerSpawner : MonoBehaviour
             return characterData.unitTag.Trim();
 
         return characterData.characterName;
+    }
+
+    string GetMergeGroupKey(CharacterData characterData)
+    {
+        string rawTag = GetUnitTag(characterData);
+        if (string.IsNullOrWhiteSpace(rawTag))
+            return "";
+
+        return Regex.Replace(rawTag.Trim(), @"^(?i:tier)\d+[_-]?", "");
     }
 }
