@@ -64,6 +64,15 @@ public class PlayerAttack : MonoBehaviour
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
 
+        for (int i = transform.childCount - 1; i >= 0; i--)
+            Destroy(transform.GetChild(i).gameObject);
+
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, transform);
+            visual.transform.localPosition = Vector3.zero;
+        }
+
         cooldownTimer = characterData.attackCooldown;
 
     }

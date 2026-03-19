@@ -48,7 +48,7 @@ public class MergeManager : MonoBehaviour
         bool canMerge = false;
 
         if (selectedUnit != null && PlayerSpawner.Instance != null)
-            canMerge = PlayerSpawner.Instance.CanManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag);
+            canMerge = PlayerSpawner.Instance.CanManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
 
         if (mergeButton != null)
             mergeButton.interactable = canMerge;
@@ -67,7 +67,7 @@ public class MergeManager : MonoBehaviour
     {
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
 
-        bool merged = PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag);
+        bool merged = PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
         if (merged)
         {
             selectedUnit = null;
