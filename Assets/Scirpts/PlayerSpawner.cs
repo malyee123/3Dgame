@@ -43,6 +43,8 @@ public class PlayerSpawner : MonoBehaviour
     public void TrySpawnPlayer()
     {
 
+        
+
         if (slotOccupancy == null || slotOccupancy.Length == 0)
         {
             Debug.LogError("[PlayerSpawner] Slots are not initialized.");
@@ -98,6 +100,7 @@ public class PlayerSpawner : MonoBehaviour
 
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
+
         }
 
         slotOccupancy[spawnIndex]++;
@@ -105,6 +108,8 @@ public class PlayerSpawner : MonoBehaviour
 
         Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
 
+
+       
 
     }
 
@@ -194,6 +199,7 @@ public class PlayerSpawner : MonoBehaviour
         }
 
         return result;
+
     }
 
     public void RegisterFreedSlot(int spawnIndex)

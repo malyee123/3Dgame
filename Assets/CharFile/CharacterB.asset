@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: CharacterB
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: CharLevel2
-  characterPrefab: {fileID: 5636758013200641154, guid: dba443a66548243fe806dd91db6511af, type: 3}
-  unitTag: 
-  characterColor: {r: 1, g: 1, b: 1, a: 1}
+  characterPrefab: {fileID: 0}
   attackRange: 3
   attackDamage: 15
   attackCooldown: 0.7

@@ -14,6 +14,7 @@ public class CharacterData : ScriptableObject
     public string unitTag = "";
     public Color characterColor = Color.white;
 
+
     [Header("Attack Stats")]
     public float attackRange = 3f;
     public float attackDamage = 10f;
