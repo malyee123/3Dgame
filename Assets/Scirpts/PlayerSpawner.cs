@@ -16,10 +16,12 @@ public class PlayerSpawner : MonoBehaviour
 
     [Header("Stack Settings")]
     [SerializeField] private int maxUnitsPerSlot = 3;
-    [SerializeField] private float stackOffsetY = 0.25f;
+    [SerializeField] private float triangleOffsetX = 0.28f;
+    [SerializeField] private float triangleOffsetY = 0.22f;
 
     private int[] slotOccupancy;
-    private readonly Dictionary<string, int> tagToSlotIndex = new Dictionary<string, int>();
+    private string[] slotTagOwners;
+    private readonly Dictionary<string, List<int>> tagToSlots = new Dictionary<string, List<int>>();
 
     void Awake()
     {
@@ -35,6 +37,7 @@ public class PlayerSpawner : MonoBehaviour
         if (characterDataList == null || characterDataList.Length == 0) { Debug.LogError("[PlayerSpawner] CharacterData list is empty!"); return; }
 
         slotOccupancy = new int[spawnPoints.Length];
+        slotTagOwners = new string[spawnPoints.Length];
     }
 
     public void TrySpawnPlayer()
@@ -55,7 +58,7 @@ public class PlayerSpawner : MonoBehaviour
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex))
         {
-            Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. No slot available (or assigned slot is full).");
+            Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. All allowed slots are full.");
             return;
         }
 
@@ -71,7 +74,7 @@ public class PlayerSpawner : MonoBehaviour
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
     {
         int stackIndex = slotOccupancy[spawnIndex];
-        Vector3 spawnPosition = spawnPoints[spawnIndex].position + new Vector3(0f, stackOffsetY * stackIndex, 0f);
+        Vector3 spawnPosition = spawnPoints[spawnIndex].position + GetTriangleOffset(stackIndex);
 
         GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
@@ -88,20 +91,30 @@ public class PlayerSpawner : MonoBehaviour
         dragMerge.SetSpawnIndex(spawnIndex);
 
         slotOccupancy[spawnIndex]++;
+        slotTagOwners[spawnIndex] = unitTag;
 
         Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
     }
 
     public void RegisterFreedSlot(int spawnIndex)
     {
-        if (slotOccupancy == null) return;
+        if (slotOccupancy == null || slotTagOwners == null) return;
         if (spawnIndex < 0 || spawnIndex >= slotOccupancy.Length) return;
         if (slotOccupancy[spawnIndex] <= 0) return;
 
         slotOccupancy[spawnIndex]--;
 
-        if (slotOccupancy[spawnIndex] == 0)
-            RemoveTagMappingForSlot(spawnIndex);
+        if (slotOccupancy[spawnIndex] > 0) return;
+
+        string tag = slotTagOwners[spawnIndex];
+        slotTagOwners[spawnIndex] = null;
+
+        if (string.IsNullOrWhiteSpace(tag)) return;
+        if (!tagToSlots.TryGetValue(tag, out List<int> slots)) return;
+
+        slots.Remove(spawnIndex);
+        if (slots.Count == 0)
+            tagToSlots.Remove(tag);
     }
 
     CharacterData GetRandomCharacterData()
@@ -113,15 +126,29 @@ public class PlayerSpawner : MonoBehaviour
 
     bool TryGetSpawnSlot(string unitTag, out int slotIndex)
     {
-        if (tagToSlotIndex.TryGetValue(unitTag, out slotIndex))
-            return slotOccupancy[slotIndex] < maxUnitsPerSlot;
+        if (!tagToSlots.TryGetValue(unitTag, out List<int> slots))
+        {
+            slots = new List<int>();
+            tagToSlots[unitTag] = slots;
+        }
+
+        for (int i = 0; i < slots.Count; i++)
+        {
+            int existingSlot = slots[i];
+            if (slotOccupancy[existingSlot] < maxUnitsPerSlot)
+            {
+                slotIndex = existingSlot;
+                return true;
+            }
+        }
 
         for (int i = 0; i < slotOccupancy.Length; i++)
         {
             if (slotOccupancy[i] > 0) continue;
 
+            slotTagOwners[i] = unitTag;
+            slots.Add(i);
             slotIndex = i;
-            tagToSlotIndex[unitTag] = i;
             return true;
         }
 
@@ -129,19 +156,18 @@ public class PlayerSpawner : MonoBehaviour
         return false;
     }
 
-    void RemoveTagMappingForSlot(int slotIndex)
+    Vector3 GetTriangleOffset(int stackIndex)
     {
-        string keyToRemove = null;
+        if (stackIndex <= 0)
+            return Vector3.up * triangleOffsetY;
 
-        foreach (KeyValuePair<string, int> pair in tagToSlotIndex)
-        {
-            if (pair.Value != slotIndex) continue;
-            keyToRemove = pair.Key;
-            break;
-        }
+        if (stackIndex == 1)
+            return new Vector3(-triangleOffsetX, -triangleOffsetY, 0f);
 
-        if (keyToRemove != null)
-            tagToSlotIndex.Remove(keyToRemove);
+        if (stackIndex == 2)
+            return new Vector3(triangleOffsetX, -triangleOffsetY, 0f);
+
+        return Vector3.zero;
     }
 
     string GetUnitTag(CharacterData characterData)
