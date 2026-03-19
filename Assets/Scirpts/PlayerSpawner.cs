@@ -111,17 +111,19 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
-        int targetTierDepth = -1;
+        int currentTier = -1;
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
-            if (baseData == null || baseData.nextLevel == null) continue;
+            if (baseData == null) continue;
 
-            targetTierDepth = GetTierDepth(baseData.nextLevel);
+            currentTier = Mathf.Max(1, baseData.tier);
             break;
         }
 
-        if (targetTierDepth < 0) return null;
+        if (currentTier < 0) return null;
+
+        int targetTier = currentTier + 1;
 
         List<CharacterData> candidates = new List<CharacterData>();
         if (characterDataList != null)
@@ -130,21 +132,9 @@ public class PlayerSpawner : MonoBehaviour
             {
                 CharacterData data = characterDataList[i];
                 if (data == null) continue;
-                if (GetTierDepth(data) != targetTierDepth) continue;
+                if (Mathf.Max(1, data.tier) != targetTier) continue;
 
                 candidates.Add(data);
-            }
-        }
-
-        // characterDataList 구성이 미완성인 경우를 위한 안전장치:
-        // 기존처럼 각 유닛의 nextLevel 포인터를 후보에 넣는다.
-        if (candidates.Count == 0)
-        {
-            for (int i = 0; i < unitsInSlot.Count; i++)
-            {
-                CharacterData baseData = unitsInSlot[i].characterData;
-                if (baseData == null || baseData.nextLevel == null) continue;
-                candidates.Add(baseData.nextLevel);
             }
         }
 

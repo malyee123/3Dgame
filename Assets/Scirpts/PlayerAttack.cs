@@ -38,7 +38,6 @@ public class PlayerAttack : MonoBehaviour
     public bool TryMerge(PlayerAttack consumedUnit)
     {
         if (!CanMergeWith(consumedUnit)) return false;
-        if (characterData.nextLevel == null) { Debug.Log($"[Player {spawnIndex}] Already at max level."); return false; }
 
         mergeCount++;
         Debug.Log($"[Player {spawnIndex}] Merge progress: {mergeCount}/2");
@@ -51,27 +50,7 @@ public class PlayerAttack : MonoBehaviour
 
     public void ForceUpgrade()
     {
-        if (characterData.nextLevel == null) return;
-
-        mergeCount = 0;
-
-        characterData = characterData.nextLevel;
-        cooldownTimer = characterData.attackCooldown;
-
-
-        foreach (Transform child in transform)
-            Destroy(child.gameObject);
-
-        if (characterData.characterPrefab != null)
-        {
-            GameObject visual = Instantiate(characterData.characterPrefab, transform);
-            visual.transform.localPosition = Vector3.zero;
-        }
-
-        Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
-
-        ApplyCharacterData(characterData.nextLevel);
-        Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
+        Debug.LogWarning($"[Player {spawnIndex}] ForceUpgrade() is deprecated. Use PlayerSpawner merge flow.");
     }
 
 
