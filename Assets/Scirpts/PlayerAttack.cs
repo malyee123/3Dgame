@@ -2,117 +2,90 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("Attack Settings")]
-    public float attackRange = 3f;
-    public float attackDamage = 10f;
-    public float attackCooldown = 0.5f;
-
-    [Header("Merge Settings")]
-    [SerializeField] private string unitType = "Default";
-    [SerializeField] private int unitLevel = 1;
-    [SerializeField] private float damageIncreasePerMerge = 1.5f;
+    [Header("Character Data")]
+    public CharacterData characterData;
 
     [Header("Player Info")]
     public int spawnIndex = -1;
 
     private float cooldownTimer;
     private EnemyMove currentTarget;
-    [SerializeField] private Animator anim;
+    private int mergeCount = 0;
 
-    public string UnitType => unitType;
-    public int UnitLevel => unitLevel;
-
-    void Awake()
-    {
-        if (anim == null)
-        {
-            anim = GetComponentInChildren<Animator>();
-        }
-    }
+    public string UnitType => characterData != null ? characterData.characterName : "";
+    public int MergeCount => mergeCount;
 
     void Start()
     {
-        cooldownTimer = attackCooldown;
-        Debug.Log($"[Player {spawnIndex}] Spawned at {transform.position}");
+        if (characterData == null) { Debug.LogError($"[Player {spawnIndex}] CharacterData is missing!"); enabled = false; return; }
 
-        if (anim == null)
-        {
-            Debug.LogWarning($"[Player {spawnIndex}] Animator reference is missing. Attack animation will not play.");
-        }
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.color = characterData.characterColor;
+
+        cooldownTimer = characterData.attackCooldown;
     }
 
     void Update()
     {
         cooldownTimer += Time.deltaTime;
-
-        if (cooldownTimer < attackCooldown)
-        {
-            return;
-        }
-
+        if (cooldownTimer < characterData.attackCooldown) return;
         AttackWithLockedTarget();
     }
 
     public bool CanMergeWith(PlayerAttack other)
     {
-        if (other == null || other == this)
-        {
-            return false;
-        }
-
-        return other.UnitType == unitType;
+        if (other == null || other == this) return false;
+        return other.characterData == characterData;
     }
 
-    public void MergeFrom(PlayerAttack consumedUnit)
+    public bool TryMerge(PlayerAttack consumedUnit)
     {
-        if (!CanMergeWith(consumedUnit))
-        {
-            return;
-        }
+        if (!CanMergeWith(consumedUnit)) return false;
+        if (characterData.nextLevel == null) { Debug.Log($"[Player {spawnIndex}] Already at max level."); return false; }
 
-        unitLevel += 1;
-        attackDamage *= damageIncreasePerMerge;
-        attackRange += 0.2f;
-        Debug.Log($"[Player {spawnIndex}] Merged with same type. New level: {unitLevel}, damage: {attackDamage}");
+        mergeCount++;
+        Debug.Log($"[Player {spawnIndex}] Merge progress: {mergeCount}/2");
+
+
+        if (MergeManager.Instance != null)
+            MergeManager.Instance.CheckMergeAvailable();
+
+        return false;
+    }
+
+
+    
+    public void ForceUpgrade()
+    {
+        if (characterData.nextLevel == null) return;
+
+        mergeCount = 0;
+        characterData = characterData.nextLevel;
+
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.color = characterData.characterColor;
+
+        cooldownTimer = characterData.attackCooldown;
+        Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
     }
 
     void AttackWithLockedTarget()
     {
         if (!IsTargetInRange(currentTarget))
-        {
             currentTarget = FindBackmostEnemyInRange();
-        }
 
-        if (currentTarget == null)
-        {
-            return;
-        }
+        if (currentTarget == null) return;
 
         EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
-        if (health == null)
-        {
-            currentTarget = null;
-            return;
-        }
+        if (health == null) { currentTarget = null; return; }
 
-        health.TakeDamage(attackDamage);
+        health.TakeDamage(characterData.attackDamage);
         cooldownTimer = 0f;
-
-        if (anim != null)
-        {
-            anim.SetTrigger("2_Attack");
-            Debug.Log("애니메이션 실행됨!");
-        }
-        else
-        {
-            Debug.LogError("Player 자식에게서 Animator를 찾을 수 없습니다!");
-        }
     }
 
     EnemyMove FindBackmostEnemyInRange()
     {
         EnemyMove[] enemies = FindObjectsOfType<EnemyMove>();
-
         EnemyMove backmostEnemy = null;
         float smallestProgress = Mathf.Infinity;
         float fallbackNearestDistance = Mathf.Infinity;
@@ -120,13 +93,9 @@ public class PlayerAttack : MonoBehaviour
         foreach (EnemyMove enemy in enemies)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
-            if (distance > attackRange)
-            {
-                continue;
-            }
+            if (distance > characterData.attackRange) continue;
 
             float progress = enemy.GetPathProgress();
-
             if (progress < smallestProgress)
             {
                 smallestProgress = progress;
@@ -145,17 +114,14 @@ public class PlayerAttack : MonoBehaviour
 
     bool IsTargetInRange(EnemyMove enemy)
     {
-        if (enemy == null)
-        {
-            return false;
-        }
-
-        return Vector2.Distance(transform.position, enemy.transform.position) <= attackRange;
+        if (enemy == null) return false;
+        return Vector2.Distance(transform.position, enemy.transform.position) <= characterData.attackRange;
     }
 
     void OnDrawGizmosSelected()
     {
+        if (characterData == null) return;
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
+        Gizmos.DrawWireSphere(transform.position, characterData.attackRange);
     }
 }

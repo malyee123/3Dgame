@@ -56,23 +56,34 @@ public class PlayerDragMerge : MonoBehaviour
 
     void OnMouseUp()
     {
-        if (!isDragging)
-        {
-            return;
-        }
-
+        if (!isDragging) return;
         isDragging = false;
 
         PlayerAttack target = FindMergeTarget();
+
         if (target != null)
         {
-            target.MergeFrom(playerAttack);
-            if (PlayerSpawner.Instance != null)
-            {
-                PlayerSpawner.Instance.RegisterFreedSlot(spawnIndex);
-            }
+            bool upgraded = target.TryMerge(playerAttack);
 
-            Destroy(gameObject);
+            if (upgraded)
+            {
+                if (PlayerSpawner.Instance != null)
+                    PlayerSpawner.Instance.RegisterFreedSlot(spawnIndex);
+                Destroy(gameObject);
+            }
+            else
+            {
+                if (target.CanMergeWith(playerAttack))
+                {
+                    if (PlayerSpawner.Instance != null)
+                        PlayerSpawner.Instance.RegisterFreedSlot(spawnIndex);
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    transform.position = originalPosition;
+                }
+            }
             return;
         }
 

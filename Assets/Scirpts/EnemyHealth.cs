@@ -53,7 +53,13 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
+        if (GameManager.Instance != null)
+            GameManager.Instance.OnEnemyDied();
+
+        if (CoinManager.Instance != null)
+            CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
+
         Debug.Log($"[EnemyHealth] {gameObject.name} died.");
         Destroy(gameObject);
-    }
+    }   
 }

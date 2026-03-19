@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1852695698818669310}
   - component: {fileID: 6607714933550058715}
   - component: {fileID: 8546955785721934693}
+  - component: {fileID: -3219735247582405715}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -143,11 +144,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee1fe6a6f3eaa614e9c3135ed5a5508c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  attackRange: 3
-  attackDamage: 10
-  attackCooldown: 0.5
+  characterData: {fileID: 0}
   spawnIndex: -1
-  anim: {fileID: 2157096343514747461}
+--- !u!114 &-3219735247582405715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2923575799461683693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28918db36de845898209c1256e79078c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDragMerge
 --- !u!1001 &777739371512929870
 PrefabInstance:
   m_ObjectHideFlags: 0

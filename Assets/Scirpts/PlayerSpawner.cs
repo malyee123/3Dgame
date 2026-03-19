@@ -8,6 +8,9 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Player Settings")]
     public GameObject playerPrefab;
 
+    [Header("Character Data List")]
+    public CharacterData[] characterDataList;
+
     [Header("Spawn Point Settings")]
     public Transform[] spawnPoints;
 
@@ -16,49 +19,40 @@ public class PlayerSpawner : MonoBehaviour
     void Awake()
     {
         if (Instance != null && Instance != this)
-        {
-            Debug.LogWarning("[PlayerSpawner] Duplicate instance found. Replacing previous instance.");
-        }
-
+            Debug.LogWarning("[PlayerSpawner] Duplicate instance found!");
         Instance = this;
     }
 
     void Start()
     {
-        if (spawnPoints == null || spawnPoints.Length == 0)
-        {
-            Debug.LogError("[PlayerSpawner] No spawn points found. Assign spawn points in Inspector.");
-            return;
-        }
-
-        if (playerPrefab == null)
-        {
-            Debug.LogError("[PlayerSpawner] playerPrefab is missing. Assign a prefab in Inspector.");
-            return;
-        }
+        if (spawnPoints == null || spawnPoints.Length == 0) { Debug.LogError("[PlayerSpawner] No spawn points assigned!"); return; }
+        if (playerPrefab == null) { Debug.LogError("[PlayerSpawner] playerPrefab is missing!"); return; }
+        if (characterDataList == null || characterDataList.Length == 0) { Debug.LogError("[PlayerSpawner] CharacterData list is empty!"); return; }
 
         for (int i = 0; i < spawnPoints.Length; i++)
-        {
             availableIndexes.Add(i);
-        }
     }
 
-    void Update()
+
+    public void TrySpawnPlayer()
     {
-        if (Input.GetKeyDown(KeyCode.V))
+        if (availableIndexes.Count == 0)
         {
-            SpawnPlayer();
+            Debug.Log("[PlayerSpawner] All spawn points are occupied!");
+            return;
         }
+
+        if (CoinManager.Instance != null)
+        {
+            bool success = CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost);
+            if (!success) return;
+        }
+
+        SpawnPlayer();
     }
 
     void SpawnPlayer()
     {
-        if (availableIndexes.Count == 0)
-        {
-            Debug.Log("[PlayerSpawner] All spawn points are occupied.");
-            return;
-        }
-
         int listPos = Random.Range(0, availableIndexes.Count);
         int spawnIndex = availableIndexes[listPos];
 
@@ -68,33 +62,22 @@ public class PlayerSpawner : MonoBehaviour
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
+            playerAttack.characterData = characterDataList[0];
         }
 
         PlayerDragMerge dragMerge = obj.GetComponent<PlayerDragMerge>();
-        if (dragMerge == null)
-        {
-            dragMerge = obj.AddComponent<PlayerDragMerge>();
-        }
-
+        if (dragMerge == null) dragMerge = obj.AddComponent<PlayerDragMerge>();
         dragMerge.SetSpawnIndex(spawnIndex);
 
         availableIndexes.RemoveAt(listPos);
 
-        Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}, position {spawnPoints[spawnIndex].position}. Remaining slots: {availableIndexes.Count}");
+        Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}. Remaining slots: {availableIndexes.Count}");
     }
 
     public void RegisterFreedSlot(int spawnIndex)
     {
-        if (spawnIndex < 0)
-        {
-            return;
-        }
-
-        if (availableIndexes.Contains(spawnIndex))
-        {
-            return;
-        }
-
+        if (spawnIndex < 0) return;
+        if (availableIndexes.Contains(spawnIndex)) return;
         availableIndexes.Add(spawnIndex);
     }
 }

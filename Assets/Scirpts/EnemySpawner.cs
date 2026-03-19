@@ -61,7 +61,8 @@ public class EnemySpawner : MonoBehaviour
         {
             Debug.LogWarning("[EnemySpawner] Spawned enemy is missing EnemyMove component.");
         }
-
+        if (GameManager.Instance != null)
+            GameManager.Instance.OnEnemySpawned();
         spawnCount++;
     }
 }
