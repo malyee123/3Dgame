@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -123,7 +124,7 @@ public class PlayerSpawner : MonoBehaviour
             break;
         }
 
-        if (currentTier < 0) return null;
+        if (currentTier < 0 || string.IsNullOrWhiteSpace(mergeGroupId)) return null;
 
         int targetTier = currentTier + 1;
 
