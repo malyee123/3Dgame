@@ -109,22 +109,42 @@ public class PlayerSpawner : MonoBehaviour
 
     CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
     {
-        List<CharacterData> candidates = new List<CharacterData>();
+        if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
+        int targetTierDepth = -1;
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
             if (baseData == null || baseData.nextLevel == null) continue;
-            candidates.Add(baseData.nextLevel);
+
+            targetTierDepth = GetTierDepth(baseData.nextLevel);
+            break;
         }
 
-        if (candidates.Count == 0 && characterDataList != null)
+        if (targetTierDepth < 0) return null;
+
+        List<CharacterData> candidates = new List<CharacterData>();
+        if (characterDataList != null)
         {
             for (int i = 0; i < characterDataList.Length; i++)
             {
                 CharacterData data = characterDataList[i];
-                if (data == null || data.nextLevel == null) continue;
-                candidates.Add(data.nextLevel);
+                if (data == null) continue;
+                if (GetTierDepth(data) != targetTierDepth) continue;
+
+                candidates.Add(data);
+            }
+        }
+
+        // characterDataList 구성이 미완성인 경우를 위한 안전장치:
+        // 기존처럼 각 유닛의 nextLevel 포인터를 후보에 넣는다.
+        if (candidates.Count == 0)
+        {
+            for (int i = 0; i < unitsInSlot.Count; i++)
+            {
+                CharacterData baseData = unitsInSlot[i].characterData;
+                if (baseData == null || baseData.nextLevel == null) continue;
+                candidates.Add(baseData.nextLevel);
             }
         }
 
@@ -132,6 +152,28 @@ public class PlayerSpawner : MonoBehaviour
 
         int randomIndex = Random.Range(0, candidates.Count);
         return candidates[randomIndex];
+    }
+
+    int GetTierDepth(CharacterData data)
+    {
+        int depth = 0;
+        CharacterData cursor = data;
+        int guard = 0;
+
+        while (cursor != null && cursor.nextLevel != null)
+        {
+            depth++;
+            cursor = cursor.nextLevel;
+            guard++;
+
+            if (guard > 32)
+            {
+                Debug.LogWarning("[PlayerSpawner] Detected possible nextLevel cycle while calculating tier depth.");
+                break;
+            }
+        }
+
+        return depth;
     }
 
 
