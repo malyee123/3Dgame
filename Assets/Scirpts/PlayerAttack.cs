@@ -7,6 +7,7 @@ public class PlayerAttack : MonoBehaviour
 
     [Header("Player Info")]
     public int spawnIndex = -1;
+    public string unitTag = "";
 
     private float cooldownTimer;
     private EnemyMove currentTarget;

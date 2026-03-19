@@ -14,7 +14,14 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Spawn Point Settings")]
     public Transform[] spawnPoints;
 
-    private readonly List<int> availableIndexes = new List<int>();
+    [Header("Stack Settings")]
+    [SerializeField] private int maxUnitsPerSlot = 3;
+    [SerializeField] private float triangleOffsetX = 0.28f;
+    [SerializeField] private float triangleOffsetY = 0.22f;
+
+    private int[] slotOccupancy;
+    private string[] slotTagOwners;
+    private readonly Dictionary<string, List<int>> tagToSlots = new Dictionary<string, List<int>>();
 
     void Awake()
     {
@@ -29,16 +36,31 @@ public class PlayerSpawner : MonoBehaviour
         if (playerPrefab == null) { Debug.LogError("[PlayerSpawner] playerPrefab is missing!"); return; }
         if (characterDataList == null || characterDataList.Length == 0) { Debug.LogError("[PlayerSpawner] CharacterData list is empty!"); return; }
 
-        for (int i = 0; i < spawnPoints.Length; i++)
-            availableIndexes.Add(i);
+        slotOccupancy = new int[spawnPoints.Length];
+        slotTagOwners = new string[spawnPoints.Length];
     }
-
 
     public void TrySpawnPlayer()
     {
-        if (availableIndexes.Count == 0)
+        if (slotOccupancy == null || slotOccupancy.Length == 0)
         {
-            Debug.Log("[PlayerSpawner] All spawn points are occupied!");
+            Debug.LogError("[PlayerSpawner] Slots are not initialized.");
+            return;
+        }
+
+        SyncSlotStateFromScene();
+
+        CharacterData selectedData = GetRandomCharacterData();
+        if (selectedData == null)
+        {
+            Debug.LogWarning("[PlayerSpawner] No valid CharacterData could be selected.");
+            return;
+        }
+
+        string unitTag = GetUnitTag(selectedData);
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex))
+        {
+            Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. All allowed slots are full.");
             return;
         }
 
@@ -48,36 +70,154 @@ public class PlayerSpawner : MonoBehaviour
             if (!success) return;
         }
 
-        SpawnPlayer();
+        SpawnPlayer(spawnIndex, selectedData, unitTag);
     }
 
-    void SpawnPlayer()
+    void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
     {
-        int listPos = Random.Range(0, availableIndexes.Count);
-        int spawnIndex = availableIndexes[listPos];
+        int stackIndex = slotOccupancy[spawnIndex];
+        Vector3 spawnPosition = spawnPoints[spawnIndex].position + GetTriangleOffset(stackIndex);
 
-        GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position, Quaternion.identity);
+        GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-            playerAttack.characterData = characterDataList[0];
+            playerAttack.characterData = characterData;
+            playerAttack.unitTag = unitTag;
         }
 
         PlayerDragMerge dragMerge = obj.GetComponent<PlayerDragMerge>();
         if (dragMerge == null) dragMerge = obj.AddComponent<PlayerDragMerge>();
         dragMerge.SetSpawnIndex(spawnIndex);
 
-        availableIndexes.RemoveAt(listPos);
+        slotOccupancy[spawnIndex]++;
+        slotTagOwners[spawnIndex] = unitTag;
 
-        Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}. Remaining slots: {availableIndexes.Count}");
+        Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
     }
 
     public void RegisterFreedSlot(int spawnIndex)
     {
-        if (spawnIndex < 0) return;
-        if (availableIndexes.Contains(spawnIndex)) return;
-        availableIndexes.Add(spawnIndex);
+        if (slotOccupancy == null || slotTagOwners == null) return;
+        if (spawnIndex < 0 || spawnIndex >= slotOccupancy.Length) return;
+        if (slotOccupancy[spawnIndex] <= 0) return;
+
+        slotOccupancy[spawnIndex]--;
+
+        if (slotOccupancy[spawnIndex] > 0) return;
+
+        string tag = slotTagOwners[spawnIndex];
+        slotTagOwners[spawnIndex] = null;
+
+        if (string.IsNullOrWhiteSpace(tag)) return;
+        if (!tagToSlots.TryGetValue(tag, out List<int> slots)) return;
+
+        slots.Remove(spawnIndex);
+        if (slots.Count == 0)
+            tagToSlots.Remove(tag);
+    }
+
+
+    void SyncSlotStateFromScene()
+    {
+        for (int i = 0; i < slotOccupancy.Length; i++)
+        {
+            slotOccupancy[i] = 0;
+            slotTagOwners[i] = null;
+        }
+
+        tagToSlots.Clear();
+
+        PlayerAttack[] players = FindObjectsOfType<PlayerAttack>();
+        foreach (PlayerAttack player in players)
+        {
+            if (player == null) continue;
+
+            int index = player.spawnIndex;
+            if (index < 0 || index >= slotOccupancy.Length) continue;
+
+            string tag = !string.IsNullOrWhiteSpace(player.unitTag)
+                ? player.unitTag.Trim()
+                : GetUnitTag(player.characterData);
+
+            if (string.IsNullOrWhiteSpace(tag)) continue;
+
+            slotOccupancy[index]++;
+            slotTagOwners[index] = tag;
+
+            if (!tagToSlots.TryGetValue(tag, out List<int> slots))
+            {
+                slots = new List<int>();
+                tagToSlots[tag] = slots;
+            }
+
+            if (!slots.Contains(index))
+                slots.Add(index);
+        }
+    }
+
+    CharacterData GetRandomCharacterData()
+    {
+        if (characterDataList == null || characterDataList.Length == 0) return null;
+        int randomIndex = Random.Range(0, characterDataList.Length);
+        return characterDataList[randomIndex];
+    }
+
+    bool TryGetSpawnSlot(string unitTag, out int slotIndex)
+    {
+        if (!tagToSlots.TryGetValue(unitTag, out List<int> slots))
+        {
+            slots = new List<int>();
+            tagToSlots[unitTag] = slots;
+        }
+
+        for (int i = 0; i < slots.Count; i++)
+        {
+            int existingSlot = slots[i];
+            if (slotOccupancy[existingSlot] < maxUnitsPerSlot)
+            {
+                slotIndex = existingSlot;
+                return true;
+            }
+        }
+
+        for (int i = 0; i < slotOccupancy.Length; i++)
+        {
+            if (slotOccupancy[i] > 0) continue;
+
+            slotTagOwners[i] = unitTag;
+            slots.Add(i);
+            slotIndex = i;
+            return true;
+        }
+
+        slotIndex = -1;
+        return false;
+    }
+
+    Vector3 GetTriangleOffset(int stackIndex)
+    {
+        if (stackIndex <= 0)
+            return Vector3.up * triangleOffsetY;
+
+        if (stackIndex == 1)
+            return new Vector3(-triangleOffsetX, -triangleOffsetY, 0f);
+
+        if (stackIndex == 2)
+            return new Vector3(triangleOffsetX, -triangleOffsetY, 0f);
+
+        return Vector3.zero;
+    }
+
+    string GetUnitTag(CharacterData characterData)
+    {
+        if (characterData == null) return "Unknown";
+
+        if (!string.IsNullOrWhiteSpace(characterData.unitTag))
+            return characterData.unitTag.Trim();
+
+        return characterData.characterName;
     }
 }

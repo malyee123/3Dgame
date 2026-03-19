@@ -5,6 +5,7 @@ public class CharacterData : ScriptableObject
 {
     [Header("Basic Info")]
     public string characterName = "New Character";
+    public string unitTag = "";
     public Color characterColor = Color.white;
 
     [Header("Attack Stats")]
