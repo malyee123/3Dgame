@@ -48,6 +48,8 @@ public class PlayerSpawner : MonoBehaviour
             return;
         }
 
+        SyncSlotStateFromScene();
+
         CharacterData selectedData = GetRandomCharacterData();
         if (selectedData == null)
         {
@@ -115,6 +117,45 @@ public class PlayerSpawner : MonoBehaviour
         slots.Remove(spawnIndex);
         if (slots.Count == 0)
             tagToSlots.Remove(tag);
+    }
+
+
+    void SyncSlotStateFromScene()
+    {
+        for (int i = 0; i < slotOccupancy.Length; i++)
+        {
+            slotOccupancy[i] = 0;
+            slotTagOwners[i] = null;
+        }
+
+        tagToSlots.Clear();
+
+        PlayerAttack[] players = FindObjectsOfType<PlayerAttack>();
+        foreach (PlayerAttack player in players)
+        {
+            if (player == null) continue;
+
+            int index = player.spawnIndex;
+            if (index < 0 || index >= slotOccupancy.Length) continue;
+
+            string tag = !string.IsNullOrWhiteSpace(player.unitTag)
+                ? player.unitTag.Trim()
+                : GetUnitTag(player.characterData);
+
+            if (string.IsNullOrWhiteSpace(tag)) continue;
+
+            slotOccupancy[index]++;
+            slotTagOwners[index] = tag;
+
+            if (!tagToSlots.TryGetValue(tag, out List<int> slots))
+            {
+                slots = new List<int>();
+                tagToSlots[tag] = slots;
+            }
+
+            if (!slots.Contains(index))
+                slots.Add(index);
+        }
     }
 
     CharacterData GetRandomCharacterData()
