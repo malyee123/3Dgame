@@ -83,24 +83,18 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
-        CharacterData selectedData = characterDataList[Random.Range(0, characterDataList.Length)];
-
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-
-            playerAttack.characterData = selectedData;
-        }
-
-        if (selectedData.characterPrefab != null)
-        {
-            GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
-            visual.transform.localPosition = Vector3.zero;
-
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
+        }
 
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, obj.transform);
+            visual.transform.localPosition = Vector3.zero;
         }
 
         slotOccupancy[spawnIndex]++;
@@ -277,23 +271,36 @@ public class PlayerSpawner : MonoBehaviour
             tagToSlots[unitTag] = slots;
         }
 
+        List<int> availableTaggedSlots = new List<int>();
         for (int i = 0; i < slots.Count; i++)
         {
             int existingSlot = slots[i];
-            if (slotOccupancy[existingSlot] < maxUnitsPerSlot)
-            {
-                slotIndex = existingSlot;
-                return true;
-            }
+            if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
+            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot) continue;
+            availableTaggedSlots.Add(existingSlot);
         }
 
+        if (availableTaggedSlots.Count > 0)
+        {
+            int randomTaggedSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
+            slotIndex = randomTaggedSlot;
+            return true;
+        }
+
+        List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
         {
             if (slotOccupancy[i] > 0) continue;
+            emptySlots.Add(i);
+        }
 
-            slotTagOwners[i] = unitTag;
-            slots.Add(i);
-            slotIndex = i;
+        if (emptySlots.Count > 0)
+        {
+            int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
+            slotTagOwners[randomEmptySlot] = unitTag;
+            if (!slots.Contains(randomEmptySlot))
+                slots.Add(randomEmptySlot);
+            slotIndex = randomEmptySlot;
             return true;
         }
 
