@@ -33,14 +33,9 @@ public class PlayerSpawner : MonoBehaviour
             availableIndexes.Add(i);
     }
 
-
     public void TrySpawnPlayer()
     {
-        if (availableIndexes.Count == 0)
-        {
-            Debug.Log("[PlayerSpawner] All spawn points are occupied!");
-            return;
-        }
+        if (availableIndexes.Count == 0) { Debug.Log("[PlayerSpawner] All spawn points are occupied!"); return; }
 
         if (CoinManager.Instance != null)
         {
@@ -58,11 +53,19 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position, Quaternion.identity);
 
+        CharacterData selectedData = characterDataList[Random.Range(0, characterDataList.Length)];
+
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-            playerAttack.characterData = characterDataList[0];
+            playerAttack.characterData = selectedData;
+        }
+
+        if (selectedData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
+            visual.transform.localPosition = Vector3.zero;
         }
 
         PlayerDragMerge dragMerge = obj.GetComponent<PlayerDragMerge>();
@@ -71,7 +74,7 @@ public class PlayerSpawner : MonoBehaviour
 
         availableIndexes.RemoveAt(listPos);
 
-        Debug.Log($"[PlayerSpawner] Spawned Player at index {spawnIndex}. Remaining slots: {availableIndexes.Count}");
+        Debug.Log($"[PlayerSpawner] Spawned {selectedData.characterName} at index {spawnIndex}. Remaining slots: {availableIndexes.Count}");
     }
 
     public void RegisterFreedSlot(int spawnIndex)

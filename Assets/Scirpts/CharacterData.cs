@@ -1,3 +1,4 @@
+// CharacterData.cs
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewCharacterData", menuName = "Character/CharacterData")]
@@ -5,7 +6,9 @@ public class CharacterData : ScriptableObject
 {
     [Header("Basic Info")]
     public string characterName = "New Character";
-    public Color characterColor = Color.white;
+
+    [Header("Visual")]
+    public GameObject characterPrefab; 
 
     [Header("Attack Stats")]
     public float attackRange = 3f;

@@ -18,10 +18,6 @@ public class PlayerAttack : MonoBehaviour
     void Start()
     {
         if (characterData == null) { Debug.LogError($"[Player {spawnIndex}] CharacterData is missing!"); enabled = false; return; }
-
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null) sr.color = characterData.characterColor;
-
         cooldownTimer = characterData.attackCooldown;
     }
 
@@ -46,26 +42,30 @@ public class PlayerAttack : MonoBehaviour
         mergeCount++;
         Debug.Log($"[Player {spawnIndex}] Merge progress: {mergeCount}/2");
 
-
         if (MergeManager.Instance != null)
             MergeManager.Instance.CheckMergeAvailable();
 
         return false;
     }
 
-
-    
     public void ForceUpgrade()
     {
         if (characterData.nextLevel == null) return;
 
         mergeCount = 0;
         characterData = characterData.nextLevel;
-
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null) sr.color = characterData.characterColor;
-
         cooldownTimer = characterData.attackCooldown;
+
+
+        foreach (Transform child in transform)
+            Destroy(child.gameObject);
+
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, transform);
+            visual.transform.localPosition = Vector3.zero;
+        }
+
         Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
     }
 

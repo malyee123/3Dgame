@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3607dce4df97295498523a0d0898f70b, type: 3}
-  m_Name: CharacterC
+  m_Name: CharacterA 1
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: Charlevel3
+  characterName: CharLevel1
   characterPrefab: {fileID: 0}
-  attackRange: 6
-  attackDamage: 20
-  attackCooldown: 0.9
-  nextLevel: {fileID: 11400000, guid: c1db0dd1e2490204e80899506e934303, type: 2}
+  attackRange: 5
+  attackDamage: 10
+  attackCooldown: 0.5
+  nextLevel: {fileID: 11400000, guid: 6d1847ba17da5dc48ad4c788ee5004c2, type: 2}
   upgradeCost: 100

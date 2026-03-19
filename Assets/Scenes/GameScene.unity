@@ -2816,6 +2816,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c6fdfd80961df3540a7af972d9daeb1f, type: 2}
   - {fileID: 11400000, guid: b6b9617e42c506d47aa64c0c217744ca, type: 2}
   - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
   spawnPoints:
   - {fileID: 1142325209}
   - {fileID: 617652399}
