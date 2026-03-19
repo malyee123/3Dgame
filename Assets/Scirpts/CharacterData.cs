@@ -22,6 +22,7 @@ public class CharacterData : ScriptableObject
 
     [Header("Merge Settings")]
     [Min(1)] public int tier = 1;
+    public string mergeGroupId = "";
 
     [Header("Upgrade Cost")]
     public int upgradeCost = 100;
