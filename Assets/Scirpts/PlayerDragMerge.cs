@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
 {
+    private const bool dragEnabled = false;
     private Camera mainCamera;
     private bool isDragging;
     private Vector3 dragOffset;
@@ -24,6 +25,8 @@ public class PlayerDragMerge : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (!dragEnabled) return;
+
         if (mainCamera == null)
         {
             mainCamera = Camera.main;

@@ -88,14 +88,77 @@ public class PlayerSpawner : MonoBehaviour
             playerAttack.unitTag = unitTag;
         }
 
-        PlayerDragMerge dragMerge = obj.GetComponent<PlayerDragMerge>();
-        if (dragMerge == null) dragMerge = obj.AddComponent<PlayerDragMerge>();
-        dragMerge.SetSpawnIndex(spawnIndex);
-
         slotOccupancy[spawnIndex]++;
         slotTagOwners[spawnIndex] = unitTag;
 
         Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
+
+    }
+
+    CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
+    {
+        List<CharacterData> candidates = new List<CharacterData>();
+
+        for (int i = 0; i < unitsInSlot.Count; i++)
+        {
+            CharacterData baseData = unitsInSlot[i].characterData;
+            if (baseData == null || baseData.nextLevel == null) continue;
+            candidates.Add(baseData.nextLevel);
+        }
+
+        if (candidates.Count == 0 && characterDataList != null)
+        {
+            for (int i = 0; i < characterDataList.Length; i++)
+            {
+                CharacterData data = characterDataList[i];
+                if (data == null || data.nextLevel == null) continue;
+                candidates.Add(data.nextLevel);
+            }
+        }
+
+        if (candidates.Count == 0) return null;
+
+        int randomIndex = Random.Range(0, candidates.Count);
+        return candidates[randomIndex];
+    }
+
+
+    public bool CanManualMerge(int spawnIndex, string unitTag)
+    {
+        SyncSlotStateFromScene();
+        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag);
+        return sameTagUnits.Count >= maxUnitsPerSlot;
+    }
+
+    public bool TryManualMerge(int spawnIndex, string unitTag)
+    {
+        SyncSlotStateFromScene();
+
+        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag);
+        if (sameTagUnits.Count < maxUnitsPerSlot)
+            return false;
+
+        int survivorIndex = Random.Range(0, maxUnitsPerSlot);
+        PlayerAttack survivor = sameTagUnits[survivorIndex];
+
+        CharacterData mergedData = GetRandomNextLevelCharacterData(sameTagUnits);
+        if (mergedData == null)
+            return false;
+
+        for (int i = 0; i < maxUnitsPerSlot; i++)
+        {
+            if (i == survivorIndex) continue;
+            GameObject removeObj = sameTagUnits[i].gameObject;
+            removeObj.SetActive(false);
+            Destroy(removeObj);
+        }
+
+        survivor.ApplyCharacterData(mergedData);
+        survivor.unitTag = GetUnitTag(mergedData);
+        survivor.transform.position = spawnPoints[spawnIndex].position + GetTriangleOffset(0);
+
+        SyncSlotStateFromScene();
+        return true;
     }
 
     public void RegisterFreedSlot(int spawnIndex)
