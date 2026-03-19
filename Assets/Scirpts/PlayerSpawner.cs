@@ -161,6 +161,28 @@ public class PlayerSpawner : MonoBehaviour
         return true;
     }
 
+
+    List<PlayerAttack> GetUnitsInSlot(int spawnIndex, string unitTag)
+    {
+        List<PlayerAttack> result = new List<PlayerAttack>();
+
+        PlayerAttack[] players = FindObjectsOfType<PlayerAttack>();
+        foreach (PlayerAttack player in players)
+        {
+            if (player == null) continue;
+            if (player.spawnIndex != spawnIndex) continue;
+
+            string playerTag = !string.IsNullOrWhiteSpace(player.unitTag)
+                ? player.unitTag.Trim()
+                : GetUnitTag(player.characterData);
+
+            if (playerTag != unitTag) continue;
+            result.Add(player);
+        }
+
+        return result;
+    }
+
     public void RegisterFreedSlot(int spawnIndex)
     {
         if (slotOccupancy == null || slotTagOwners == null) return;
