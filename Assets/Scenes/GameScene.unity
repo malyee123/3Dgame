@@ -378,8 +378,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ce597f268855c64dbc221a472e802cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MergeManager
-  mergeCost: 150
+  mergePanel: {fileID: 0}
   mergeButton: {fileID: 1945643814}
+  mergeButtonCanvasGroup: {fileID: 0}
 --- !u!4 &311896006
 Transform:
   m_ObjectHideFlags: 0
@@ -2813,15 +2814,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
   playerPrefab: {fileID: 2923575799461683693, guid: 0b0a8b71971e1db48af08f10c552b5f0, type: 3}
   characterDataList:
-  - {fileID: 11400000, guid: c6fdfd80961df3540a7af972d9daeb1f, type: 2}
-  - {fileID: 11400000, guid: b6b9617e42c506d47aa64c0c217744ca, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
-  - {fileID: 11400000, guid: a33040d183ad55341b660f168df56d3c, type: 2}
+  - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
+  - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   spawnPoints:
   - {fileID: 1142325209}
   - {fileID: 617652399}
@@ -2848,6 +2842,9 @@ MonoBehaviour:
   - {fileID: 944795665}
   - {fileID: 1412180492}
   - {fileID: 1885525575}
+  maxUnitsPerSlot: 3
+  triangleOffsetX: 0.28
+  triangleOffsetY: 0.22
 --- !u!4 &1839764168
 Transform:
   m_ObjectHideFlags: 0

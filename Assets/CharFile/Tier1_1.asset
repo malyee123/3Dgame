@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3607dce4df97295498523a0d0898f70b, type: 3}
-  m_Name: CharacterC
+  m_Name: Tier1_1
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: Charlevel3
-  characterPrefab: {fileID: 0}
-  attackRange: 6
-  attackDamage: 20
-  attackCooldown: 0.9
-  nextLevel: {fileID: 11400000, guid: c1db0dd1e2490204e80899506e934303, type: 2}
+  characterName: New Character
+  characterPrefab: {fileID: 5836857197505123814, guid: c54b36ee7861c4b41bd1dabf2455160f, type: 3}
+  unitTag: Tier1_1
+  characterColor: {r: 1, g: 1, b: 1, a: 1}
+  attackRange: 3
+  attackDamage: 10
+  attackCooldown: 0.5
+  nextLevel: {fileID: 0}
   upgradeCost: 100

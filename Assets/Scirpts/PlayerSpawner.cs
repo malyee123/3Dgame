@@ -144,6 +144,28 @@ public class PlayerSpawner : MonoBehaviour
         return candidates[randomIndex];
     }
 
+    int GetTierDepth(CharacterData data)
+    {
+        int depth = 0;
+        CharacterData cursor = data;
+        int guard = 0;
+
+        while (cursor != null && cursor.nextLevel != null)
+        {
+            depth++;
+            cursor = cursor.nextLevel;
+            guard++;
+
+            if (guard > 32)
+            {
+                Debug.LogWarning("[PlayerSpawner] Detected possible nextLevel cycle while calculating tier depth.");
+                break;
+            }
+        }
+
+        return depth;
+    }
+
 
     public bool CanManualMerge(int spawnIndex, string unitTag)
     {
