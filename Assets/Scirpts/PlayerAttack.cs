@@ -7,6 +7,7 @@ public class PlayerAttack : MonoBehaviour
 
     [Header("Player Info")]
     public int spawnIndex = -1;
+    public string unitTag = "";
 
     private float cooldownTimer;
     private EnemyMove currentTarget;
@@ -60,13 +61,22 @@ public class PlayerAttack : MonoBehaviour
         if (characterData.nextLevel == null) return;
 
         mergeCount = 0;
-        characterData = characterData.nextLevel;
+        ApplyCharacterData(characterData.nextLevel);
+        Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
+    }
+
+
+    public void ApplyCharacterData(CharacterData newData)
+    {
+        if (newData == null) return;
+
+        characterData = newData;
+        mergeCount = 0;
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
 
         cooldownTimer = characterData.attackCooldown;
-        Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
     }
 
     void AttackWithLockedTarget()
@@ -110,6 +120,13 @@ public class PlayerAttack : MonoBehaviour
         }
 
         return backmostEnemy;
+    }
+
+
+    void OnMouseDown()
+    {
+        if (MergeManager.Instance != null)
+            MergeManager.Instance.SelectUnit(this);
     }
 
     bool IsTargetInRange(EnemyMove enemy)
