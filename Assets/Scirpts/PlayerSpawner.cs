@@ -83,24 +83,18 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
-        CharacterData selectedData = characterDataList[Random.Range(0, characterDataList.Length)];
-
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-
-            playerAttack.characterData = selectedData;
-        }
-
-        if (selectedData.characterPrefab != null)
-        {
-            GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
-            visual.transform.localPosition = Vector3.zero;
-
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
+        }
 
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, obj.transform);
+            visual.transform.localPosition = Vector3.zero;
         }
 
         slotOccupancy[spawnIndex]++;
@@ -115,22 +109,42 @@ public class PlayerSpawner : MonoBehaviour
 
     CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
     {
-        List<CharacterData> candidates = new List<CharacterData>();
+        if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
+        int targetTierDepth = -1;
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
             if (baseData == null || baseData.nextLevel == null) continue;
-            candidates.Add(baseData.nextLevel);
+
+            targetTierDepth = GetTierDepth(baseData.nextLevel);
+            break;
         }
 
-        if (candidates.Count == 0 && characterDataList != null)
+        if (targetTierDepth < 0) return null;
+
+        List<CharacterData> candidates = new List<CharacterData>();
+        if (characterDataList != null)
         {
             for (int i = 0; i < characterDataList.Length; i++)
             {
                 CharacterData data = characterDataList[i];
-                if (data == null || data.nextLevel == null) continue;
-                candidates.Add(data.nextLevel);
+                if (data == null) continue;
+                if (GetTierDepth(data) != targetTierDepth) continue;
+
+                candidates.Add(data);
+            }
+        }
+
+        // characterDataList 구성이 미완성인 경우를 위한 안전장치:
+        // 기존처럼 각 유닛의 nextLevel 포인터를 후보에 넣는다.
+        if (candidates.Count == 0)
+        {
+            for (int i = 0; i < unitsInSlot.Count; i++)
+            {
+                CharacterData baseData = unitsInSlot[i].characterData;
+                if (baseData == null || baseData.nextLevel == null) continue;
+                candidates.Add(baseData.nextLevel);
             }
         }
 
@@ -138,6 +152,28 @@ public class PlayerSpawner : MonoBehaviour
 
         int randomIndex = Random.Range(0, candidates.Count);
         return candidates[randomIndex];
+    }
+
+    int GetTierDepth(CharacterData data)
+    {
+        int depth = 0;
+        CharacterData cursor = data;
+        int guard = 0;
+
+        while (cursor != null && cursor.nextLevel != null)
+        {
+            depth++;
+            cursor = cursor.nextLevel;
+            guard++;
+
+            if (guard > 32)
+            {
+                Debug.LogWarning("[PlayerSpawner] Detected possible nextLevel cycle while calculating tier depth.");
+                break;
+            }
+        }
+
+        return depth;
     }
 
 
@@ -277,23 +313,36 @@ public class PlayerSpawner : MonoBehaviour
             tagToSlots[unitTag] = slots;
         }
 
+        List<int> availableTaggedSlots = new List<int>();
         for (int i = 0; i < slots.Count; i++)
         {
             int existingSlot = slots[i];
-            if (slotOccupancy[existingSlot] < maxUnitsPerSlot)
-            {
-                slotIndex = existingSlot;
-                return true;
-            }
+            if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
+            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot) continue;
+            availableTaggedSlots.Add(existingSlot);
         }
 
+        if (availableTaggedSlots.Count > 0)
+        {
+            int randomTaggedSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
+            slotIndex = randomTaggedSlot;
+            return true;
+        }
+
+        List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
         {
             if (slotOccupancy[i] > 0) continue;
+            emptySlots.Add(i);
+        }
 
-            slotTagOwners[i] = unitTag;
-            slots.Add(i);
-            slotIndex = i;
+        if (emptySlots.Count > 0)
+        {
+            int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
+            slotTagOwners[randomEmptySlot] = unitTag;
+            if (!slots.Contains(randomEmptySlot))
+                slots.Add(randomEmptySlot);
+            slotIndex = randomEmptySlot;
             return true;
         }
 
