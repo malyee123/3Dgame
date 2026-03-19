@@ -83,24 +83,18 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
-        CharacterData selectedData = characterDataList[Random.Range(0, characterDataList.Length)];
-
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-
-            playerAttack.characterData = selectedData;
-        }
-
-        if (selectedData.characterPrefab != null)
-        {
-            GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
-            visual.transform.localPosition = Vector3.zero;
-
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
+        }
 
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, obj.transform);
+            visual.transform.localPosition = Vector3.zero;
         }
 
         slotOccupancy[spawnIndex]++;
@@ -115,22 +109,32 @@ public class PlayerSpawner : MonoBehaviour
 
     CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
     {
-        List<CharacterData> candidates = new List<CharacterData>();
+        if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
+        int currentTier = -1;
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
-            if (baseData == null || baseData.nextLevel == null) continue;
-            candidates.Add(baseData.nextLevel);
+            if (baseData == null) continue;
+
+            currentTier = Mathf.Max(1, baseData.tier);
+            break;
         }
 
-        if (candidates.Count == 0 && characterDataList != null)
+        if (currentTier < 0) return null;
+
+        int targetTier = currentTier + 1;
+
+        List<CharacterData> candidates = new List<CharacterData>();
+        if (characterDataList != null)
         {
             for (int i = 0; i < characterDataList.Length; i++)
             {
                 CharacterData data = characterDataList[i];
-                if (data == null || data.nextLevel == null) continue;
-                candidates.Add(data.nextLevel);
+                if (data == null) continue;
+                if (Mathf.Max(1, data.tier) != targetTier) continue;
+
+                candidates.Add(data);
             }
         }
 
@@ -277,23 +281,36 @@ public class PlayerSpawner : MonoBehaviour
             tagToSlots[unitTag] = slots;
         }
 
+        List<int> availableTaggedSlots = new List<int>();
         for (int i = 0; i < slots.Count; i++)
         {
             int existingSlot = slots[i];
-            if (slotOccupancy[existingSlot] < maxUnitsPerSlot)
-            {
-                slotIndex = existingSlot;
-                return true;
-            }
+            if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
+            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot) continue;
+            availableTaggedSlots.Add(existingSlot);
         }
 
+        if (availableTaggedSlots.Count > 0)
+        {
+            int randomTaggedSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
+            slotIndex = randomTaggedSlot;
+            return true;
+        }
+
+        List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
         {
             if (slotOccupancy[i] > 0) continue;
+            emptySlots.Add(i);
+        }
 
-            slotTagOwners[i] = unitTag;
-            slots.Add(i);
-            slotIndex = i;
+        if (emptySlots.Count > 0)
+        {
+            int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
+            slotTagOwners[randomEmptySlot] = unitTag;
+            if (!slots.Contains(randomEmptySlot))
+                slots.Add(randomEmptySlot);
+            slotIndex = randomEmptySlot;
             return true;
         }
 
