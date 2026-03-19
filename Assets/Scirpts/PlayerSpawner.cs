@@ -83,24 +83,18 @@ public class PlayerSpawner : MonoBehaviour
 
         GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 
-        CharacterData selectedData = characterDataList[Random.Range(0, characterDataList.Length)];
-
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-
-            playerAttack.characterData = selectedData;
-        }
-
-        if (selectedData.characterPrefab != null)
-        {
-            GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
-            visual.transform.localPosition = Vector3.zero;
-
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
+        }
 
+        if (characterData.characterPrefab != null)
+        {
+            GameObject visual = Instantiate(characterData.characterPrefab, obj.transform);
+            visual.transform.localPosition = Vector3.zero;
         }
 
         slotOccupancy[spawnIndex]++;
