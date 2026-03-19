@@ -136,13 +136,17 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterData data = characterDataList[i];
                 if (data == null) continue;
                 if (Mathf.Max(1, data.tier) != targetTier) continue;
-                if (GetMergeGroupId(data) != mergeGroupId) continue;
+                if (!string.IsNullOrWhiteSpace(mergeGroupId) && GetMergeGroupId(data) != mergeGroupId) continue;
 
                 candidates.Add(data);
             }
         }
 
-        if (candidates.Count == 0) return null;
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning($"[PlayerSpawner] Merge failed: no CharacterData for targetTier={targetTier}, mergeGroupId='{mergeGroupId}'.");
+            return null;
+        }
 
         int randomIndex = Random.Range(0, candidates.Count);
         return candidates[randomIndex];
