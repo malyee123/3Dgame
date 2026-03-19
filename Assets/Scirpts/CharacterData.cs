@@ -21,7 +21,7 @@ public class CharacterData : ScriptableObject
     public float attackCooldown = 0.5f;
 
     [Header("Merge Settings")]
-    public CharacterData nextLevel;
+    [Min(1)] public int tier = 1;
 
     [Header("Upgrade Cost")]
     public int upgradeCost = 100;
