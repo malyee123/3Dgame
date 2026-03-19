@@ -19,5 +19,5 @@ MonoBehaviour:
   attackRange: 3
   attackDamage: 10
   attackCooldown: 0.5
-  nextLevel: {fileID: 0}
+  tier: 1
   upgradeCost: 100
