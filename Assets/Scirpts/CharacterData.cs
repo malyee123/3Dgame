@@ -6,9 +6,14 @@ public class CharacterData : ScriptableObject
 {
     [Header("Basic Info")]
     public string characterName = "New Character";
+<<<<<<< HEAD
 
     [Header("Visual")]
     public GameObject characterPrefab; 
+=======
+    public string unitTag = "";
+    public Color characterColor = Color.white;
+>>>>>>> 0c35cfdc4bbbcf09bc101f47caa32fae70da4a30
 
     [Header("Attack Stats")]
     public float attackRange = 3f;
