@@ -42,9 +42,7 @@ public class PlayerSpawner : MonoBehaviour
 
     public void TrySpawnPlayer()
     {
-<<<<<<< HEAD
-        if (availableIndexes.Count == 0) { Debug.Log("[PlayerSpawner] All spawn points are occupied!"); return; }
-=======
+
         if (slotOccupancy == null || slotOccupancy.Length == 0)
         {
             Debug.LogError("[PlayerSpawner] Slots are not initialized.");
@@ -66,7 +64,6 @@ public class PlayerSpawner : MonoBehaviour
             Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. All allowed slots are full.");
             return;
         }
->>>>>>> 0c35cfdc4bbbcf09bc101f47caa32fae70da4a30
 
         if (CoinManager.Instance != null)
         {
@@ -90,7 +87,7 @@ public class PlayerSpawner : MonoBehaviour
         if (playerAttack != null)
         {
             playerAttack.spawnIndex = spawnIndex;
-<<<<<<< HEAD
+
             playerAttack.characterData = selectedData;
         }
 
@@ -98,10 +95,9 @@ public class PlayerSpawner : MonoBehaviour
         {
             GameObject visual = Instantiate(selectedData.characterPrefab, obj.transform);
             visual.transform.localPosition = Vector3.zero;
-=======
+
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
->>>>>>> 0c35cfdc4bbbcf09bc101f47caa32fae70da4a30
         }
 
         slotOccupancy[spawnIndex]++;
@@ -109,9 +105,7 @@ public class PlayerSpawner : MonoBehaviour
 
         Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
 
-<<<<<<< HEAD
-        Debug.Log($"[PlayerSpawner] Spawned {selectedData.characterName} at index {spawnIndex}. Remaining slots: {availableIndexes.Count}");
-=======
+
     }
 
     CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
@@ -200,7 +194,6 @@ public class PlayerSpawner : MonoBehaviour
         }
 
         return result;
->>>>>>> 0c35cfdc4bbbcf09bc101f47caa32fae70da4a30
     }
 
     public void RegisterFreedSlot(int spawnIndex)

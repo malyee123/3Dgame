@@ -54,7 +54,6 @@ public class PlayerAttack : MonoBehaviour
         if (characterData.nextLevel == null) return;
 
         mergeCount = 0;
-<<<<<<< HEAD
         characterData = characterData.nextLevel;
         cooldownTimer = characterData.attackCooldown;
 
@@ -69,7 +68,6 @@ public class PlayerAttack : MonoBehaviour
         }
 
         Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
-=======
         ApplyCharacterData(characterData.nextLevel);
         Debug.Log($"[Player {spawnIndex}] Upgraded! → {characterData.characterName}");
     }
@@ -86,7 +84,6 @@ public class PlayerAttack : MonoBehaviour
         if (sr != null) sr.color = characterData.characterColor;
 
         cooldownTimer = characterData.attackCooldown;
->>>>>>> 0c35cfdc4bbbcf09bc101f47caa32fae70da4a30
     }
 
     void AttackWithLockedTarget()
