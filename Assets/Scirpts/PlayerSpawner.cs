@@ -113,18 +113,18 @@ public class PlayerSpawner : MonoBehaviour
         if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
 
         int currentTier = -1;
-        string mergeGroupKey = "";
+        string mergeGroupId = "";
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
             if (baseData == null) continue;
 
             currentTier = Mathf.Max(1, baseData.tier);
-            mergeGroupKey = GetMergeGroupKey(baseData);
+            mergeGroupId = GetMergeGroupId(baseData);
             break;
         }
 
-        if (currentTier < 0) return null;
+        if (currentTier < 0 || string.IsNullOrWhiteSpace(mergeGroupId)) return null;
 
         int targetTier = currentTier + 1;
 
@@ -136,7 +136,7 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterData data = characterDataList[i];
                 if (data == null) continue;
                 if (Mathf.Max(1, data.tier) != targetTier) continue;
-                if (GetMergeGroupKey(data) != mergeGroupKey) continue;
+                if (GetMergeGroupId(data) != mergeGroupId) continue;
 
                 candidates.Add(data);
             }
@@ -356,12 +356,11 @@ public class PlayerSpawner : MonoBehaviour
         return characterData.characterName;
     }
 
-    string GetMergeGroupKey(CharacterData characterData)
+    string GetMergeGroupId(CharacterData characterData)
     {
-        string rawTag = GetUnitTag(characterData);
-        if (string.IsNullOrWhiteSpace(rawTag))
+        if (characterData == null || string.IsNullOrWhiteSpace(characterData.mergeGroupId))
             return "";
 
-        return Regex.Replace(rawTag.Trim(), @"^(?i:tier)\d+[_-]?", "");
+        return characterData.mergeGroupId.Trim();
     }
 }
