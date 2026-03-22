@@ -7,6 +7,10 @@ public class UpgradeUI : MonoBehaviour
     [Header("Panel")]
     public GameObject upgradePanel;
 
+    [Header("Lobby Buttons")]
+    public GameObject upgradeButton;
+    public GameObject startButton;
+
     [Header("Skill Point UI")]
     public TextMeshProUGUI skillPointText;
 
@@ -43,12 +47,16 @@ public class UpgradeUI : MonoBehaviour
     public void OpenUpgradePanel()
     {
         if (upgradePanel != null) upgradePanel.SetActive(true);
+        if (upgradeButton != null) upgradeButton.SetActive(false);
+        if (startButton != null) startButton.SetActive(false);
         RefreshUI();
     }
 
     public void CloseUpgradePanel()
     {
         if (upgradePanel != null) upgradePanel.SetActive(false);
+        if (upgradeButton != null) upgradeButton.SetActive(true);
+        if (startButton != null) startButton.SetActive(true);
     }
 
     void RefreshUI()
@@ -58,21 +66,21 @@ public class UpgradeUI : MonoBehaviour
         if (skillPointText != null)
             skillPointText.text = $"Skill Points: {UpgradeManager.Instance.GetSkillPoints()}";
 
-        UpdateSlot(attackDamageLevelText, attackDamageCostText, attackDamageButton,
+        UpdatePercentSlot(attackDamageLevelText, attackDamageCostText, attackDamageButton,
             UpgradeManager.Instance.AttackDamageLevel, UpgradeManager.Instance.maxAttackDamageLevel,
             UpgradeManager.Instance.attackDamageCosts, UpgradeManager.Instance.attackDamagePercentPerLevel);
 
-        UpdateSlot(attackSpeedLevelText, attackSpeedCostText, attackSpeedButton,
+        UpdatePercentSlot(attackSpeedLevelText, attackSpeedCostText, attackSpeedButton,
             UpgradeManager.Instance.AttackSpeedLevel, UpgradeManager.Instance.maxAttackSpeedLevel,
             UpgradeManager.Instance.attackSpeedCosts, UpgradeManager.Instance.attackSpeedPercentPerLevel);
 
-        UpdateSlot(coinPerKillLevelText, coinPerKillCostText, coinPerKillButton,
+        UpdateBonusSlot(coinPerKillLevelText, coinPerKillCostText, coinPerKillButton,
             UpgradeManager.Instance.CoinPerKillLevel, UpgradeManager.Instance.maxCoinPerKillLevel,
-            UpgradeManager.Instance.coinPerKillCosts, UpgradeManager.Instance.coinPerKillPercentPerLevel);
+            UpgradeManager.Instance.coinPerKillCosts, UpgradeManager.Instance.GetCoinPerKillBonus());
 
-        UpdateSlot(startingCoinLevelText, startingCoinCostText, startingCoinButton,
+        UpdateBonusSlot(startingCoinLevelText, startingCoinCostText, startingCoinButton,
             UpgradeManager.Instance.StartingCoinLevel, UpgradeManager.Instance.maxStartingCoinLevel,
-            UpgradeManager.Instance.startingCoinCosts, UpgradeManager.Instance.startingCoinPercentPerLevel);
+            UpgradeManager.Instance.startingCoinCosts, UpgradeManager.Instance.GetStartingCoinBonus());
 
         int currentTier = UpgradeManager.Instance.UnlockedTier;
         int[] tierCosts = UpgradeManager.Instance.tierUnlockCosts;
@@ -83,12 +91,20 @@ public class UpgradeUI : MonoBehaviour
         if (tierUnlockButton != null) tierUnlockButton.interactable = !tierMaxed && UpgradeManager.Instance.GetSkillPoints() >= (tierMaxed ? 0 : tierCosts[currentTier - 1]);
     }
 
-    void UpdateSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int maxLevel, int[] costs, float percentPerLevel)
+    void UpdatePercentSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int maxLevel, int[] costs, float percentPerLevel)
     {
         bool isMaxed = level >= maxLevel;
         int cost = UpgradeManager.Instance.GetCost(costs, level);
-
         if (levelText != null) levelText.text = $"Level: {level}/{maxLevel} (+{level * percentPerLevel}%)";
+        if (costText != null) costText.text = isMaxed ? "MAX" : $"Cost: {cost}";
+        if (button != null) button.interactable = !isMaxed && UpgradeManager.Instance.GetSkillPoints() >= cost;
+    }
+
+    void UpdateBonusSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int maxLevel, int[] costs, int currentBonus)
+    {
+        bool isMaxed = level >= maxLevel;
+        int cost = UpgradeManager.Instance.GetCost(costs, level);
+        if (levelText != null) levelText.text = $"Level: {level}/{maxLevel} (+{currentBonus})";
         if (costText != null) costText.text = isMaxed ? "MAX" : $"Cost: {cost}";
         if (button != null) button.interactable = !isMaxed && UpgradeManager.Instance.GetSkillPoints() >= cost;
     }

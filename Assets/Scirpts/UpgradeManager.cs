@@ -16,12 +16,12 @@ public class UpgradeManager : MonoBehaviour
 
     [Header("Coin Per Kill Upgrade")]
     public int maxCoinPerKillLevel = 5;
-    public float coinPerKillPercentPerLevel = 10f;
+    public int coinPerKillBonusPerLevel = 2;
     public int[] coinPerKillCosts;
 
     [Header("Starting Coin Upgrade")]
     public int maxStartingCoinLevel = 5;
-    public float startingCoinPercentPerLevel = 10f;
+    public int startingCoinBonusPerLevel = 20;
     public int[] startingCoinCosts;
 
     [Header("Tier Unlock")]
@@ -121,6 +121,6 @@ public class UpgradeManager : MonoBehaviour
 
     public float GetAttackDamageMultiplier() => 1f + (AttackDamageLevel * attackDamagePercentPerLevel / 100f);
     public float GetAttackSpeedMultiplier() => 1f - (AttackSpeedLevel * attackSpeedPercentPerLevel / 100f);
-    public float GetCoinPerKillMultiplier() => 1f + (CoinPerKillLevel * coinPerKillPercentPerLevel / 100f);
-    public float GetStartingCoinMultiplier() => 1f + (StartingCoinLevel * startingCoinPercentPerLevel / 100f);
+    public int GetCoinPerKillBonus() => CoinPerKillLevel * coinPerKillBonusPerLevel;
+    public int GetStartingCoinBonus() => StartingCoinLevel * startingCoinBonusPerLevel;
 }

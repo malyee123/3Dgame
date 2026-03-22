@@ -12,8 +12,8 @@ public class PlayerAttack : MonoBehaviour
     private float cooldownTimer;
     private EnemyMove currentTarget;
     private int mergeCount = 0;
-    private float appliedDamage;
-    private float appliedCooldown;
+    [SerializeField] private float appliedDamage;
+    [SerializeField] private float appliedCooldown;
 
     public string UnitType => characterData != null ? characterData.characterName : "";
     public int MergeCount => mergeCount;
@@ -24,12 +24,10 @@ public class PlayerAttack : MonoBehaviour
         ApplyUpgradeStats();
     }
 
-    // 업그레이드 배율 적용 함수 (Start + ApplyCharacterData에서 공통 사용)
     void ApplyUpgradeStats()
     {
         float damageMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float speedMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
-
         appliedDamage = characterData.attackDamage * damageMultiplier;
         appliedCooldown = characterData.attackCooldown * speedMultiplier;
         cooldownTimer = appliedCooldown;
@@ -65,14 +63,13 @@ public class PlayerAttack : MonoBehaviour
     public void ApplyCharacterData(CharacterData newData)
     {
         if (newData == null) return;
-
         characterData = newData;
         mergeCount = 0;
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
 
-        for (int i = transform.childCount - 1; i >= 0; i--) 
+        for (int i = transform.childCount - 1; i >= 0; i--)
             Destroy(transform.GetChild(i).gameObject);
 
         if (characterData.characterPrefab != null)
@@ -81,7 +78,6 @@ public class PlayerAttack : MonoBehaviour
             visual.transform.localPosition = Vector3.zero;
         }
 
-        // 합성 후 업그레이드 배율 다시 적용
         ApplyUpgradeStats();
     }
 

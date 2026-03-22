@@ -24,15 +24,15 @@ public class CoinManager : MonoBehaviour
 
     void Start()
     {
-        float multiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetStartingCoinMultiplier() : 1f;
-        currentCoins = Mathf.RoundToInt(startingCoins * multiplier);
+        int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetStartingCoinBonus() : 0;
+        currentCoins = startingCoins + bonus;
         UpdateCoinUI();
     }
 
     public void AddCoins(int amount)
     {
-        float multiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCoinPerKillMultiplier() : 1f;
-        int finalAmount = Mathf.RoundToInt(amount * multiplier);
+        int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
+        int finalAmount = amount + bonus;
         currentCoins += finalAmount;
         UpdateCoinUI();
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
@@ -44,9 +44,7 @@ public class CoinManager : MonoBehaviour
         if (currentCoins < amount) { Debug.Log("[CoinManager] Not enough coins!"); return false; }
         currentCoins -= amount;
         UpdateCoinUI();
-
-        if (MergeManager.Instance != null)
-            MergeManager.Instance.CheckMergeAvailable();
+        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
         Debug.Log($"[CoinManager] Coins: {currentCoins} (-{amount})");
         return true;
     }
