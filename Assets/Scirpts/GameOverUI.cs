@@ -1,8 +1,32 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameOverUI : MonoBehaviour
 {
+    [Header("UI")]
+    public TextMeshProUGUI totalTimeText;
+    public TextMeshProUGUI roundReachedText;
+    public TextMeshProUGUI skillPointText;
+
+    [Header("Skill Point Settings")]
+    public float secondsPerPoint = 60f;
+
+    void Start()
+    {
+        float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
+        int lastRound = PlayerPrefs.GetInt("LastRound", 1);
+        int earnedPoints = Mathf.FloorToInt(totalTime / secondsPerPoint);
+        int currentPoints = PlayerPrefs.GetInt("SkillPoints", 0);
+        currentPoints += earnedPoints;
+        PlayerPrefs.SetInt("SkillPoints", currentPoints);
+        PlayerPrefs.Save();
+
+        if (totalTimeText != null) totalTimeText.text = $"Total Time: {FormatTime(totalTime)}";
+        if (roundReachedText != null) roundReachedText.text = $"Round Reached: {lastRound}";
+        if (skillPointText != null) skillPointText.text = $"Skill Points Earned: +{earnedPoints} (Total: {currentPoints})";
+    }
+
     public void RetryGame()
     {
         Time.timeScale = 1f;
@@ -13,5 +37,12 @@ public class GameOverUI : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("LobbyScene");
+    }
+
+    string FormatTime(float time)
+    {
+        int minutes = (int)(time / 60);
+        int seconds = (int)(time % 60);
+        return $"{minutes:00}:{seconds:00}";
     }
 }

@@ -12,6 +12,8 @@ public class PlayerAttack : MonoBehaviour
     private float cooldownTimer;
     private EnemyMove currentTarget;
     private int mergeCount = 0;
+    private float appliedDamage;
+    private float appliedCooldown;
 
     public string UnitType => characterData != null ? characterData.characterName : "";
     public int MergeCount => mergeCount;
@@ -19,13 +21,24 @@ public class PlayerAttack : MonoBehaviour
     void Start()
     {
         if (characterData == null) { Debug.LogError($"[Player {spawnIndex}] CharacterData is missing!"); enabled = false; return; }
-        cooldownTimer = characterData.attackCooldown;
+        ApplyUpgradeStats();
+    }
+
+    // 업그레이드 배율 적용 함수 (Start + ApplyCharacterData에서 공통 사용)
+    void ApplyUpgradeStats()
+    {
+        float damageMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
+        float speedMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
+
+        appliedDamage = characterData.attackDamage * damageMultiplier;
+        appliedCooldown = characterData.attackCooldown * speedMultiplier;
+        cooldownTimer = appliedCooldown;
     }
 
     void Update()
     {
         cooldownTimer += Time.deltaTime;
-        if (cooldownTimer < characterData.attackCooldown) return;
+        if (cooldownTimer < appliedCooldown) return;
         AttackWithLockedTarget();
     }
 
@@ -38,21 +51,16 @@ public class PlayerAttack : MonoBehaviour
     public bool TryMerge(PlayerAttack consumedUnit)
     {
         if (!CanMergeWith(consumedUnit)) return false;
-
         mergeCount++;
         Debug.Log($"[Player {spawnIndex}] Merge progress: {mergeCount}/2");
-
-        if (MergeManager.Instance != null)
-            MergeManager.Instance.CheckMergeAvailable();
-
+        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
         return false;
     }
 
     public void ForceUpgrade()
     {
-        Debug.LogWarning($"[Player {spawnIndex}] ForceUpgrade() is deprecated. Use PlayerSpawner merge flow.");
+        Debug.LogWarning($"[Player {spawnIndex}] ForceUpgrade() is deprecated.");
     }
-
 
     public void ApplyCharacterData(CharacterData newData)
     {
@@ -64,7 +72,7 @@ public class PlayerAttack : MonoBehaviour
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
 
-        for (int i = transform.childCount - 1; i >= 0; i--)
+        for (int i = transform.childCount - 1; i >= 0; i--) 
             Destroy(transform.GetChild(i).gameObject);
 
         if (characterData.characterPrefab != null)
@@ -73,8 +81,8 @@ public class PlayerAttack : MonoBehaviour
             visual.transform.localPosition = Vector3.zero;
         }
 
-        cooldownTimer = characterData.attackCooldown;
-
+        // 합성 후 업그레이드 배율 다시 적용
+        ApplyUpgradeStats();
     }
 
     void AttackWithLockedTarget()
@@ -87,7 +95,7 @@ public class PlayerAttack : MonoBehaviour
         EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
         if (health == null) { currentTarget = null; return; }
 
-        health.TakeDamage(characterData.attackDamage);
+        health.TakeDamage(appliedDamage);
         cooldownTimer = 0f;
     }
 
@@ -119,7 +127,6 @@ public class PlayerAttack : MonoBehaviour
 
         return backmostEnemy;
     }
-
 
     void OnMouseDown()
     {

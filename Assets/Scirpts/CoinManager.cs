@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class CoinManager : MonoBehaviour
 {
@@ -24,18 +24,19 @@ public class CoinManager : MonoBehaviour
 
     void Start()
     {
-        currentCoins = startingCoins;
+        float multiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetStartingCoinMultiplier() : 1f;
+        currentCoins = Mathf.RoundToInt(startingCoins * multiplier);
         UpdateCoinUI();
     }
 
     public void AddCoins(int amount)
     {
-        currentCoins += amount;
+        float multiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCoinPerKillMultiplier() : 1f;
+        int finalAmount = Mathf.RoundToInt(amount * multiplier);
+        currentCoins += finalAmount;
         UpdateCoinUI();
-
-        if (MergeManager.Instance != null)
-            MergeManager.Instance.CheckMergeAvailable();
-        Debug.Log($"[CoinManager] Coins: {currentCoins} (+{amount})");
+        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
+        Debug.Log($"[CoinManager] Coins: {currentCoins} (+{finalAmount})");
     }
 
     public bool SpendCoins(int amount)

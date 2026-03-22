@@ -1,4 +1,3 @@
-// CharacterData.cs
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewCharacterData", menuName = "Character/CharacterData")]
