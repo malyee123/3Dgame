@@ -11,55 +11,40 @@ public class EnemyHealth : MonoBehaviour
     public Image hpFillImage;
 
     private float currentHp;
+    private bool isDead = false;
 
     void Start()
     {
         currentHp = maxHp;
-
         if (hpSlider != null)
         {
             hpSlider.maxValue = maxHp;
             hpSlider.value = maxHp;
         }
-
-        if (hpFillImage != null)
-        {
-            hpFillImage.color = Color.green;
-        }
+        if (hpFillImage != null) hpFillImage.color = Color.green;
     }
 
     public void TakeDamage(float damage)
     {
+        if (isDead) return;
         currentHp -= damage;
-
-        if (hpSlider != null)
-        {
-            hpSlider.value = currentHp;
-        }
-
+        if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null)
         {
             float ratio = currentHp / maxHp;
             hpFillImage.color = Color.Lerp(Color.red, Color.green, ratio);
         }
-
         Debug.Log($"[EnemyHealth] Hit. Remaining HP: {currentHp}/{maxHp}");
-
-        if (currentHp <= 0)
-        {
-            Die();
-        }
+        if (currentHp <= 0) Die();
     }
 
     void Die()
     {
-        if (GameManager.Instance != null)
-            GameManager.Instance.OnEnemyDied();
-
-        if (CoinManager.Instance != null)
-            CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
-
+        if (isDead) return;
+        isDead = true;
+        if (GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
+        if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
         Debug.Log($"[EnemyHealth] {gameObject.name} died.");
         Destroy(gameObject);
-    }   
+    }
 }

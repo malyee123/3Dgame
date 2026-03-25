@@ -2097,7 +2097,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -100, y: 15}
+  m_AnchoredPosition: {x: -100, y: 59}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1300881649
@@ -2615,7 +2615,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
+  m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1618376172
@@ -3238,6 +3238,7 @@ MonoBehaviour:
   characterDataList:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
+  - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
   spawnPoints:
   - {fileID: 1142325209}
   - {fileID: 617652399}
@@ -3267,6 +3268,9 @@ MonoBehaviour:
   maxUnitsPerSlot: 3
   triangleOffsetX: 0.28
   triangleOffsetY: 0.22
+  tierSpawnWeights:
+  - 90
+  - 1
 --- !u!4 &1839764168
 Transform:
   m_ObjectHideFlags: 0
@@ -3611,7 +3615,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 100, y: 15}
+  m_AnchoredPosition: {x: 100, y: 59}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2028790491
