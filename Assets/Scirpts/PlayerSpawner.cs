@@ -177,10 +177,25 @@ public class PlayerSpawner : MonoBehaviour
         survivor.ApplyCharacterData(mergedData);
         string newUnitTag = GetUnitTag(mergedData);
         survivor.unitTag = newUnitTag;
+        survivor.spawnIndex = -1;
 
         SyncSlotStateFromScene();
-        if (TryGetSpawnSlot(newUnitTag, out int targetSlot) && targetSlot != spawnIndex)
+
+        if (!tagToSlots.TryGetValue(newUnitTag, out List<int> existingSlots))
+            existingSlots = new List<int>();
+
+        List<int> availableTaggedSlots = new List<int>();
+        for (int i = 0; i < existingSlots.Count; i++)
         {
+            int s = existingSlots[i];
+            if (s < 0 || s >= slotOccupancy.Length) continue;
+            if (slotOccupancy[s] >= maxUnitsPerSlot) continue;
+            availableTaggedSlots.Add(s);
+        }
+
+        if (availableTaggedSlots.Count > 0)
+        {
+            int targetSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
             survivor.spawnIndex = targetSlot;
             int stackIndex = slotOccupancy[targetSlot];
             survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(stackIndex);
@@ -201,6 +216,7 @@ public class PlayerSpawner : MonoBehaviour
             }
             else
             {
+                survivor.spawnIndex = spawnIndex;
                 survivor.transform.position = spawnPoints[spawnIndex].position + GetTriangleOffset(0);
             }
         }
