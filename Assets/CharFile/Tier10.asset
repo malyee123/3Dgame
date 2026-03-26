@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3607dce4df97295498523a0d0898f70b, type: 3}
-  m_Name: Tier1_1
+  m_Name: Tier10
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: Tier1_1
-  characterPrefab: {fileID: 5836857197505123814, guid: c54b36ee7861c4b41bd1dabf2455160f, type: 3}
-  characterSprite: {fileID: 21300000, guid: 49458707f34ee69468a2e6c6f976c902, type: 3}
-  unitTag: Tier1_1
+  characterName: Tier10
+  characterPrefab: {fileID: 7715552558439874258, guid: 0f2e860a0377f4a9f98fa39bbafb5dad, type: 3}
+  characterSprite: {fileID: 21300000, guid: f788e0813b3077f4da8c44474c92e2d6, type: 3}
+  unitTag: Tier10
   characterColor: {r: 1, g: 1, b: 1, a: 1}
-  attackRange: 3
-  attackDamage: 10
+  attackRange: 30
+  attackDamage: 30
   attackCooldown: 0.5
-  tier: 1
+  tier: 10
   mergeGroupId: A
   upgradeCost: 100

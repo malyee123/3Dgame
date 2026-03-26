@@ -1,5 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -22,9 +24,14 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Tier Spawn Weights")]
     public float[] tierSpawnWeights = { 70f, 30f };
 
+    [Header("UI")]
+    public Button spawnButton;
+
     private int[] slotOccupancy;
     private string[] slotTagOwners;
     private readonly Dictionary<string, List<int>> tagToSlots = new Dictionary<string, List<int>>();
+
+    private bool slotDirty = false;
 
     void Awake()
     {
@@ -41,6 +48,17 @@ public class PlayerSpawner : MonoBehaviour
 
         slotOccupancy = new int[spawnPoints.Length];
         slotTagOwners = new string[spawnPoints.Length];
+        UpdateSpawnButton();
+    }
+
+    void Update()
+    {
+        if (slotDirty)
+        {
+            SyncSlotStateFromScene();
+            slotDirty = false;
+        }
+        UpdateSpawnButton();
     }
 
     public void TrySpawnPlayer()
@@ -48,6 +66,12 @@ public class PlayerSpawner : MonoBehaviour
         if (slotOccupancy == null || slotOccupancy.Length == 0)
         {
             Debug.LogError("[PlayerSpawner] Slots are not initialized.");
+            return;
+        }
+
+        if (IsFieldFull())
+        {
+            Debug.Log("[PlayerSpawner] Field is full. Cannot spawn.");
             return;
         }
 
@@ -99,8 +123,23 @@ public class PlayerSpawner : MonoBehaviour
 
         slotOccupancy[spawnIndex]++;
         slotTagOwners[spawnIndex] = unitTag;
+        slotDirty = true;
 
         Debug.Log($"[PlayerSpawner] Spawned '{unitTag}' at slot {spawnIndex} ({slotOccupancy[spawnIndex]}/{maxUnitsPerSlot}).");
+        UpdateSpawnButton();
+    }
+
+    // [Ãß°¡] Spawn specific character for recipe craft result
+    public void SpawnSpecificCharacter(CharacterData characterData)
+    {
+        if (characterData == null) return;
+        string unitTag = GetUnitTag(characterData);
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex))
+        {
+            Debug.Log("[PlayerSpawner] SpawnSpecificCharacter failed - no available slot.");
+            return;
+        }
+        SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
     CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
@@ -221,15 +260,16 @@ public class PlayerSpawner : MonoBehaviour
             }
         }
 
+        slotDirty = true;
         SyncSlotStateFromScene();
+        UpdateSpawnButton();
         return true;
     }
 
     List<PlayerAttack> GetUnitsInSlot(int spawnIndex, string unitTag, int requiredTier = -1)
     {
         List<PlayerAttack> result = new List<PlayerAttack>();
-
-        PlayerAttack[] players = FindObjectsOfType<PlayerAttack>();
+        PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack player in players)
         {
             if (player == null) continue;
@@ -249,7 +289,6 @@ public class PlayerSpawner : MonoBehaviour
 
             result.Add(player);
         }
-
         return result;
     }
 
@@ -271,6 +310,8 @@ public class PlayerSpawner : MonoBehaviour
 
         slots.Remove(spawnIndex);
         if (slots.Count == 0) tagToSlots.Remove(tag);
+
+        slotDirty = true;
     }
 
     void SyncSlotStateFromScene()
@@ -283,7 +324,7 @@ public class PlayerSpawner : MonoBehaviour
 
         tagToSlots.Clear();
 
-        PlayerAttack[] players = FindObjectsOfType<PlayerAttack>();
+        PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack player in players)
         {
             if (player == null) continue;
@@ -370,8 +411,7 @@ public class PlayerSpawner : MonoBehaviour
 
         if (availableTaggedSlots.Count > 0)
         {
-            int randomTaggedSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
-            slotIndex = randomTaggedSlot;
+            slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
             return true;
         }
 
@@ -393,6 +433,49 @@ public class PlayerSpawner : MonoBehaviour
 
         slotIndex = -1;
         return false;
+    }
+
+    public bool IsFieldFull()
+    {
+        if (slotOccupancy == null) return false;
+        for (int i = 0; i < slotOccupancy.Length; i++)
+        {
+            if (slotOccupancy[i] == 0) return false;
+        }
+        return true;
+    }
+
+    public bool IsSlotEmpty(int slotIndex)
+    {
+        if (slotOccupancy == null || slotIndex < 0 || slotIndex >= slotOccupancy.Length) return false;
+        return slotOccupancy[slotIndex] == 0;
+    }
+
+    public void UnregisterUnit(PlayerAttack unit, int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= slotOccupancy.Length) return;
+        if (slotOccupancy[slotIndex] > 0) slotOccupancy[slotIndex]--;
+        if (slotOccupancy[slotIndex] == 0) slotTagOwners[slotIndex] = null;
+        slotDirty = true;
+    }
+
+    public void RegisterUnit(PlayerAttack unit, int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= slotOccupancy.Length) return;
+        slotOccupancy[slotIndex]++;
+        slotTagOwners[slotIndex] = GetUnitTag(unit.characterData);
+        slotDirty = true;
+    }
+
+    public Vector3 GetTriangleOffsetPublic(int stackIndex)
+    {
+        return GetTriangleOffset(stackIndex);
+    }
+
+    void UpdateSpawnButton()
+    {
+        if (spawnButton != null)
+            spawnButton.interactable = !IsFieldFull();
     }
 
     Vector3 GetTriangleOffset(int stackIndex)

@@ -57,7 +57,6 @@ public class MergeManager : MonoBehaviour
             mergeButtonCanvasGroup.alpha = canMerge ? 1f : 0.4f;
     }
 
-
     public void CheckMergeAvailable()
     {
         RefreshMergeUI();
@@ -66,6 +65,11 @@ public class MergeManager : MonoBehaviour
     public void ExecuteMerge()
     {
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
+
+        if (CoinManager.Instance != null)
+        {
+            if (!CoinManager.Instance.SpendCoins(150)) return;
+        }
 
         bool merged = PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
         if (merged)

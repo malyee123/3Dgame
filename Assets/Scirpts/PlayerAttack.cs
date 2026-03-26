@@ -22,6 +22,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (characterData == null) { Debug.LogError($"[Player {spawnIndex}] CharacterData is missing!"); enabled = false; return; }
         ApplyUpgradeStats();
+        cooldownTimer = appliedCooldown;
     }
 
     void ApplyUpgradeStats()
@@ -30,7 +31,7 @@ public class PlayerAttack : MonoBehaviour
         float speedMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
         appliedDamage = characterData.attackDamage * damageMultiplier;
         appliedCooldown = characterData.attackCooldown * speedMultiplier;
-        cooldownTimer = appliedCooldown;
+        if (appliedCooldown <= 0f) appliedCooldown = 0.1f;
     }
 
     void Update()
@@ -50,15 +51,11 @@ public class PlayerAttack : MonoBehaviour
     {
         if (!CanMergeWith(consumedUnit)) return false;
         mergeCount++;
-        Debug.Log($"[Player {spawnIndex}] Merge progress: {mergeCount}/2");
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
         return false;
     }
 
-    public void ForceUpgrade()
-    {
-        Debug.LogWarning($"[Player {spawnIndex}] ForceUpgrade() is deprecated.");
-    }
+    public void ForceUpgrade() { }
 
     public void ApplyCharacterData(CharacterData newData)
     {
@@ -79,6 +76,7 @@ public class PlayerAttack : MonoBehaviour
         }
 
         ApplyUpgradeStats();
+        cooldownTimer = appliedCooldown;
     }
 
     void AttackWithLockedTarget()
@@ -97,7 +95,7 @@ public class PlayerAttack : MonoBehaviour
 
     EnemyMove FindBackmostEnemyInRange()
     {
-        EnemyMove[] enemies = FindObjectsOfType<EnemyMove>();
+        EnemyMove[] enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         EnemyMove backmostEnemy = null;
         float smallestProgress = Mathf.Infinity;
         float fallbackNearestDistance = Mathf.Infinity;
@@ -126,6 +124,7 @@ public class PlayerAttack : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
         if (MergeManager.Instance != null)
             MergeManager.Instance.SelectUnit(this);
     }

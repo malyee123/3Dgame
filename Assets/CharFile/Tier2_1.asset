@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Tier2_1
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Tier2_1
-  characterPrefab: {fileID: 7127064250040410633, guid: 74081d2c7552d4c17953e46326368c4b, type: 3}
+  characterPrefab: {fileID: 4744537460265103821, guid: 79d6e86fda7674749baa509978485b91, type: 3}
+  characterSprite: {fileID: 21300000, guid: 446dfdc72714a4e40a7138c58fe1c2f1, type: 3}
   unitTag: Tier2_1
   characterColor: {r: 1, g: 1, b: 1, a: 1}
   attackRange: 5
