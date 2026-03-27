@@ -7,8 +7,10 @@ public class PauseManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject pausePanel;
+    public GameObject blockerPanel;
 
     private bool isPaused = false;
+    public bool IsPaused => isPaused;
 
     void Awake()
     {
@@ -19,25 +21,27 @@ public class PauseManager : MonoBehaviour
 
     void Start()
     {
-        if (pausePanel != null)
-            pausePanel.SetActive(false);
+        if (pausePanel != null) pausePanel.SetActive(false);
+        if (blockerPanel != null) blockerPanel.SetActive(false);
     }
-
 
     public void TogglePause()
     {
         isPaused = !isPaused;
-
-        
         Time.timeScale = isPaused ? 0f : 1f;
-
-        if (pausePanel != null)
-            pausePanel.SetActive(isPaused);
-
+        if (pausePanel != null) pausePanel.SetActive(isPaused);
+        if (blockerPanel != null) blockerPanel.SetActive(isPaused);
+        SetPlayerInteraction(!isPaused);
         Debug.Log($"[PauseManager] {(isPaused ? "Paused" : "Resumed")}");
     }
 
-    
+    void SetPlayerInteraction(bool enabled)
+    {
+        PlayerDragMerge[] dragMerges = FindObjectsByType<PlayerDragMerge>(FindObjectsSortMode.None);
+        foreach (PlayerDragMerge drag in dragMerges)
+            drag.enabled = enabled;
+    }
+
     public void GoToLobby()
     {
         Time.timeScale = 1f;

@@ -30,7 +30,6 @@ public class PlayerSpawner : MonoBehaviour
     private int[] slotOccupancy;
     private string[] slotTagOwners;
     private readonly Dictionary<string, List<int>> tagToSlots = new Dictionary<string, List<int>>();
-
     private bool slotDirty = false;
 
     void Awake()
@@ -63,33 +62,16 @@ public class PlayerSpawner : MonoBehaviour
 
     public void TrySpawnPlayer()
     {
-        if (slotOccupancy == null || slotOccupancy.Length == 0)
-        {
-            Debug.LogError("[PlayerSpawner] Slots are not initialized.");
-            return;
-        }
-
-        if (IsFieldFull())
-        {
-            Debug.Log("[PlayerSpawner] Field is full. Cannot spawn.");
-            return;
-        }
+        if (slotOccupancy == null || slotOccupancy.Length == 0) { Debug.LogError("[PlayerSpawner] Slots are not initialized."); return; }
+        if (IsFieldFull()) { Debug.Log("[PlayerSpawner] Field is full. Cannot spawn."); return; }
 
         SyncSlotStateFromScene();
 
         CharacterData selectedData = GetRandomCharacterData();
-        if (selectedData == null)
-        {
-            Debug.LogWarning("[PlayerSpawner] No valid CharacterData could be selected.");
-            return;
-        }
+        if (selectedData == null) { Debug.LogWarning("[PlayerSpawner] No valid CharacterData could be selected."); return; }
 
         string unitTag = GetUnitTag(selectedData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex))
-        {
-            Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. All allowed slots are full.");
-            return;
-        }
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) { Debug.Log($"[PlayerSpawner] Cannot spawn '{unitTag}'. All allowed slots are full."); return; }
 
         if (CoinManager.Instance != null)
         {
@@ -129,16 +111,11 @@ public class PlayerSpawner : MonoBehaviour
         UpdateSpawnButton();
     }
 
-    // [Ãß°¡] Spawn specific character for recipe craft result
     public void SpawnSpecificCharacter(CharacterData characterData)
     {
         if (characterData == null) return;
         string unitTag = GetUnitTag(characterData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex))
-        {
-            Debug.Log("[PlayerSpawner] SpawnSpecificCharacter failed - no available slot.");
-            return;
-        }
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) { Debug.Log("[PlayerSpawner] SpawnSpecificCharacter failed - no available slot."); return; }
         SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
@@ -174,11 +151,7 @@ public class PlayerSpawner : MonoBehaviour
             }
         }
 
-        if (candidates.Count == 0)
-        {
-            Debug.LogWarning($"[PlayerSpawner] Merge failed: no CharacterData for targetTier={targetTier}, mergeGroupId='{mergeGroupId}'.");
-            return null;
-        }
+        if (candidates.Count == 0) { Debug.LogWarning($"[PlayerSpawner] Merge failed: no CharacterData for targetTier={targetTier}, mergeGroupId='{mergeGroupId}'."); return null; }
 
         return candidates[Random.Range(0, candidates.Count)];
     }
@@ -355,11 +328,14 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
 
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+
         Dictionary<int, List<CharacterData>> tierMap = new Dictionary<int, List<CharacterData>>();
         foreach (CharacterData data in characterDataList)
         {
             if (data == null) continue;
             int tier = Mathf.Max(1, data.tier);
+            if (tier > unlockedTier) continue;
             if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
             tierMap[tier].Add(data);
         }
@@ -418,8 +394,7 @@ public class PlayerSpawner : MonoBehaviour
         List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
         {
-            if (slotOccupancy[i] == 0)
-                emptySlots.Add(i);
+            if (slotOccupancy[i] == 0) emptySlots.Add(i);
         }
 
         if (emptySlots.Count > 0)

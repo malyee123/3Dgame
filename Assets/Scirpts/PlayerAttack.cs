@@ -125,6 +125,7 @@ public class PlayerAttack : MonoBehaviour
     void OnMouseDown()
     {
         if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
         if (MergeManager.Instance != null)
             MergeManager.Instance.SelectUnit(this);
     }

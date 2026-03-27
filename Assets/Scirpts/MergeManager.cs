@@ -10,9 +10,6 @@ public class MergeManager : MonoBehaviour
     public Button mergeButton;
     public CanvasGroup mergeButtonCanvasGroup;
 
-    [Header("Merge Tier Limit")]
-    public int maxMergeTier = 9;
-
     private PlayerAttack selectedUnit;
 
     void Awake()
@@ -51,7 +48,8 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit != null && PlayerSpawner.Instance != null)
         {
             int currentTier = selectedUnit.characterData != null ? selectedUnit.characterData.tier : 1;
-            bool tierAllowed = currentTier <= maxMergeTier;
+            int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+            bool tierAllowed = (currentTier + 1) <= unlockedTier;
             canMerge = tierAllowed && PlayerSpawner.Instance.CanManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
         }
 
@@ -72,7 +70,9 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
 
         int currentTier = selectedUnit.characterData != null ? selectedUnit.characterData.tier : 1;
-        if (currentTier > maxMergeTier) return;
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+
+        if ((currentTier + 1) > unlockedTier) return;
 
         if (CoinManager.Instance != null)
         {
