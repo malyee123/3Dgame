@@ -120,7 +120,7 @@ public class UpgradeManager : MonoBehaviour
     }
 
     public float GetAttackDamageMultiplier() => 1f + (AttackDamageLevel * attackDamagePercentPerLevel / 100f);
-    public float GetAttackSpeedMultiplier() => 1f - (AttackSpeedLevel * attackSpeedPercentPerLevel / 100f);
+    public float GetAttackSpeedMultiplier() => Mathf.Max(0.1f, 1f - (AttackSpeedLevel * attackSpeedPercentPerLevel / 100f));
     public int GetCoinPerKillBonus() => CoinPerKillLevel * coinPerKillBonusPerLevel;
     public int GetStartingCoinBonus() => StartingCoinLevel * startingCoinBonusPerLevel;
 }

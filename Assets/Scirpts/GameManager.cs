@@ -25,6 +25,10 @@ public class GameManager : MonoBehaviour
     private float totalElapsedTime = 0f;
     private bool isGameOver = false;
 
+    private int prevEnemyCount = -1;
+    private int prevRound = -1;
+    private int prevRoundTimeLeft = -1;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -43,7 +47,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         totalElapsedTime += Time.deltaTime;
         roundTimeLeft -= Time.deltaTime;
-        UpdateAllUI();
+        UpdateUIIfChanged();
         if (roundTimeLeft <= 0f) NextRound();
     }
 
@@ -58,6 +62,25 @@ public class GameManager : MonoBehaviour
     {
         currentEnemyCount--;
         UpdateEnemyCountUI();
+    }
+
+    void UpdateUIIfChanged()
+    {
+        int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
+
+        if (currentRound != prevRound)
+        {
+            prevRound = currentRound;
+            if (roundText != null) roundText.text = $"Round: {currentRound}";
+        }
+
+        if (ceilTimeLeft != prevRoundTimeLeft)
+        {
+            prevRoundTimeLeft = ceilTimeLeft;
+            if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s";
+        }
+
+        if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
     }
 
     void NextRound()
@@ -90,6 +113,8 @@ public class GameManager : MonoBehaviour
 
     void UpdateEnemyCountUI()
     {
+        if (currentEnemyCount == prevEnemyCount) return;
+        prevEnemyCount = currentEnemyCount;
         if (enemyCountText != null)
             enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
     }

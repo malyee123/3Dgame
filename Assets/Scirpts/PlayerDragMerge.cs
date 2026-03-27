@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
@@ -29,7 +30,9 @@ public class PlayerDragMerge : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
         if (!dragEnabled) return;
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
@@ -45,7 +48,9 @@ public class PlayerDragMerge : MonoBehaviour
 
     void OnMouseDrag()
     {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
         if (!isDragging || mainCamera == null) return;
 
         Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -161,4 +166,4 @@ public class PlayerDragMerge : MonoBehaviour
         originalSlotIndex = targetSlot;
         originalPosition = myNewPos;
     }
-}       
+}

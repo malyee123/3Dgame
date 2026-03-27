@@ -17,7 +17,6 @@ public class RecipeBook : MonoBehaviour
 
     [Header("UI - Notification")]
     public GameObject notificationBadge;
-    public Button openButton;
 
     [Header("UI - Buttons To Hide")]
     public GameObject spawnButton;

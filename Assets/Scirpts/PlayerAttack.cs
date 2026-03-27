@@ -11,12 +11,10 @@ public class PlayerAttack : MonoBehaviour
 
     private float cooldownTimer;
     private EnemyMove currentTarget;
-    private int mergeCount = 0;
     [SerializeField] private float appliedDamage;
     [SerializeField] private float appliedCooldown;
 
     public string UnitType => characterData != null ? characterData.characterName : "";
-    public int MergeCount => mergeCount;
 
     void Start()
     {
@@ -47,21 +45,10 @@ public class PlayerAttack : MonoBehaviour
         return other.characterData == characterData;
     }
 
-    public bool TryMerge(PlayerAttack consumedUnit)
-    {
-        if (!CanMergeWith(consumedUnit)) return false;
-        mergeCount++;
-        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
-        return false;
-    }
-
-    public void ForceUpgrade() { }
-
     public void ApplyCharacterData(CharacterData newData)
     {
         if (newData == null) return;
         characterData = newData;
-        mergeCount = 0;
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
