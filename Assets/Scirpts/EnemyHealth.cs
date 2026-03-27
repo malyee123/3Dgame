@@ -10,6 +10,10 @@ public class EnemyHealth : MonoBehaviour
     public Slider hpSlider;
     public Image hpFillImage;
 
+    [Header("Special Monster Settings")]
+    public bool isSpecial = false;
+    public int specialCoinReward = 0;
+
     private float currentHp;
     private bool isDead = false;
 
@@ -34,7 +38,6 @@ public class EnemyHealth : MonoBehaviour
             float ratio = currentHp / maxHp;
             hpFillImage.color = Color.Lerp(Color.red, Color.green, ratio);
         }
-        Debug.Log($"[EnemyHealth] Hit. Remaining HP: {currentHp}/{maxHp}");
         if (currentHp <= 0) Die();
     }
 
@@ -43,8 +46,17 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
         if (GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
-        if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
-        Debug.Log($"[EnemyHealth] {gameObject.name} died.");
+        if (isSpecial)
+        {
+            if (SpecialCoinManager.Instance != null)
+                SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
+        }
+        else
+        {
+            if (CoinManager.Instance != null)
+                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
+        }
+        Debug.Log($"[EnemyHealth] {gameObject.name} died. Special: {isSpecial}");
         Destroy(gameObject);
     }
 }

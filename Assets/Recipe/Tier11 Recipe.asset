@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tier11 Recipe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeData
   ingredients:
-  - {fileID: 11400000, guid: 1b12f3bf88c72f44da16626a49be96a6, type: 2}
-  - {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
+  - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
+  - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
   - {fileID: 11400000, guid: e04fac414c3a3a341abbcced623fecf9, type: 2}
   result: {fileID: 11400000, guid: 384fcddea28f1d44fab9f85468da873e, type: 2}
   recipeName: Tier11Recipe

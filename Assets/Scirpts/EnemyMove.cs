@@ -1,12 +1,10 @@
 using UnityEngine;
 
-
 public class EnemyMove : MonoBehaviour
 {
     public float speed = 2f;
 
     private int waypointIndex = 0;
-
     private PathManager pathManager;
 
     public void SetPathManager(PathManager pm)
@@ -14,19 +12,12 @@ public class EnemyMove : MonoBehaviour
         pathManager = pm;
     }
 
-  
     public float GetPathProgress()
     {
-        if (pathManager == null)
-        {
-            return 0f;
-        }
+        if (pathManager == null) return 0f;
 
         int waypointCount = pathManager.GetWaypointCount();
-        if (waypointCount <= 0)
-        {
-            return 0f;
-        }
+        if (waypointCount <= 0) return 0f;
 
         int currentIndex = waypointIndex;
         int prevIndex = (currentIndex - 1 + waypointCount) % waypointCount;
@@ -34,10 +25,7 @@ public class EnemyMove : MonoBehaviour
         Transform prevWaypoint = pathManager.GetWaypoint(prevIndex);
         Transform currentWaypoint = pathManager.GetWaypoint(currentIndex);
 
-        if (prevWaypoint == null || currentWaypoint == null)
-        {
-            return currentIndex;
-        }
+        if (prevWaypoint == null || currentWaypoint == null) return currentIndex;
 
         Vector2 a = prevWaypoint.position;
         Vector2 b = currentWaypoint.position;
@@ -48,9 +36,7 @@ public class EnemyMove : MonoBehaviour
         float t = 0f;
 
         if (abLenSqr > 0f)
-        {
             t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / abLenSqr);
-        }
 
         return prevIndex + t;
     }
@@ -58,23 +44,10 @@ public class EnemyMove : MonoBehaviour
     void Start()
     {
         if (pathManager == null)
-        {
             pathManager = FindFirstObjectByType<PathManager>();
-        }
 
-        if (pathManager == null)
-        {
-            Debug.LogError("[EnemyMove] PathManager를 찾을 수 없습니다.");
-            enabled = false;
-            return;
-        }
-
-        if (pathManager.GetWaypointCount() == 0)
-        {
-            Debug.LogError("[EnemyMove] Waypoint가 0개입니다.");
-            enabled = false;
-            return;
-        }
+        if (pathManager == null) { Debug.LogError("[EnemyMove] PathManager not found."); enabled = false; return; }
+        if (pathManager.GetWaypointCount() == 0) { Debug.LogError("[EnemyMove] Waypoint count is 0."); enabled = false; return; }
     }
 
     void Update()
@@ -91,11 +64,8 @@ public class EnemyMove : MonoBehaviour
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
             waypointIndex++;
-
             if (waypointIndex >= pathManager.GetWaypointCount())
-            {
                 waypointIndex = 0;
-            }
         }
     }
 }

@@ -73,7 +73,6 @@ public class PlayerDragMerge : MonoBehaviour
         else
         {
             transform.position = originalPosition;
-
             for (int i = 0; i < slotMates.Count; i++)
             {
                 if (slotMates[i] == null) continue;
@@ -94,7 +93,7 @@ public class PlayerDragMerge : MonoBehaviour
 
         if (originalSlotIndex < 0) return;
 
-        PlayerAttack[] allPlayers = FindObjectsOfType<PlayerAttack>();
+        PlayerAttack[] allPlayers = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack p in allPlayers)
         {
             if (p == null || p == playerAttack) continue;
@@ -130,13 +129,6 @@ public class PlayerDragMerge : MonoBehaviour
         return nearestDist <= 1.0f ? nearestIndex : -1;
     }
 
-    void SetPlayerInteraction(bool enabled)
-    {
-        PlayerDragMerge[] dragMerges = FindObjectsByType<PlayerDragMerge>(FindObjectsSortMode.None);
-        foreach (PlayerDragMerge drag in dragMerges)
-            drag.enabled = enabled;
-    }
-
     bool CanMoveToSlot(int slotIndex)
     {
         if (PlayerSpawner.Instance == null) return false;
@@ -169,4 +161,4 @@ public class PlayerDragMerge : MonoBehaviour
         originalSlotIndex = targetSlot;
         originalPosition = myNewPos;
     }
-}
+}       
