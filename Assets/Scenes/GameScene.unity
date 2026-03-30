@@ -2965,7 +2965,6 @@ MonoBehaviour:
   recipeListParent: {fileID: 922378102}
   recipeItemPrefab: {fileID: 2842714020043398457, guid: 32b1b402a6536834c9c5ae8c4225a3f2, type: 3}
   notificationBadge: {fileID: 982415365}
-  openButton: {fileID: 407315897}
   spawnButton: {fileID: 1300881647}
   mergeButton: {fileID: 1945643813}
   recipeBookButton: {fileID: 407315896}
@@ -4629,7 +4628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
   m_Content: {fileID: 922378102}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1

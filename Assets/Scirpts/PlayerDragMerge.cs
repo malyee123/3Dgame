@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
 {
-    private const bool dragEnabled = true;
+    private bool dragEnabled = true;
     private Camera mainCamera;
     private bool isDragging;
     private Vector3 originalPosition;

@@ -16,9 +16,11 @@ public class EnemySpawner : MonoBehaviour
     [Header("Path Settings")]
     public PathManager pathManager;
 
+    [Header("Spawn Settings")]
+    [SerializeField] private Vector2 spawnPosition = new Vector2(-8.5f, 4.5f);
+
     private float currentSpawnDelay;
     private float currentEnemyHp;
-    private Vector2 spawnPosition = new Vector2(-8.5f, 4.5f);
     private Coroutine spawnCoroutine;
 
     void Start()
@@ -33,9 +35,7 @@ public class EnemySpawner : MonoBehaviour
     {
         currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
         currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
-
         Debug.Log($"[EnemySpawner] Round {round} - Delay: {currentSpawnDelay} / HP: {currentEnemyHp}");
-
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }

@@ -7,9 +7,7 @@ public class PathManager : MonoBehaviour
     void Awake()
     {
         if (waypoints == null || waypoints.Length == 0)
-        {
             Debug.LogError("[PathManager] No waypoints configured. Assign waypoints in Inspector.");
-        }
     }
 
     public Transform GetWaypoint(int index)
@@ -22,7 +20,7 @@ public class PathManager : MonoBehaviour
 
         if (index < 0 || index >= waypoints.Length)
         {
-            Debug.LogError($"[PathManager] Invalid waypoint index: {index} (count: {waypoints.Length})");
+            Debug.LogWarning($"[PathManager] Invalid waypoint index: {index} (count: {waypoints.Length})");
             return null;
         }
 
@@ -31,11 +29,7 @@ public class PathManager : MonoBehaviour
 
     public int GetWaypointCount()
     {
-        if (waypoints == null)
-        {
-            return 0;
-        }
-
+        if (waypoints == null) return 0;
         return waypoints.Length;
     }
 }

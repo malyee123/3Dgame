@@ -13,6 +13,7 @@ public class PlayerAttack : MonoBehaviour
     private EnemyMove currentTarget;
     [SerializeField] private float appliedDamage;
     [SerializeField] private float appliedCooldown;
+    private SPUM_Prefabs spumPrefabs;
 
     public string UnitType => characterData != null ? characterData.characterName : "";
 
@@ -21,6 +22,9 @@ public class PlayerAttack : MonoBehaviour
         if (characterData == null) { Debug.LogError($"[Player {spawnIndex}] CharacterData is missing!"); enabled = false; return; }
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
+        spumPrefabs = GetComponentInChildren<SPUM_Prefabs>();
+        if (spumPrefabs != null && spumPrefabs.OverrideController == null)
+            spumPrefabs.OverrideControllerInit();
     }
 
     void ApplyUpgradeStats()
@@ -64,6 +68,9 @@ public class PlayerAttack : MonoBehaviour
 
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
+        spumPrefabs = GetComponentInChildren<SPUM_Prefabs>();
+        if (spumPrefabs != null && spumPrefabs.OverrideController == null)
+            spumPrefabs.OverrideControllerInit();
     }
 
     void AttackWithLockedTarget()
@@ -75,6 +82,8 @@ public class PlayerAttack : MonoBehaviour
 
         EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
         if (health == null) { currentTarget = null; return; }
+
+        if (spumPrefabs != null) spumPrefabs.PlayAnimation(PlayerState.ATTACK, 0);
 
         health.TakeDamage(appliedDamage);
         cooldownTimer = 0f;

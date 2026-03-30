@@ -6,6 +6,7 @@ public class EnemyMove : MonoBehaviour
 
     private int waypointIndex = 0;
     private PathManager pathManager;
+    private SpriteRenderer spriteRenderer;
 
     public void SetPathManager(PathManager pm)
     {
@@ -48,6 +49,8 @@ public class EnemyMove : MonoBehaviour
 
         if (pathManager == null) { Debug.LogError("[EnemyMove] PathManager not found."); enabled = false; return; }
         if (pathManager.GetWaypointCount() == 0) { Debug.LogError("[EnemyMove] Waypoint count is 0."); enabled = false; return; }
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -60,6 +63,9 @@ public class EnemyMove : MonoBehaviour
             target.position,
             speed * Time.deltaTime
         );
+
+        if (spriteRenderer != null)
+            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
 
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
