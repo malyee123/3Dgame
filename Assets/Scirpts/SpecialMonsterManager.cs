@@ -24,7 +24,7 @@ public class SpecialMonsterManager : MonoBehaviour
     public TextMeshProUGUI buttonTimerText;
 
     [Header("Spawn Position")]
-    public Vector2 spawnPosition = new Vector2(-8.5f, 4.5f);
+    public Vector2 spawnPosition = new Vector2(-5f, 2.5f);
 
     [Header("Path Settings")]
     public PathManager pathManager;

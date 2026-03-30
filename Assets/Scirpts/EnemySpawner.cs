@@ -17,7 +17,7 @@ public class EnemySpawner : MonoBehaviour
     public PathManager pathManager;
 
     [Header("Spawn Settings")]
-    [SerializeField] private Vector2 spawnPosition = new Vector2(-8.5f, 4.5f);
+    [SerializeField] private Vector2 spawnPosition = new Vector2(-5f, 2.5f);
 
     private float currentSpawnDelay;
     private float currentEnemyHp;
