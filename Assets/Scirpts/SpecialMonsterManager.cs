@@ -1,6 +1,6 @@
 using System.Collections;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class SpecialMonsterManager : MonoBehaviour
@@ -64,11 +64,16 @@ public class SpecialMonsterManager : MonoBehaviour
     IEnumerator ShowButtonRoutine()
     {
         isButtonActive = true;
-        if (spawnButtonObject != null) spawnButtonObject.SetActive(true);
+
+        if (spawnButtonObject != null && (RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen))
+            spawnButtonObject.SetActive(true);
 
         float timeLeft = buttonDisplayTime;
         while (timeLeft > 0f)
         {
+            if (spawnButtonObject != null)
+                spawnButtonObject.SetActive(RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen);
+
             if (buttonTimerText != null)
                 buttonTimerText.text = $"Special Monster!\n{Mathf.CeilToInt(timeLeft)}s";
             timeLeft -= Time.deltaTime;

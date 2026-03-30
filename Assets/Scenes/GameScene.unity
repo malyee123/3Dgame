@@ -2968,6 +2968,7 @@ MonoBehaviour:
   spawnButton: {fileID: 1300881647}
   mergeButton: {fileID: 1945643813}
   recipeBookButton: {fileID: 407315896}
+  notificationDisplayTime: 3
 --- !u!4 &1047692171
 Transform:
   m_ObjectHideFlags: 0
@@ -3018,6 +3019,7 @@ MonoBehaviour:
   spawnDelayDecrement: 0.1
   hpIncrement: 20
   pathManager: {fileID: 2072419691}
+  spawnPosition: {x: -8.5, y: 4.5}
 --- !u!4 &1074021557
 Transform:
   m_ObjectHideFlags: 0

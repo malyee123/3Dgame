@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     private int prevEnemyCount = -1;
     private int prevRound = -1;
     private int prevRoundTimeLeft = -1;
+    private int prevTotalTimeSeconds = -1;
 
     void Awake()
     {
@@ -80,7 +81,12 @@ public class GameManager : MonoBehaviour
             if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s";
         }
 
-        if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
+        int currentTotalSeconds = (int)totalElapsedTime;
+        if (currentTotalSeconds != prevTotalTimeSeconds)
+        {
+            prevTotalTimeSeconds = currentTotalSeconds;
+            if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
+        }
     }
 
     void NextRound()

@@ -23,12 +23,19 @@ public class RecipeBook : MonoBehaviour
     public GameObject mergeButton;
     public GameObject recipeBookButton;
 
+    [Header("Notification Settings")]
+    public float notificationDisplayTime = 3f;
+
     private List<RecipeItemUI> recipeItems = new List<RecipeItemUI>();
     private bool isPanelOpen = false;
     public bool IsPanelOpen => isPanelOpen;
 
     private float checkInterval = 0.5f;
     private float checkTimer = 0f;
+    private float notificationTimer = 0f;
+    private bool isNotificationShowing = false;
+    private bool wasCraftable = false;
+    private bool notificationShownThisCycle = false;
 
     void Awake()
     {
@@ -49,7 +56,21 @@ public class RecipeBook : MonoBehaviour
         if (checkTimer >= checkInterval)
         {
             checkTimer = 0f;
-            RefreshRecipeStates();
+            if (isPanelOpen)
+                RefreshRecipeStates();
+            else
+                CheckNotificationOnly();
+        }
+
+        if (isNotificationShowing && !isPanelOpen)
+        {
+            notificationTimer -= Time.deltaTime;
+            if (notificationTimer <= 0f)
+            {
+                isNotificationShowing = false;
+                notificationShownThisCycle = true;
+                if (notificationBadge != null) notificationBadge.SetActive(false);
+            }
         }
     }
 
@@ -75,23 +96,48 @@ public class RecipeBook : MonoBehaviour
         }
     }
 
+    void CheckNotificationOnly()
+    {
+        if (recipeItems == null || recipeItems.Count == 0) return;
+        Dictionary<string, int> fieldUnits = GetFieldUnitCounts();
+        bool anyCanCraft = false;
+        foreach (RecipeItemUI item in recipeItems)
+        {
+            if (item == null) continue;
+            if (CanCraft(item.recipe, fieldUnits)) { anyCanCraft = true; break; }
+        }
+
+        if (anyCanCraft && !wasCraftable)
+        {
+            wasCraftable = true;
+            if (!notificationShownThisCycle)
+            {
+                isNotificationShowing = true;
+                notificationTimer = notificationDisplayTime;
+                if (notificationBadge != null) notificationBadge.SetActive(true);
+            }
+        }
+        else if (!anyCanCraft)
+        {
+            wasCraftable = false;
+            isNotificationShowing = false;
+            notificationShownThisCycle = false;
+            if (notificationBadge != null) notificationBadge.SetActive(false);
+        }
+    }
+
     void RefreshRecipeStates()
     {
         if (recipeItems == null || recipeItems.Count == 0) return;
 
         Dictionary<string, int> fieldUnits = GetFieldUnitCounts();
-        bool anyCanCraft = false;
 
         foreach (RecipeItemUI item in recipeItems)
         {
             if (item == null) continue;
             bool canCraft = CanCraft(item.recipe, fieldUnits);
             item.UpdateState(fieldUnits, canCraft);
-            if (canCraft) anyCanCraft = true;
         }
-
-        if (notificationBadge != null)
-            notificationBadge.SetActive(anyCanCraft);
 
         SortRecipeList();
     }
@@ -191,7 +237,14 @@ public class RecipeBook : MonoBehaviour
         if (mergeButton != null) mergeButton.SetActive(!isPanelOpen);
         if (recipeBookButton != null) recipeBookButton.SetActive(!isPanelOpen);
         SetPlayerInteraction(!isPanelOpen);
-        if (isPanelOpen) RefreshRecipeStates();
+
+        if (isPanelOpen)
+        {
+            isNotificationShowing = false;
+            notificationShownThisCycle = true;
+            if (notificationBadge != null) notificationBadge.SetActive(false);
+            RefreshRecipeStates();
+        }
     }
 
     public void ClosePanel()
