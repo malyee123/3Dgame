@@ -2445,7 +2445,7 @@ MonoBehaviour:
   spawnButtonObject: {fileID: 298684591}
   spawnButton: {fileID: 298684595}
   buttonTimerText: {fileID: 520944134}
-  spawnPosition: {x: -8.5, y: 4.5}
+  spawnPosition: {x: -6, y: 3}
   pathManager: {fileID: 0}
 --- !u!1 &794089658
 GameObject:
@@ -2968,6 +2968,7 @@ MonoBehaviour:
   spawnButton: {fileID: 1300881647}
   mergeButton: {fileID: 1945643813}
   recipeBookButton: {fileID: 407315896}
+  notificationDisplayTime: 3
 --- !u!4 &1047692171
 Transform:
   m_ObjectHideFlags: 0
