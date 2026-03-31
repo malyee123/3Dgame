@@ -32,14 +32,13 @@ public class PauseManager : MonoBehaviour
         if (pausePanel != null) pausePanel.SetActive(isPaused);
         if (blockerPanel != null) blockerPanel.SetActive(isPaused);
         SetPlayerInteraction(!isPaused);
-        Debug.Log($"[PauseManager] {(isPaused ? "Paused" : "Resumed")}");
+        // Debug.Log($"[PauseManager] {(isPaused ? "Paused" : "Resumed")}");
     }
 
     void SetPlayerInteraction(bool enabled)
     {
         PlayerDragMerge[] dragMerges = FindObjectsByType<PlayerDragMerge>(FindObjectsSortMode.None);
-        foreach (PlayerDragMerge drag in dragMerges)
-            drag.enabled = enabled;
+        foreach (PlayerDragMerge drag in dragMerges) drag.enabled = enabled;
     }
 
     public void GoToLobby()

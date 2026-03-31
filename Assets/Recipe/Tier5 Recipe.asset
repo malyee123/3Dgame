@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7a3bd52f047e754daa7f4cfa6e95dec, type: 3}
+  m_Name: Tier5 Recipe
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  ingredients:
+  - {fileID: 11400000, guid: e63ef2704add77e4da20cf664f8e08d1, type: 2}
+  - {fileID: 11400000, guid: 42932f4f568ba8d4295fd69d3d048ac9, type: 2}
+  - {fileID: 11400000, guid: 9d1bd8b7928ea2f45b40114b4c04a5f3, type: 2}
+  - {fileID: 11400000, guid: b11ce941942b3074aa886c094726c5fb, type: 2}
+  result: {fileID: 11400000, guid: 5c03f9cdbdb6cd847805e45a3e82443b, type: 2}
+  recipeName: Tier5Resipe

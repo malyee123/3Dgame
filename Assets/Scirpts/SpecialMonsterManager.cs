@@ -43,89 +43,52 @@ public class SpecialMonsterManager : MonoBehaviour
     {
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
-        if (spawnButton != null)
-        {
-            spawnButton.onClick.RemoveAllListeners();
-            spawnButton.onClick.AddListener(OnSpawnButtonClicked);
-        }
+        if (spawnButton != null) { spawnButton.onClick.RemoveAllListeners(); spawnButton.onClick.AddListener(OnSpawnButtonClicked); }
     }
 
     void Update()
     {
         if (isButtonActive) return;
         intervalTimer += Time.deltaTime;
-        if (intervalTimer >= spawnInterval)
-        {
-            intervalTimer = 0f;
-            buttonCoroutine = StartCoroutine(ShowButtonRoutine());
-        }
+        if (intervalTimer >= spawnInterval) { intervalTimer = 0f; buttonCoroutine = StartCoroutine(ShowButtonRoutine()); }
     }
 
     IEnumerator ShowButtonRoutine()
     {
         isButtonActive = true;
-
         if (spawnButtonObject != null && (RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen))
             spawnButtonObject.SetActive(true);
-
         float timeLeft = buttonDisplayTime;
         while (timeLeft > 0f)
         {
-            if (spawnButtonObject != null)
-                spawnButtonObject.SetActive(RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen);
-
-            if (buttonTimerText != null)
-                buttonTimerText.text = $"Special Monster!\n{Mathf.CeilToInt(timeLeft)}s";
+            if (spawnButtonObject != null) spawnButtonObject.SetActive(RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen);
+            if (buttonTimerText != null) buttonTimerText.text = $"Special";
             timeLeft -= Time.deltaTime;
             yield return null;
         }
-
         HideButton();
     }
 
     void OnSpawnButtonClicked()
     {
-        if (buttonCoroutine != null)
-        {
-            StopCoroutine(buttonCoroutine);
-            buttonCoroutine = null;
-        }
+        if (buttonCoroutine != null) { StopCoroutine(buttonCoroutine); buttonCoroutine = null; }
         HideButton();
         SpawnSpecialMonster();
     }
 
-    void HideButton()
-    {
-        if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
-        isButtonActive = false;
-    }
+    void HideButton() { if (spawnButtonObject != null) spawnButtonObject.SetActive(false); isButtonActive = false; }
 
     void SpawnSpecialMonster()
     {
         if (specialMonsterPrefab == null || pathManager == null) return;
-
         GameObject obj = Instantiate(specialMonsterPrefab, spawnPosition, Quaternion.identity);
-
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null)
-        {
-            enemyMove.SetPathManager(pathManager);
-            enemyMove.speed = specialMonsterSpeed;
-        }
-
+        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = specialMonsterSpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
-        {
-            enemyHealth.maxHp = specialMonsterHp;
-            enemyHealth.isSpecial = true;
-            enemyHealth.specialCoinReward = specialCoinReward;
-        }
-
-        if (GameManager.Instance != null)
-            GameManager.Instance.OnEnemySpawned();
-
+        if (enemyHealth != null) { enemyHealth.maxHp = specialMonsterHp; enemyHealth.isSpecial = true; enemyHealth.specialCoinReward = specialCoinReward; }
+        if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
         StartCoroutine(DespawnAfterTime(obj, enemyHealth, specialMonsterLifetime));
-        Debug.Log("[SpecialMonsterManager] Special monster spawned.");
+        // Debug.Log("[SpecialMonsterManager] Special monster spawned.");
     }
 
     IEnumerator DespawnAfterTime(GameObject obj, EnemyHealth health, float lifetime)
@@ -134,10 +97,9 @@ public class SpecialMonsterManager : MonoBehaviour
         if (obj != null)
         {
             bool alreadyDead = health == null || !health.gameObject.activeInHierarchy;
-            if (!alreadyDead && GameManager.Instance != null)
-                GameManager.Instance.OnEnemyDied();
+            if (!alreadyDead && GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
             Destroy(obj);
-            Debug.Log("[SpecialMonsterManager] Special monster despawned after lifetime.");
+            // Debug.Log("[SpecialMonsterManager] Special monster despawned.");
         }
     }
 }

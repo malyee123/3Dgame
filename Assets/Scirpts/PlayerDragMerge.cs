@@ -23,10 +23,7 @@ public class PlayerDragMerge : MonoBehaviour
         playerAttack = GetComponent<PlayerAttack>();
     }
 
-    public void SetSpawnIndex(int index)
-    {
-        originalSlotIndex = index;
-    }
+    public void SetSpawnIndex(int index) { originalSlotIndex = index; }
 
     void OnMouseDown()
     {
@@ -39,11 +36,39 @@ public class PlayerDragMerge : MonoBehaviour
 
         isDragging = true;
         originalPosition = transform.position;
-
         if (playerAttack != null)
+        {
             originalSlotIndex = playerAttack.spawnIndex;
+            playerAttack.SetDragging(true);
+        }
 
         CollectSlotMates();
+
+        foreach (Transform mate in slotMates)
+        {
+            PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
+            if (mateAttack != null) mateAttack.SetDragging(true);
+        }
+
+        if (MergeManager.Instance != null)
+        {
+            if (playerAttack != null && playerAttack.isLeader)
+            {
+                MergeManager.Instance.SelectUnit(playerAttack);
+            }
+            else
+            {
+                PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+                foreach (PlayerAttack unit in allUnits)
+                {
+                    if (unit.spawnIndex == originalSlotIndex && unit.isLeader)
+                    {
+                        MergeManager.Instance.SelectUnit(unit);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     void OnMouseDrag()
@@ -69,12 +94,16 @@ public class PlayerDragMerge : MonoBehaviour
         if (!isDragging) return;
         isDragging = false;
 
-        int targetSlot = FindNearestSlot();
-
-        if (targetSlot >= 0 && targetSlot != originalSlotIndex && CanMoveToSlot(targetSlot))
+        if (playerAttack != null) playerAttack.SetDragging(false);
+        foreach (Transform mate in slotMates)
         {
-            MoveToSlot(targetSlot);
+            PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
+            if (mateAttack != null) mateAttack.SetDragging(false);
         }
+
+        int targetSlot = FindNearestSlot();
+        if (targetSlot >= 0 && targetSlot != originalSlotIndex && CanMoveToSlot(targetSlot))
+            MoveToSlot(targetSlot);
         else
         {
             transform.position = originalPosition;
@@ -95,15 +124,12 @@ public class PlayerDragMerge : MonoBehaviour
         slotMates.Clear();
         slotMateOriginalPositions.Clear();
         slotMateOffsets.Clear();
-
         if (originalSlotIndex < 0) return;
-
         PlayerAttack[] allPlayers = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack p in allPlayers)
         {
             if (p == null || p == playerAttack) continue;
             if (p.spawnIndex != originalSlotIndex) continue;
-
             slotMates.Add(p.transform);
             slotMateOriginalPositions.Add(p.transform.position);
             slotMateOffsets.Add(p.transform.position - transform.position);
@@ -113,24 +139,16 @@ public class PlayerDragMerge : MonoBehaviour
     int FindNearestSlot()
     {
         if (PlayerSpawner.Instance == null) return -1;
-
         Transform[] spawnPoints = PlayerSpawner.Instance.spawnPoints;
         if (spawnPoints == null || spawnPoints.Length == 0) return -1;
-
         int nearestIndex = -1;
         float nearestDist = float.MaxValue;
-
         for (int i = 0; i < spawnPoints.Length; i++)
         {
             if (spawnPoints[i] == null) continue;
             float dist = Vector2.Distance(transform.position, spawnPoints[i].position);
-            if (dist < nearestDist)
-            {
-                nearestDist = dist;
-                nearestIndex = i;
-            }
+            if (dist < nearestDist) { nearestDist = dist; nearestIndex = i; }
         }
-
         return nearestDist <= 1.0f ? nearestIndex : -1;
     }
 
@@ -143,27 +161,20 @@ public class PlayerDragMerge : MonoBehaviour
     void MoveToSlot(int targetSlot)
     {
         if (PlayerSpawner.Instance == null || playerAttack == null) return;
-
         PlayerSpawner.Instance.UnregisterUnit(playerAttack, originalSlotIndex);
         PlayerSpawner.Instance.RegisterUnit(playerAttack, targetSlot);
-
         for (int i = 0; i < slotMates.Count; i++)
         {
             if (slotMates[i] == null) continue;
             PlayerAttack mate = slotMates[i].GetComponent<PlayerAttack>();
             if (mate != null) mate.spawnIndex = targetSlot;
-
-            Vector3 newPos = PlayerSpawner.Instance.spawnPoints[targetSlot].position
-                             + PlayerSpawner.Instance.GetTriangleOffsetPublic(i + 1);
-            slotMates[i].position = newPos;
+            slotMates[i].position = PlayerSpawner.Instance.spawnPoints[targetSlot].position
+                                    + PlayerSpawner.Instance.GetTriangleOffsetPublic(i + 1);
         }
-
-        Vector3 myNewPos = PlayerSpawner.Instance.spawnPoints[targetSlot].position
-                           + PlayerSpawner.Instance.GetTriangleOffsetPublic(0);
-        transform.position = myNewPos;
-
+        transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position
+                             + PlayerSpawner.Instance.GetTriangleOffsetPublic(0);
         playerAttack.spawnIndex = targetSlot;
         originalSlotIndex = targetSlot;
-        originalPosition = myNewPos;
+        originalPosition = transform.position;
     }
 }
