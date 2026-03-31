@@ -52,48 +52,23 @@ public class GameManager : MonoBehaviour
         if (roundTimeLeft <= 0f) NextRound();
     }
 
-    public void OnEnemySpawned()
-    {
-        currentEnemyCount++;
-        UpdateEnemyCountUI();
-        if (currentEnemyCount >= maxEnemyCount) GameOver();
-    }
-
-    public void OnEnemyDied()
-    {
-        currentEnemyCount--;
-        UpdateEnemyCountUI();
-    }
+    public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
+    public void OnEnemyDied() { currentEnemyCount--; UpdateEnemyCountUI(); }
 
     void UpdateUIIfChanged()
     {
         int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
-
-        if (currentRound != prevRound)
-        {
-            prevRound = currentRound;
-            if (roundText != null) roundText.text = $"Round: {currentRound}";
-        }
-
-        if (ceilTimeLeft != prevRoundTimeLeft)
-        {
-            prevRoundTimeLeft = ceilTimeLeft;
-            if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s";
-        }
-
+        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
+        if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
         int currentTotalSeconds = (int)totalElapsedTime;
-        if (currentTotalSeconds != prevTotalTimeSeconds)
-        {
-            prevTotalTimeSeconds = currentTotalSeconds;
-            if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
-        }
+        if (currentTotalSeconds != prevTotalTimeSeconds) { prevTotalTimeSeconds = currentTotalSeconds; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
     }
 
     void NextRound()
     {
         currentRound++;
         roundTimeLeft = roundDuration;
-        Debug.Log($"[GameManager] Round {currentRound} started!");
+        // Debug.Log($"[GameManager] Round {currentRound} started!");
         EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
         if (spawner != null) spawner.ApplyRoundSettings(currentRound);
     }
@@ -104,7 +79,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
-        Debug.Log($"[GameManager] Game Over! Round: {currentRound} / Total: {FormatTime(totalElapsedTime)}");
+        // Debug.Log($"[GameManager] Game Over! Round: {currentRound} / Total: {FormatTime(totalElapsedTime)}");
         Time.timeScale = 1f;
         SceneManager.LoadScene("GameOverScene");
     }
@@ -121,8 +96,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentEnemyCount == prevEnemyCount) return;
         prevEnemyCount = currentEnemyCount;
-        if (enemyCountText != null)
-            enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
+        if (enemyCountText != null) enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
     }
 
     public float GetTotalTime() => totalElapsedTime;

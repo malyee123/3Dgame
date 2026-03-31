@@ -32,20 +32,19 @@ public class CoinManager : MonoBehaviour
     public void AddCoins(int amount)
     {
         int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
-        int finalAmount = amount + bonus;
-        currentCoins += finalAmount;
+        currentCoins += amount + bonus;
         UpdateCoinUI();
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
-        Debug.Log($"[CoinManager] Coins: {currentCoins} (+{finalAmount})");
+        // Debug.Log($"[CoinManager] Coins: {currentCoins} (+{amount + bonus})");
     }
 
     public bool SpendCoins(int amount)
     {
-        if (currentCoins < amount) { Debug.Log("[CoinManager] Not enough coins!"); return false; }
+        if (currentCoins < amount) { /*Debug.Log("[CoinManager] Not enough coins!");*/ return false; }
         currentCoins -= amount;
         UpdateCoinUI();
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
-        Debug.Log($"[CoinManager] Coins: {currentCoins} (-{amount})");
+        // Debug.Log($"[CoinManager] Coins: {currentCoins} (-{amount})");
         return true;
     }
 
@@ -53,7 +52,6 @@ public class CoinManager : MonoBehaviour
 
     void UpdateCoinUI()
     {
-        if (coinText != null)
-            coinText.text = $"Coins: {currentCoins}";
+        if (coinText != null) coinText.text = $"Coins: {currentCoins}";
     }
 }

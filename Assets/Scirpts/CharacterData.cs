@@ -1,4 +1,27 @@
+using System.Collections.Generic;
 using UnityEngine;
+
+public enum PassiveType
+{
+    None,
+    AllAttackDamageUp,
+    AllAttackSpeedUp,
+    AllEnemySpeedDown,
+    AllEnemyDefenseDown,
+    DoubleDamageChance,
+    AttackTwiceChance,
+    SelfAttackSpeedUpChance,
+}
+
+[System.Serializable]
+public class PassiveEntry
+{
+    public PassiveType passiveType = PassiveType.None;
+    [Range(0f, 100f)]
+    public float passiveValue = 0f;        // 확률 or 고정 수치
+    public float passiveSecondValue = 0f;  // 증가량 (SelfAttackSpeedUpChance에서 공속 증가%)
+    public float passiveDuration = 0f;     // 지속시간 (초)
+}
 
 [CreateAssetMenu(fileName = "NewCharacterData", menuName = "Character/CharacterData")]
 public class CharacterData : ScriptableObject
@@ -24,4 +47,7 @@ public class CharacterData : ScriptableObject
 
     [Header("Upgrade Cost")]
     public int upgradeCost = 100;
+
+    [Header("Passives")]
+    public List<PassiveEntry> passives = new List<PassiveEntry>();
 }

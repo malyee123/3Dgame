@@ -16,16 +16,13 @@ public class SpecialCoinManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start()
-    {
-        UpdateUI();
-    }
+    void Start() { UpdateUI(); }
 
     public void AddSpecialCoins(int amount)
     {
         specialCoins += amount;
         UpdateUI();
-        Debug.Log($"[SpecialCoinManager] Special coins added: +{amount} (Total: {specialCoins})");
+        // Debug.Log($"[SpecialCoinManager] Special coins added: +{amount} (Total: {specialCoins})");
     }
 
     public bool SpendSpecialCoins(int amount)
@@ -40,7 +37,6 @@ public class SpecialCoinManager : MonoBehaviour
 
     void UpdateUI()
     {
-        if (specialCoinText != null)
-            specialCoinText.text = $"Special: {specialCoins}";
+        if (specialCoinText != null) specialCoinText.text = $"Special: {specialCoins}";
     }
 }

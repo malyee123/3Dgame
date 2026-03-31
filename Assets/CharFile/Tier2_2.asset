@@ -13,13 +13,14 @@ MonoBehaviour:
   m_Name: Tier2_2
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Tier2_2
-  characterPrefab: {fileID: 5636758013200641154, guid: dba443a66548243fe806dd91db6511af, type: 3}
-  characterSprite: {fileID: 21300000, guid: 2e3d19f734c6f8a4e9cf982ebb806997, type: 3}
+  characterPrefab: {fileID: 5510382206488389914, guid: a77f2796fd776459c9b84d0b63c90e3a, type: 3}
+  characterSprite: {fileID: 21300000, guid: f42c2b10b5a48d64e8e3af419c2760f9, type: 3}
   unitTag: Tier2_2
   characterColor: {r: 1, g: 1, b: 1, a: 1}
-  attackRange: 5
-  attackDamage: 15
+  attackRange: 7
+  attackDamage: 20
   attackCooldown: 0.5
   tier: 2
   mergeGroupId: A
   upgradeCost: 100
+  passives: []

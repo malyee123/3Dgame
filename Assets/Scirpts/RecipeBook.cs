@@ -56,10 +56,8 @@ public class RecipeBook : MonoBehaviour
         if (checkTimer >= checkInterval)
         {
             checkTimer = 0f;
-            if (isPanelOpen)
-                RefreshRecipeStates();
-            else
-                CheckNotificationOnly();
+            if (isPanelOpen) RefreshRecipeStates();
+            else CheckNotificationOnly();
         }
 
         if (isNotificationShowing && !isPanelOpen)
@@ -77,22 +75,14 @@ public class RecipeBook : MonoBehaviour
     void BuildRecipeList()
     {
         if (recipes == null || recipeListParent == null || recipeItemPrefab == null) return;
-
-        foreach (Transform child in recipeListParent)
-            Destroy(child.gameObject);
-
+        foreach (Transform child in recipeListParent) Destroy(child.gameObject);
         recipeItems.Clear();
-
         foreach (RecipeData recipe in recipes)
         {
             if (recipe == null) continue;
             GameObject obj = Instantiate(recipeItemPrefab, recipeListParent);
             RecipeItemUI item = obj.GetComponent<RecipeItemUI>();
-            if (item != null)
-            {
-                item.Setup(recipe);
-                recipeItems.Add(item);
-            }
+            if (item != null) { item.Setup(recipe); recipeItems.Add(item); }
         }
     }
 
@@ -129,26 +119,20 @@ public class RecipeBook : MonoBehaviour
     void RefreshRecipeStates()
     {
         if (recipeItems == null || recipeItems.Count == 0) return;
-
         Dictionary<string, int> fieldUnits = GetFieldUnitCounts();
-
         foreach (RecipeItemUI item in recipeItems)
         {
             if (item == null) continue;
-            bool canCraft = CanCraft(item.recipe, fieldUnits);
-            item.UpdateState(fieldUnits, canCraft);
+            item.UpdateState(fieldUnits, CanCraft(item.recipe, fieldUnits));
         }
-
         SortRecipeList();
     }
 
     void SortRecipeList()
     {
         for (int i = recipeItems.Count - 1; i >= 0; i--)
-        {
             if (recipeItems[i] != null && recipeItems[i].CanCraft)
                 recipeItems[i].transform.SetAsFirstSibling();
-        }
     }
 
     Dictionary<string, int> GetFieldUnitCounts()
@@ -168,7 +152,6 @@ public class RecipeBook : MonoBehaviour
     bool CanCraft(RecipeData recipe, Dictionary<string, int> fieldUnits)
     {
         if (recipe == null || recipe.ingredients == null) return false;
-
         Dictionary<string, int> required = new Dictionary<string, int>();
         foreach (CharacterData data in recipe.ingredients)
         {
@@ -177,7 +160,6 @@ public class RecipeBook : MonoBehaviour
             if (!required.ContainsKey(name)) required[name] = 0;
             required[name]++;
         }
-
         foreach (var kv in required)
         {
             if (!fieldUnits.ContainsKey(kv.Key)) return false;
@@ -189,21 +171,11 @@ public class RecipeBook : MonoBehaviour
     public void ExecuteCraft(RecipeData recipe)
     {
         if (recipe == null) return;
-
         Dictionary<string, int> fieldUnits = GetFieldUnitCounts();
-        if (!CanCraft(recipe, fieldUnits))
-        {
-            Debug.Log("[RecipeBook] Cannot craft - insufficient ingredients.");
-            return;
-        }
-
-        foreach (CharacterData data in recipe.ingredients)
-            RemoveIngredient(data);
-
+        if (!CanCraft(recipe, fieldUnits)) return;
+        foreach (CharacterData data in recipe.ingredients) RemoveIngredient(data);
         if (PlayerSpawner.Instance != null && recipe.result != null)
             PlayerSpawner.Instance.SpawnSpecificCharacter(recipe.result);
-
-        Debug.Log($"[RecipeBook] Craft success! Result: {recipe.result?.characterName}");
         RefreshRecipeStates();
     }
 
@@ -215,8 +187,7 @@ public class RecipeBook : MonoBehaviour
         {
             if (p == null || p.characterData == null) continue;
             if (p.characterData.characterName != data.characterName) continue;
-            if (PlayerSpawner.Instance != null)
-                PlayerSpawner.Instance.UnregisterUnit(p, p.spawnIndex);
+            if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.UnregisterUnit(p, p.spawnIndex);
             Destroy(p.gameObject);
             return;
         }
@@ -225,8 +196,7 @@ public class RecipeBook : MonoBehaviour
     void SetPlayerInteraction(bool enabled)
     {
         PlayerDragMerge[] dragMerges = FindObjectsByType<PlayerDragMerge>(FindObjectsSortMode.None);
-        foreach (PlayerDragMerge drag in dragMerges)
-            drag.enabled = enabled;
+        foreach (PlayerDragMerge drag in dragMerges) drag.enabled = enabled;
     }
 
     public void TogglePanel()
@@ -237,7 +207,6 @@ public class RecipeBook : MonoBehaviour
         if (mergeButton != null) mergeButton.SetActive(!isPanelOpen);
         if (recipeBookButton != null) recipeBookButton.SetActive(!isPanelOpen);
         SetPlayerInteraction(!isPanelOpen);
-
         if (isPanelOpen)
         {
             isNotificationShowing = false;

@@ -20,11 +20,7 @@ public class EnemyHealth : MonoBehaviour
     void Start()
     {
         currentHp = maxHp;
-        if (hpSlider != null)
-        {
-            hpSlider.maxValue = maxHp;
-            hpSlider.value = maxHp;
-        }
+        if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = maxHp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
 
@@ -33,11 +29,7 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         currentHp -= damage;
         if (hpSlider != null) hpSlider.value = currentHp;
-        if (hpFillImage != null)
-        {
-            float ratio = currentHp / maxHp;
-            hpFillImage.color = Color.Lerp(Color.red, Color.green, ratio);
-        }
+        if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
         if (currentHp <= 0) Die();
     }
 
@@ -56,7 +48,7 @@ public class EnemyHealth : MonoBehaviour
             if (CoinManager.Instance != null)
                 CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
         }
-        Debug.Log($"[EnemyHealth] {gameObject.name} died. Special: {isSpecial}");
+        // Debug.Log($"[EnemyHealth] {gameObject.name} died. Special: {isSpecial}");
         Destroy(gameObject);
     }
 }
