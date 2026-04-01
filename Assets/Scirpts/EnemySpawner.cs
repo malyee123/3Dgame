@@ -21,6 +21,7 @@ public class EnemySpawner : MonoBehaviour
 
     private float currentSpawnDelay;
     private float currentEnemyHp;
+    private float currentEnemySpeed = 2f;
     private Coroutine spawnCoroutine;
 
     void Start()
@@ -28,13 +29,42 @@ public class EnemySpawner : MonoBehaviour
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (pathManager == null) { Debug.LogError("[EnemySpawner] PathManager not found."); return; }
         if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
+
+        if (CSVLoader.Instance != null)
+        {
+            baseEnemyHp = CSVLoader.Instance.baseEnemyHp;
+            hpIncrement = CSVLoader.Instance.hpIncrement;
+            baseSpawnDelay = CSVLoader.Instance.baseSpawnDelay;
+            spawnDelayDecrement = CSVLoader.Instance.spawnDelayDecrement;
+        }
+
         ApplyRoundSettings(1);
     }
 
     public void ApplyRoundSettings(int round)
     {
-        currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
-        currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
+        // 스테이지 데이터에서 적 스탯 가져오기
+        if (CSVLoader.Instance != null)
+        {
+            RoundData data = CSVLoader.Instance.GetRoundData(round);
+            if (data != null)
+            {
+                currentEnemyHp = data.enemyHp;
+                currentSpawnDelay = data.enemySpawnDelay;
+                currentEnemySpeed = data.enemySpeed;
+            }
+            else
+            {
+                currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
+                currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
+            }
+        }
+        else
+        {
+            currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
+            currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
+        }
+
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
@@ -52,7 +82,11 @@ public class EnemySpawner : MonoBehaviour
     {
         GameObject obj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null) enemyMove.SetPathManager(pathManager);
+        if (enemyMove != null)
+        {
+            enemyMove.SetPathManager(pathManager);
+            enemyMove.speed = currentEnemySpeed;
+        }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
         if (enemyHealth != null) enemyHealth.maxHp = currentEnemyHp;
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
