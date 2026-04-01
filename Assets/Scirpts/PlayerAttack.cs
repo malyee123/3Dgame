@@ -13,6 +13,7 @@ public class PlayerAttack : MonoBehaviour
     private float cooldownTimer;
     private EnemyMove currentTarget;
 
+
     [SerializeField] private float appliedDamage;
     [SerializeField] private float appliedCooldown;
     [SerializeField] private float passiveDamageBonus = 0f;
@@ -80,15 +81,19 @@ public class PlayerAttack : MonoBehaviour
     {
         if (newData == null) return;
         characterData = newData;
+
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
+
         for (int i = transform.childCount - 1; i >= 0; i--)
             Destroy(transform.GetChild(i).gameObject);
+
         if (characterData.characterPrefab != null)
         {
             GameObject visual = Instantiate(characterData.characterPrefab, transform);
             visual.transform.localPosition = Vector3.zero;
         }
+
         passiveDamageBonus = 0f;
         passiveSpeedBonus = 0f;
         doubleDamageChance = 0f;
@@ -96,8 +101,15 @@ public class PlayerAttack : MonoBehaviour
         selfSpeedUpChance = 0f;
         selfSpeedUpAmount = 0f;
         selfSpeedUpDuration = 0f;
+
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
+        StartCoroutine(InitSpumAfterFrame());
+    }
+
+    System.Collections.IEnumerator InitSpumAfterFrame()
+    {
+        yield return null;
         spumPrefabs = GetComponentInChildren<SPUM_Prefabs>();
         if (spumPrefabs != null && spumPrefabs.OverrideController == null)
             spumPrefabs.OverrideControllerInit();
@@ -108,11 +120,12 @@ public class PlayerAttack : MonoBehaviour
         if (!IsTargetInRange(currentTarget))
             currentTarget = FindBackmostEnemyInRange();
         if (currentTarget == null) return;
+
         EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
         if (health == null) { currentTarget = null; return; }
 
         if (spumPrefabs != null && spumPrefabs.OverrideController != null)
-            spumPrefabs.PlayAnimation(PlayerState.ATTACK, 0);
+            spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
 
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
@@ -120,7 +133,7 @@ public class PlayerAttack : MonoBehaviour
             if (unit == null || unit == this || unit.spawnIndex != spawnIndex) continue;
             SPUM_Prefabs mateSpum = unit.GetComponentInChildren<SPUM_Prefabs>();
             if (mateSpum != null && mateSpum.OverrideController != null)
-                mateSpum.PlayAnimation(PlayerState.ATTACK, 0);
+                mateSpum.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
         }
 
         float finalDamage = appliedDamage;
@@ -135,6 +148,7 @@ public class PlayerAttack : MonoBehaviour
         {
             health.TakeDamage(appliedDamage);
             Debug.Log($"[{characterData.characterName}] 2번 타격 발동! 데미지: {appliedDamage}");
+            StartCoroutine(SecondAttackAnimRoutine());
         }
 
         if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
@@ -144,6 +158,21 @@ public class PlayerAttack : MonoBehaviour
         }
 
         cooldownTimer = 0f;
+    }
+
+    System.Collections.IEnumerator SecondAttackAnimRoutine()
+    {
+        yield return new WaitForSeconds(appliedCooldown * 0.5f);
+        if (spumPrefabs != null && spumPrefabs.OverrideController != null)
+            spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
+        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        foreach (PlayerAttack unit in allUnits)
+        {
+            if (unit == null || unit == this || unit.spawnIndex != spawnIndex) continue;
+            SPUM_Prefabs mateSpum = unit.GetComponentInChildren<SPUM_Prefabs>();
+            if (mateSpum != null && mateSpum.OverrideController != null)
+                mateSpum.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
+        }
     }
 
     System.Collections.IEnumerator SelfSpeedBoostRoutine()

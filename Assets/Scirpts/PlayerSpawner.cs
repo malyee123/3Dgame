@@ -3,6 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
+/// <summary>
+/// V키 입력 시 5x5 스폰 포인트 중 아직 사용되지 않은 위치에 Player를 생성하는 스크립트
+/// 생성 시 characterDataList에서 랜덤으로 캐릭터 데이터를 배정
+/// 빈 게임오브젝트에 붙여서 사용
+/// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
     public static PlayerSpawner Instance { get; private set; }

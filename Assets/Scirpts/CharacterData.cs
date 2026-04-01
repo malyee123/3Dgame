@@ -48,6 +48,9 @@ public class CharacterData : ScriptableObject
     [Header("Upgrade Cost")]
     public int upgradeCost = 100;
 
+    [Header("Animation")]
+    public int attackAnimIndex;
+
     [Header("Passives")]
     public List<PassiveEntry> passives = new List<PassiveEntry>();
 }

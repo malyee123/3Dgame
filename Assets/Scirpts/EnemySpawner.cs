@@ -35,7 +35,6 @@ public class EnemySpawner : MonoBehaviour
     {
         currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
         currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
-        // Debug.Log($"[EnemySpawner] Round {round} - Delay: {currentSpawnDelay} / HP: {currentEnemyHp}");
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
@@ -54,7 +53,6 @@ public class EnemySpawner : MonoBehaviour
         GameObject obj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null) enemyMove.SetPathManager(pathManager);
-        // else Debug.LogWarning("[EnemySpawner] Spawned enemy is missing EnemyMove component.");
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
         if (enemyHealth != null) enemyHealth.maxHp = currentEnemyHp;
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();

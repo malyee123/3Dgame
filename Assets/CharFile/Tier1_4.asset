@@ -23,4 +23,5 @@ MonoBehaviour:
   tier: 1
   mergeGroupId: A
   upgradeCost: 100
+  attackAnimIndex: 0
   passives: []

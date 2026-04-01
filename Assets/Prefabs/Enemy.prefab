@@ -201,7 +201,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eccfc79ec6fc9a4281a7e372a0d45a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
-  speed: 3
+  speed: 5
 --- !u!114 &-4224196809069148067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d99b8f4d35f5eae4295e717ad163eb53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHp: 50
+  maxHp: 100
   hpSlider: {fileID: 5636807078509065139}
   hpFillImage: {fileID: 2184951827499982371}
   isSpecial: 0
@@ -450,7 +450,7 @@ GameObject:
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
-  m_Icon: {fileID: 8418204508859773708, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
