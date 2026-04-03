@@ -42,9 +42,10 @@ public class MergeManager : MonoBehaviour
     }
     void Update()
     {
-        // 마우스 클릭 시 UI 닫기 (버튼 클릭 제외)
         if (Input.GetMouseButtonDown(0) && unitActionUI != null && unitActionUI.activeSelf)
         {
+            if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
+
             if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
             {
                 selectedUnit = null;
@@ -164,5 +165,11 @@ public class MergeManager : MonoBehaviour
         if (unitActionUI != null) unitActionUI.SetActive(false);
 
         RefreshMergeUI();
+    }
+    
+    public void HideUnitActionUI()
+    {
+        selectedUnit = null;
+        if (unitActionUI != null) unitActionUI.SetActive(false);
     }
 }

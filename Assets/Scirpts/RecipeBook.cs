@@ -207,6 +207,11 @@ public class RecipeBook : MonoBehaviour
         if (mergeButton != null) mergeButton.SetActive(!isPanelOpen);
         if (recipeBookButton != null) recipeBookButton.SetActive(!isPanelOpen);
         SetPlayerInteraction(!isPanelOpen);
+
+        // ·¹½ÃÇÇºÏ ¿­¸± ¶§ UnitActionUI ¼û±â±â
+        if (isPanelOpen && MergeManager.Instance != null)
+            MergeManager.Instance.HideUnitActionUI();
+
         if (isPanelOpen)
         {
             isNotificationShowing = false;
@@ -224,5 +229,6 @@ public class RecipeBook : MonoBehaviour
         if (mergeButton != null) mergeButton.SetActive(true);
         if (recipeBookButton != null) recipeBookButton.SetActive(true);
         SetPlayerInteraction(true);
+        if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
     }
 }

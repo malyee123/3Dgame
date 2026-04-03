@@ -24,6 +24,12 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Tier Spawn Weights")]
     public float[] tierSpawnWeights = { 70f, 30f };
 
+    [Header("Special Spawn Settings")]
+    public int specialSpawnCost = 3;
+    public int specialSpawnMinTier = 2;
+    public int specialSpawnMaxTier = 4;
+    public float[] specialTierSpawnWeights = { 70f, 25f, 5f };
+
     [Header("UI")]
     public Button spawnButton;
 
@@ -65,6 +71,64 @@ public class PlayerSpawner : MonoBehaviour
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
         if (CoinManager.Instance != null) { if (!CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return; }
         SpawnPlayer(spawnIndex, selectedData, unitTag);
+    }
+
+    public void TrySpecialSpawn()
+    {
+        if (IsFieldFull()) { Debug.Log("[SpecialSpawn] 필드 가득 참"); return; }
+        if (SpecialCoinManager.Instance == null) { Debug.Log("[SpecialSpawn] SpecialCoinManager 없음"); return; }
+        if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) { Debug.Log("[SpecialSpawn] 코인 부족"); return; }
+
+        SyncSlotStateFromScene();
+
+        CharacterData selectedData = GetRandomSpecialCharacterData();   
+        if (selectedData == null) { Debug.Log("[SpecialSpawn] CharacterData 선택 실패 - 티어 해금 확인 필요"); return; }
+
+        string unitTag = GetUnitTag(selectedData);
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) { Debug.Log("[SpecialSpawn] 슬롯 없음"); return; }
+
+        SpawnPlayer(spawnIndex, selectedData, unitTag);
+        Debug.Log($"[SpecialSpawn] {selectedData.characterName} 소환 성공!");
+    }
+
+    CharacterData GetRandomSpecialCharacterData()
+    {
+        if (characterDataList == null || characterDataList.Length == 0) return null;
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+        int maxTier = Mathf.Min(specialSpawnMaxTier, unlockedTier);
+        if (unlockedTier < specialSpawnMinTier) return null;
+
+        Dictionary<int, List<CharacterData>> tierMap = new Dictionary<int, List<CharacterData>>();
+        foreach (CharacterData data in characterDataList)
+        {
+            if (data == null) continue;
+            int tier = Mathf.Max(1, data.tier);
+            if (tier < specialSpawnMinTier || tier > maxTier) continue;
+            if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
+            tierMap[tier].Add(data);
+        }
+
+        float totalWeight = 0f;
+        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
+        {
+            int tier = specialSpawnMinTier + i;
+            if (tierMap.ContainsKey(tier)) totalWeight += specialTierSpawnWeights[i];
+        }
+
+        if (totalWeight <= 0f) return null;
+
+        float rand = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
+        {
+            int tier = specialSpawnMinTier + i;
+            if (!tierMap.ContainsKey(tier)) continue;
+            cumulative += specialTierSpawnWeights[i];
+            if (rand <= cumulative)
+                return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
+        }
+
+        return null;
     }
 
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
@@ -222,7 +286,7 @@ public class PlayerSpawner : MonoBehaviour
         slotDirty = true;
     }
 
-    void SyncSlotStateFromScene()
+    public void SyncSlotStateFromScene()
     {
         for (int i = 0; i < slotOccupancy.Length; i++) { slotOccupancy[i] = 0; slotTagOwners[i] = null; }
         tagToSlots.Clear();

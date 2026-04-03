@@ -5,17 +5,17 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
 {
-    [Header("Hold Settings")]
-    public float holdThreshold = 0.2f; // Inspector에서 변경 가능
+    [Header("Click Settings")]
+    public float doubleClickThreshold = 0.3f;
 
     [Header("Drag Settings")]
-    public float dragSmoothSpeed = 15f; // 드래그 부드러움 (높을수록 빠르게 따라옴)
+    public float dragSmoothSpeed = 15f;
 
     private bool dragEnabled = true;
     private Camera mainCamera;
     private bool isDragging;
     private bool isHolding;
-    private float holdTimer;
+    private float lastClickTime = 0f;
     private Vector3 originalPosition;
     private int originalSlotIndex = -1;
     private Vector3 targetDragPosition;
@@ -43,77 +43,59 @@ public class PlayerDragMerge : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
 
-        isHolding = true;
-        holdTimer = 0f;
-        originalPosition = transform.position;
-        targetDragPosition = transform.position;
+        float timeSinceLastClick = Time.time - lastClickTime;
 
-        if (playerAttack != null)
-            originalSlotIndex = playerAttack.spawnIndex;
+        if (timeSinceLastClick <= doubleClickThreshold)
+        {
+            // 더블클릭 → 드래그 시작
+            isHolding = true;
+            originalPosition = transform.position;
+            targetDragPosition = transform.position;
+            if (playerAttack != null)
+                originalSlotIndex = playerAttack.spawnIndex;
+            StartDrag();
+        }
+        else
+        {
+            // 1클릭 → 패널 표시
+            lastClickTime = Time.time;
+            ShowPanel();
+        }
     }
 
     void OnMouseUp()
     {
         if (!isHolding) return;
-
-        if (!isDragging)
-        {
-            ShowPanel();
-        }
-        else
-        {
-            EndDrag();
-        }
-
+        if (isDragging) EndDrag();
         isHolding = false;
-        holdTimer = 0f;
     }
 
     void Update()
     {
-        if (!isHolding) return;
+        if (!isDragging) return;
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
 
-        holdTimer += Time.deltaTime;
+        Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorld.z = transform.position.z;
+        targetDragPosition = mouseWorld;
 
-        // holdThreshold 초 이상 누르면 드래그 시작
-        if (!isDragging && holdTimer >= holdThreshold)
+        transform.position = Vector3.Lerp(transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
+
+        for (int i = 0; i < slotMates.Count; i++)
         {
-            StartDrag();
-        }
-
-        if (isDragging)
-        {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-            if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
-            if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
-
-            // 마우스 위치 계산
-            Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            mouseWorld.z = transform.position.z;
-            targetDragPosition = mouseWorld;
-
-            // Lerp로 부드럽게 따라가기
-            transform.position = Vector3.Lerp(transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
-
-            // 슬롯메이트도 함께 이동
-            for (int i = 0; i < slotMates.Count; i++)
-            {
-                if (slotMates[i] == null) continue;
-                Vector3 mateTarget = targetDragPosition + slotMateOffsets[i];
-                slotMates[i].position = Vector3.Lerp(slotMates[i].position, mateTarget, Time.deltaTime * dragSmoothSpeed);
-            }
+            if (slotMates[i] == null) continue;
+            Vector3 mateTarget = targetDragPosition + slotMateOffsets[i];
+            slotMates[i].position = Vector3.Lerp(slotMates[i].position, mateTarget, Time.deltaTime * dragSmoothSpeed);
         }
     }
 
     void StartDrag()
     {
         isDragging = true;
-
-        if (playerAttack != null)
-            playerAttack.SetDragging(true);
-
+        if (playerAttack != null) playerAttack.SetDragging(true);
         CollectSlotMates();
-
         foreach (Transform mate in slotMates)
         {
             PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
@@ -124,7 +106,6 @@ public class PlayerDragMerge : MonoBehaviour
     void EndDrag()
     {
         isDragging = false;
-
         if (playerAttack != null) playerAttack.SetDragging(false);
         foreach (Transform mate in slotMates)
         {
@@ -133,11 +114,16 @@ public class PlayerDragMerge : MonoBehaviour
         }
 
         int targetSlot = FindNearestSlot();
-        if (targetSlot >= 0 && targetSlot != originalSlotIndex && CanMoveToSlot(targetSlot))
-            MoveToSlot(targetSlot);
+
+        if (targetSlot >= 0 && targetSlot != originalSlotIndex)
+        {
+            if (PlayerSpawner.Instance.IsSlotEmpty(targetSlot))
+                MoveToSlot(targetSlot);
+            else
+                SwapSlots(targetSlot); // 유닛 있으면 서로 바꾸기
+        }
         else
         {
-            // 원래 위치로 부드럽게 복귀
             transform.position = originalPosition;
             for (int i = 0; i < slotMates.Count; i++)
             {
@@ -151,10 +137,57 @@ public class PlayerDragMerge : MonoBehaviour
         slotMateOffsets.Clear();
     }
 
+    void SwapSlots(int targetSlot)
+    {
+        if (PlayerSpawner.Instance == null || playerAttack == null) return;
+
+        // 대상 슬롯 유닛 수집
+        PlayerAttack[] allPlayers = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        List<PlayerAttack> targetUnits = new List<PlayerAttack>();
+        foreach (PlayerAttack p in allPlayers)
+        {
+            if (p == null) continue;
+            if (p.spawnIndex == targetSlot) targetUnits.Add(p);
+        }
+
+        // 내 슬롯 유닛 수집 (슬롯메이트 포함)
+        List<PlayerAttack> myUnits = new List<PlayerAttack>();
+        myUnits.Add(playerAttack);
+        foreach (Transform mate in slotMates)
+        {
+            if (mate == null) continue;
+            PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
+            if (mateAttack != null) myUnits.Add(mateAttack);
+        }
+
+        // 대상 슬롯 유닛을 내 슬롯으로 이동
+        for (int i = 0; i < targetUnits.Count; i++)
+        {
+            targetUnits[i].spawnIndex = originalSlotIndex;
+            targetUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[originalSlotIndex].position
+                + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+        }
+
+        // 내 슬롯 유닛을 대상 슬롯으로 이동
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            myUnits[i].spawnIndex = targetSlot;
+            myUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position
+                + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+        }
+
+        // 리더 재설정
+        foreach (PlayerAttack p in targetUnits) p.isLeader = false;
+        foreach (PlayerAttack p in myUnits) p.isLeader = false;
+        if (targetUnits.Count > 0) targetUnits[0].isLeader = true;
+        if (myUnits.Count > 0) myUnits[0].isLeader = true;
+
+        PlayerSpawner.Instance.SyncSlotStateFromScene();
+    }
+
     void ShowPanel()
     {
         if (MergeManager.Instance == null) return;
-
         if (playerAttack != null && playerAttack.isLeader)
         {
             MergeManager.Instance.SelectUnit(playerAttack);
@@ -206,12 +239,6 @@ public class PlayerDragMerge : MonoBehaviour
         return nearestDist <= 1.0f ? nearestIndex : -1;
     }
 
-    bool CanMoveToSlot(int slotIndex)
-    {
-        if (PlayerSpawner.Instance == null) return false;
-        return PlayerSpawner.Instance.IsSlotEmpty(slotIndex);
-    }
-
     void MoveToSlot(int targetSlot)
     {
         if (PlayerSpawner.Instance == null || playerAttack == null) return;
@@ -231,4 +258,4 @@ public class PlayerDragMerge : MonoBehaviour
         originalSlotIndex = targetSlot;
         originalPosition = transform.position;
     }
-}   
+}
