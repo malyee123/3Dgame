@@ -3,11 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
-/// <summary>
-/// V키 입력 시 5x5 스폰 포인트 중 아직 사용되지 않은 위치에 Player를 생성하는 스크립트
-/// 생성 시 characterDataList에서 랜덤으로 캐릭터 데이터를 배정
-/// 빈 게임오브젝트에 붙여서 사용
-/// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
     public static PlayerSpawner Instance { get; private set; }
@@ -83,7 +78,7 @@ public class PlayerSpawner : MonoBehaviour
             playerAttack.spawnIndex = spawnIndex;
             playerAttack.characterData = characterData;
             playerAttack.unitTag = unitTag;
-            playerAttack.isLeader = (stackIndex == 0); // 첫 번째 유닛만 리더
+            playerAttack.isLeader = (stackIndex == 0);
         }
         if (characterData.characterPrefab != null)
         {
@@ -109,16 +104,14 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
         int currentTier = -1;
-        string mergeGroupId = "";
         for (int i = 0; i < unitsInSlot.Count; i++)
         {
             CharacterData baseData = unitsInSlot[i].characterData;
             if (baseData == null) continue;
             currentTier = Mathf.Max(1, baseData.tier);
-            mergeGroupId = GetMergeGroupId(baseData);
             break;
         }
-        if (currentTier < 0 || string.IsNullOrWhiteSpace(mergeGroupId)) return null;
+        if (currentTier < 0) return null;
         int targetTier = currentTier + 1;
         List<CharacterData> candidates = new List<CharacterData>();
         if (characterDataList != null)
@@ -128,7 +121,6 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterData data = characterDataList[i];
                 if (data == null) continue;
                 if (Mathf.Max(1, data.tier) != targetTier) continue;
-                if (!string.IsNullOrWhiteSpace(mergeGroupId) && GetMergeGroupId(data) != mergeGroupId) continue;
                 candidates.Add(data);
             }
         }
@@ -141,9 +133,6 @@ public class PlayerSpawner : MonoBehaviour
         SyncSlotStateFromScene();
         int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
         List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
-
-        Debug.Log($"[MergeCheck] spawnIndex={spawnIndex}, unitTag={unitTag}, tier={selectedTier}, count={sameTagUnits.Count}, maxUnits={maxUnitsPerSlot}");
-
         return sameTagUnits.Count >= maxUnitsPerSlot;
     }
 
@@ -165,7 +154,7 @@ public class PlayerSpawner : MonoBehaviour
             Destroy(removeObj);
         }
         survivor.ApplyCharacterData(mergedData);
-        survivor.isLeader = true; // 합성 후 생존 유닛이 리더
+        survivor.isLeader = true;
         string newUnitTag = GetUnitTag(mergedData);
         survivor.unitTag = newUnitTag;
         survivor.spawnIndex = -1;
@@ -332,5 +321,4 @@ public class PlayerSpawner : MonoBehaviour
     }
 
     string GetUnitTag(CharacterData characterData) { if (characterData == null) return "Unknown"; if (!string.IsNullOrWhiteSpace(characterData.unitTag)) return characterData.unitTag.Trim(); return characterData.characterName; }
-    string GetMergeGroupId(CharacterData characterData) { if (characterData == null || string.IsNullOrWhiteSpace(characterData.mergeGroupId)) return ""; return characterData.mergeGroupId.Trim(); }
 }

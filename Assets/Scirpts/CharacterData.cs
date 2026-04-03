@@ -18,9 +18,9 @@ public class PassiveEntry
 {
     public PassiveType passiveType = PassiveType.None;
     [Range(0f, 100f)]
-    public float passiveValue = 0f;        // 확률 or 고정 수치
-    public float passiveSecondValue = 0f;  // 증가량 (SelfAttackSpeedUpChance에서 공속 증가%)
-    public float passiveDuration = 0f;     // 지속시간 (초)
+    public float passiveValue = 0f;
+    public float passiveSecondValue = 0f;
+    public float passiveDuration = 0f;
 }
 
 [CreateAssetMenu(fileName = "NewCharacterData", menuName = "Character/CharacterData")]
@@ -32,7 +32,6 @@ public class CharacterData : ScriptableObject
     [Header("Visual")]
     public GameObject characterPrefab;
     public Sprite characterSprite;
-
     public string unitTag = "";
     public Color characterColor = Color.white;
 
@@ -43,13 +42,15 @@ public class CharacterData : ScriptableObject
 
     [Header("Merge Settings")]
     [Min(1)] public int tier = 1;
-    public string mergeGroupId = "";
 
     [Header("Upgrade Cost")]
     public int upgradeCost = 100;
 
+    [Header("Sell Price")]
+    public int sellPrice = 30;
+
     [Header("Animation")]
-    public int attackAnimIndex;
+    public int attackAnimIndex = 0;
 
     [Header("Passives")]
     public List<PassiveEntry> passives = new List<PassiveEntry>();

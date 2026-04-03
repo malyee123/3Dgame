@@ -80,7 +80,6 @@ public class PassiveManager : MonoBehaviour
         if (passiveStatusText == null) return;
 
         string text = "[ 패시브 현황 ]\n";
-
         if (dmg > 0f) text += $"아군 공격력 +{dmg}%\n";
         if (spd > 0f) text += $"아군 공속 +{spd}%\n";
         if (enemySpd > 0f) text += $"적 이동속도 -{enemySpd}\n";

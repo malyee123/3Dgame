@@ -13,7 +13,6 @@ public class PlayerAttack : MonoBehaviour
     private float cooldownTimer;
     private EnemyMove currentTarget;
 
-
     [SerializeField] private float appliedDamage;
     [SerializeField] private float appliedCooldown;
     [SerializeField] private float passiveDamageBonus = 0f;
@@ -81,19 +80,15 @@ public class PlayerAttack : MonoBehaviour
     {
         if (newData == null) return;
         characterData = newData;
-
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) sr.color = characterData.characterColor;
-
         for (int i = transform.childCount - 1; i >= 0; i--)
             Destroy(transform.GetChild(i).gameObject);
-
         if (characterData.characterPrefab != null)
         {
             GameObject visual = Instantiate(characterData.characterPrefab, transform);
             visual.transform.localPosition = Vector3.zero;
         }
-
         passiveDamageBonus = 0f;
         passiveSpeedBonus = 0f;
         doubleDamageChance = 0f;
@@ -101,7 +96,6 @@ public class PlayerAttack : MonoBehaviour
         selfSpeedUpChance = 0f;
         selfSpeedUpAmount = 0f;
         selfSpeedUpDuration = 0f;
-
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
         StartCoroutine(InitSpumAfterFrame());
@@ -209,13 +203,6 @@ public class PlayerAttack : MonoBehaviour
             }
         }
         return backmostEnemy;
-    }
-
-    void OnMouseDown()
-    {
-        if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
-        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused) return;
-        if (MergeManager.Instance != null) MergeManager.Instance.SelectUnit(this);
     }
 
     bool IsTargetInRange(EnemyMove enemy)

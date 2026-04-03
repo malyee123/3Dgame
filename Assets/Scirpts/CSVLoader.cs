@@ -57,17 +57,17 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 8) continue;
+            if (col.Length < 9) continue;
             string characterName = col[0].Trim();
             CharacterData data = FindCharacterData(characterName);
             if (data == null) continue;
             data.tier = int.Parse(col[1].Trim());
-            data.mergeGroupId = col[2].Trim();
             data.unitTag = col[3].Trim();
             data.attackDamage = float.Parse(col[4].Trim());
             data.attackCooldown = float.Parse(col[5].Trim());
             data.attackRange = float.Parse(col[6].Trim());
             data.upgradeCost = int.Parse(col[7].Trim());
+            data.sellPrice = int.Parse(col[8].Trim());
         }
         Debug.Log("[CSVLoader] 캐릭터 스탯 로드 완료");
     }
@@ -138,15 +138,12 @@ public class CSVLoader : MonoBehaviour
     public int GetStage(int round)
     {
         if (roundDataList.Count == 0) return 1;
-
         int accumulated = 0;
         for (int i = 0; i < roundDataList.Count; i++)
         {
             accumulated += roundDataList[i].roundsPerStage;
             if (round <= accumulated) return roundDataList[i].stage;
         }
-
-        // CSV 범위 벗어나면 마지막 스테이지 기준으로 계산
         RoundData last = roundDataList[roundDataList.Count - 1];
         int extra = round - accumulated;
         return last.stage + (extra / last.roundsPerStage) + 1;
@@ -155,24 +152,19 @@ public class CSVLoader : MonoBehaviour
     public RoundData GetRoundData(int round)
     {
         if (roundDataList.Count == 0) return null;
-
         int accumulated = 0;
         for (int i = 0; i < roundDataList.Count; i++)
         {
             accumulated += roundDataList[i].roundsPerStage;
             if (round <= accumulated) return roundDataList[i];
         }
-
         return roundDataList[roundDataList.Count - 1];
     }
 
     CharacterData FindCharacterData(string characterName)
     {
         foreach (CharacterData data in characterDataList)
-        {
-            if (data != null && data.characterName == characterName)
-                return data;
-        }
+            if (data != null && data.characterName == characterName) return data;
         Debug.LogWarning($"[CSVLoader] '{characterName}' CharacterData 못 찾음");
         return null;
     }
