@@ -29,7 +29,6 @@ public class EnemySpawner : MonoBehaviour
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (pathManager == null) { Debug.LogError("[EnemySpawner] PathManager not found."); return; }
         if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
-
         if (CSVLoader.Instance != null)
         {
             baseEnemyHp = CSVLoader.Instance.baseEnemyHp;
@@ -37,13 +36,11 @@ public class EnemySpawner : MonoBehaviour
             baseSpawnDelay = CSVLoader.Instance.baseSpawnDelay;
             spawnDelayDecrement = CSVLoader.Instance.spawnDelayDecrement;
         }
-
         ApplyRoundSettings(1);
     }
 
     public void ApplyRoundSettings(int round)
     {
-        // 스테이지 데이터에서 적 스탯 가져오기
         if (CSVLoader.Instance != null)
         {
             RoundData data = CSVLoader.Instance.GetRoundData(round);
@@ -64,7 +61,6 @@ public class EnemySpawner : MonoBehaviour
             currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
             currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
         }
-
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
@@ -80,15 +76,13 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy()
     {
-        GameObject obj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        Vector2 offsetPos = spawnPosition;
+        offsetPos.x += Random.Range(-0.3f, 0.3f);
+        GameObject obj = Instantiate(enemyPrefab, offsetPos, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null)
-        {
-            enemyMove.SetPathManager(pathManager);
-            enemyMove.speed = currentEnemySpeed;
-        }
+        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = currentEnemySpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null) enemyHealth.maxHp = currentEnemyHp;
+        if (enemyHealth != null) enemyHealth.Init(currentEnemyHp);
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }
 }

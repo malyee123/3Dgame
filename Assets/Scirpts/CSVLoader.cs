@@ -38,10 +38,6 @@ public class CSVLoader : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-    }
-
-    void Start()
-    {
         LoadCharacterStats();
         LoadPassiveStats();
         LoadEnemyStats();
@@ -57,17 +53,17 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 9) continue;
+            if (col.Length < 8) continue;
             string characterName = col[0].Trim();
             CharacterData data = FindCharacterData(characterName);
             if (data == null) continue;
             data.tier = int.Parse(col[1].Trim());
-            data.unitTag = col[3].Trim();
-            data.attackDamage = float.Parse(col[4].Trim());
-            data.attackCooldown = float.Parse(col[5].Trim());
-            data.attackRange = float.Parse(col[6].Trim());
-            data.upgradeCost = int.Parse(col[7].Trim());
-            data.sellPrice = int.Parse(col[8].Trim());
+            data.unitTag = col[2].Trim();
+            data.attackDamage = float.Parse(col[3].Trim());
+            data.attackCooldown = float.Parse(col[4].Trim());
+            data.attackRange = float.Parse(col[5].Trim());
+            data.upgradeCost = int.Parse(col[6].Trim());
+            data.sellPrice = int.Parse(col[7].Trim());
         }
         Debug.Log("[CSVLoader] 캐릭터 스탯 로드 완료");
     }

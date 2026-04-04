@@ -43,21 +43,21 @@ public class PlayerDragMerge : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
 
+        // 슬롯 인덱스 먼저 설정
+        if (playerAttack != null)
+            originalSlotIndex = playerAttack.spawnIndex;
+
         float timeSinceLastClick = Time.time - lastClickTime;
 
         if (timeSinceLastClick <= doubleClickThreshold)
         {
-            // 더블클릭 → 드래그 시작
             isHolding = true;
             originalPosition = transform.position;
             targetDragPosition = transform.position;
-            if (playerAttack != null)
-                originalSlotIndex = playerAttack.spawnIndex;
             StartDrag();
         }
         else
         {
-            // 1클릭 → 패널 표시
             lastClickTime = Time.time;
             ShowPanel();
         }
@@ -187,6 +187,8 @@ public class PlayerDragMerge : MonoBehaviour
 
     void ShowPanel()
     {
+        Debug.Log($"[ShowPanel] MergeManager={MergeManager.Instance}, playerAttack={playerAttack}, isLeader={playerAttack?.isLeader}, originalSlotIndex={originalSlotIndex}");
+
         if (MergeManager.Instance == null) return;
         if (playerAttack != null && playerAttack.isLeader)
         {
@@ -199,10 +201,12 @@ public class PlayerDragMerge : MonoBehaviour
             {
                 if (unit.spawnIndex == originalSlotIndex && unit.isLeader)
                 {
+                    Debug.Log($"[ShowPanel] 리더 찾음: {unit.name}");
                     MergeManager.Instance.SelectUnit(unit);
                     return;
                 }
             }
+            Debug.Log("[ShowPanel] 리더 못 찾음");
         }
     }
 

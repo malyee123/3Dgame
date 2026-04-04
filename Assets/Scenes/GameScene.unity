@@ -1793,7 +1793,7 @@ GameObject:
   m_Layer: 0
   m_Name: WayPoint_3
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -2222,7 +2222,7 @@ GameObject:
   m_Layer: 0
   m_Name: WayPoint_4
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -2446,7 +2446,7 @@ GameObject:
   m_Layer: 0
   m_Name: WayPoint_2
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -3000,7 +3000,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 2492102594665920056, guid: 725640bbad4b362438fcc5820077c21c, type: 3}
-  baseSpawnDelay: 0.8
+  baseSpawnDelay: 0.1
   baseEnemyHp: 50
   spawnDelayDecrement: 0.1
   hpIncrement: 20
@@ -3015,7 +3015,7 @@ Transform:
   m_GameObject: {fileID: 1074021555}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.6593, y: -0.80509, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3733,15 +3733,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
-  - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
-  - {fileID: 11400000, guid: 05e304f5d8ffc1b43a466da8a786c45e, type: 2}
+  - {fileID: 11400000, guid: 35d0be829ff16a9499cc7d72151a72f0, type: 2}
+  - {fileID: 11400000, guid: 52a96f2fbdf8da046bc4e879ffe86735, type: 2}
   - {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
-  - {fileID: 11400000, guid: e04fac414c3a3a341abbcced623fecf9, type: 2}
+  - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
   - {fileID: 11400000, guid: 1b12f3bf88c72f44da16626a49be96a6, type: 2}
   - {fileID: 11400000, guid: 4da255d58f888f144a4b4834be2261e0, type: 2}
   - {fileID: 11400000, guid: f619e34c12d13c3489c263694d76074d, type: 2}
-  - {fileID: 11400000, guid: 00e0f4dab01b50245b51d4af927ddea3, type: 2}
-  - {fileID: 11400000, guid: 384fcddea28f1d44fab9f85468da873e, type: 2}
+  - {fileID: 11400000, guid: 05e304f5d8ffc1b43a466da8a786c45e, type: 2}
+  - {fileID: 11400000, guid: e04fac414c3a3a341abbcced623fecf9, type: 2}
   - {fileID: 11400000, guid: 23ab99ef2ec73d84eba3f8494ee21d0a, type: 2}
   - {fileID: 11400000, guid: 3930dee63308bf242bd1e4e78c684847, type: 2}
   - {fileID: 11400000, guid: e63ef2704add77e4da20cf664f8e08d1, type: 2}
@@ -3753,7 +3753,14 @@ MonoBehaviour:
   hpIncrement: 20
   baseSpawnDelay: 1
   spawnDelayDecrement: 0.1
-  roundDataList: []
+  roundDataList:
+  - stage: 0
+    roundDuration: 0
+    maxEnemyCount: 0
+    enemyHp: 0
+    enemySpawnDelay: 0
+    enemySpeed: 0
+    roundsPerStage: 0
 --- !u!4 &1285911581
 Transform:
   m_ObjectHideFlags: 0
@@ -3820,7 +3827,7 @@ MonoBehaviour:
   m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -3863,6 +3870,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1131088679}
   - {fileID: 407315900}
   - {fileID: 1885635015}
   - {fileID: 648285232}
@@ -3875,7 +3883,6 @@ RectTransform:
   - {fileID: 304515277}
   - {fileID: 301530674}
   - {fileID: 298684592}
-  - {fileID: 1131088679}
   - {fileID: 2026453285}
   - {fileID: 982415366}
   - {fileID: 1233473196}
@@ -4683,7 +4690,7 @@ GameObject:
   m_Layer: 0
   m_Name: WayPoint_1
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -5837,15 +5844,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
-  - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
-  - {fileID: 11400000, guid: 05e304f5d8ffc1b43a466da8a786c45e, type: 2}
+  - {fileID: 11400000, guid: 35d0be829ff16a9499cc7d72151a72f0, type: 2}
+  - {fileID: 11400000, guid: 52a96f2fbdf8da046bc4e879ffe86735, type: 2}
   - {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
-  - {fileID: 11400000, guid: e04fac414c3a3a341abbcced623fecf9, type: 2}
+  - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
   - {fileID: 11400000, guid: 1b12f3bf88c72f44da16626a49be96a6, type: 2}
   - {fileID: 11400000, guid: 4da255d58f888f144a4b4834be2261e0, type: 2}
   - {fileID: 11400000, guid: f619e34c12d13c3489c263694d76074d, type: 2}
-  - {fileID: 11400000, guid: 00e0f4dab01b50245b51d4af927ddea3, type: 2}
-  - {fileID: 11400000, guid: 384fcddea28f1d44fab9f85468da873e, type: 2}
+  - {fileID: 11400000, guid: 05e304f5d8ffc1b43a466da8a786c45e, type: 2}
+  - {fileID: 11400000, guid: e04fac414c3a3a341abbcced623fecf9, type: 2}
   - {fileID: 11400000, guid: 23ab99ef2ec73d84eba3f8494ee21d0a, type: 2}
   - {fileID: 11400000, guid: 3930dee63308bf242bd1e4e78c684847, type: 2}
   - {fileID: 11400000, guid: e63ef2704add77e4da20cf664f8e08d1, type: 2}
@@ -5884,7 +5891,7 @@ MonoBehaviour:
   triangleOffsetY: 0.22
   tierSpawnWeights:
   - 98
-  - 2
+  - 0
   specialSpawnCost: 3
   specialSpawnMinTier: 2
   specialSpawnMaxTier: 4
