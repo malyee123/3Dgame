@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -17,11 +18,18 @@ public class EnemyHealth : MonoBehaviour
     private float currentHp;
     private bool isDead = false;
 
+    public void Init(float hp)
+    {
+        maxHp = hp;
+        currentHp = hp;
+        isDead = false;
+        if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
+        if (hpFillImage != null) hpFillImage.color = Color.green;
+    }
+
     void Start()
     {
-        currentHp = maxHp;
-        if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = maxHp; }
-        if (hpFillImage != null) hpFillImage.color = Color.green;
+        if (currentHp <= 0f) Init(maxHp);
     }
 
     public void TakeDamage(float damage)
@@ -46,9 +54,8 @@ public class EnemyHealth : MonoBehaviour
         else
         {
             if (CoinManager.Instance != null)
-                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
+                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
-        // Debug.Log($"[EnemyHealth] {gameObject.name} died. Special: {isSpecial}");
         Destroy(gameObject);
     }
 }

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -21,6 +20,7 @@ public class EnemySpawner : MonoBehaviour
 
     private float currentSpawnDelay;
     private float currentEnemyHp;
+    private float currentEnemySpeed = 2f;
     private Coroutine spawnCoroutine;
 
     void Start()
@@ -28,35 +28,43 @@ public class EnemySpawner : MonoBehaviour
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (pathManager == null) { Debug.LogError("[EnemySpawner] PathManager not found."); return; }
         if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
+        if (CSVLoader.Instance != null)
+        {
+            baseEnemyHp = CSVLoader.Instance.baseEnemyHp;
+            hpIncrement = CSVLoader.Instance.hpIncrement;
+            baseSpawnDelay = CSVLoader.Instance.baseSpawnDelay;
+            spawnDelayDecrement = CSVLoader.Instance.spawnDelayDecrement;
+        }
         ApplyRoundSettings(1);
     }
 
     public void ApplyRoundSettings(int round)
     {
-        currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
-        currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
-        // Debug.Log($"[EnemySpawner] Round {round} - Delay: {currentSpawnDelay} / HP: {currentEnemyHp}");
+        if (CSVLoader.Instance != null)
+        {
+            RoundData data = CSVLoader.Instance.GetRoundData(round);
+            if (data != null) { currentEnemyHp = data.enemyHp; currentSpawnDelay = data.enemySpawnDelay; currentEnemySpeed = data.enemySpeed; }
+            else { currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - spawnDelayDecrement * (round - 1)); currentEnemyHp = baseEnemyHp + hpIncrement * (round - 1); }
+        }
+        else { currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - spawnDelayDecrement * (round - 1)); currentEnemyHp = baseEnemyHp + hpIncrement * (round - 1); }
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
 
     IEnumerator SpawnRoutine()
     {
-        while (true)
-        {
-            SpawnEnemy();
-            yield return new WaitForSeconds(currentSpawnDelay);
-        }
+        while (true) { SpawnEnemy(); yield return new WaitForSeconds(currentSpawnDelay); }
     }
 
     void SpawnEnemy()
     {
-        GameObject obj = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        Vector2 offsetPos = spawnPosition;
+        offsetPos.x += Random.Range(-0.3f, 0.3f);
+        GameObject obj = Instantiate(enemyPrefab, offsetPos, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null) enemyMove.SetPathManager(pathManager);
-        // else Debug.LogWarning("[EnemySpawner] Spawned enemy is missing EnemyMove component.");
+        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = currentEnemySpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null) enemyHealth.maxHp = currentEnemyHp;
+        if (enemyHealth != null) enemyHealth.Init(currentEnemyHp);
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }
 }

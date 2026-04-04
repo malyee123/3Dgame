@@ -85,12 +85,15 @@ public class SpecialMonsterManager : MonoBehaviour
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = specialMonsterSpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null) { enemyHealth.maxHp = specialMonsterHp; enemyHealth.isSpecial = true; enemyHealth.specialCoinReward = specialCoinReward; }
+        if (enemyHealth != null)
+        {
+            enemyHealth.isSpecial = true;
+            enemyHealth.specialCoinReward = specialCoinReward;
+            enemyHealth.Init(specialMonsterHp);
+        }
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
         StartCoroutine(DespawnAfterTime(obj, enemyHealth, specialMonsterLifetime));
-        // Debug.Log("[SpecialMonsterManager] Special monster spawned.");
     }
-
     IEnumerator DespawnAfterTime(GameObject obj, EnemyHealth health, float lifetime)
     {
         yield return new WaitForSeconds(lifetime);

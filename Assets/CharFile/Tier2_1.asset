@@ -21,10 +21,11 @@ MonoBehaviour:
   attackDamage: 23
   attackCooldown: 0.5
   tier: 2
-  mergeGroupId: A
   upgradeCost: 100
+  sellPrice: 80
+  attackAnimIndex: 0
   passives:
   - passiveType: 6
-    passiveValue: 12
+    passiveValue: 30
     passiveSecondValue: 0
     passiveDuration: 0

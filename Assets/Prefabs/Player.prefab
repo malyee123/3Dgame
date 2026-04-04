@@ -85,6 +85,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   characterData: {fileID: 0}
   spawnIndex: -1
+  unitTag: 
+  isLeader: 0
+  appliedDamage: 0
+  appliedCooldown: 0
+  passiveDamageBonus: 0
+  passiveSpeedBonus: 0
+  doubleDamageChance: 0
+  attackTwiceChance: 0
+  selfSpeedUpChance: 0
+  selfSpeedUpAmount: 0
+  selfSpeedUpDuration: 0
 --- !u!114 &-3219735247582405715
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -97,3 +108,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28918db36de845898209c1256e79078c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDragMerge
+  holdThreshold: 0.5
+  dragSmoothSpeed: 10

@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = UnityEngine.Debug;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,28 +17,32 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI roundText;
     public TextMeshProUGUI roundTimerText;
     public TextMeshProUGUI totalTimerText;
+    public TextMeshProUGUI stageText;
 
     private int currentEnemyCount = 0;
     private int currentRound = 1;
+    private int currentStage = 1;
     private float roundTimeLeft;
     private float totalElapsedTime = 0f;
     private bool isGameOver = false;
+    private EnemySpawner enemySpawner;
 
     private int prevEnemyCount = -1;
     private int prevRound = -1;
     private int prevRoundTimeLeft = -1;
     private int prevTotalTimeSeconds = -1;
+    private int prevStage = -1;
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[GameManager] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
     void Start()
     {
-        roundTimeLeft = roundDuration;
+        enemySpawner = FindFirstObjectByType<EnemySpawner>();
+        ApplyRoundData(currentRound);
         UpdateAllUI();
     }
 
@@ -52,6 +55,17 @@ public class GameManager : MonoBehaviour
         if (roundTimeLeft <= 0f) NextRound();
     }
 
+    void ApplyRoundData(int round)
+    {
+        if (CSVLoader.Instance != null)
+        {
+            RoundData data = CSVLoader.Instance.GetRoundData(round);
+            if (data != null) { roundDuration = data.roundDuration; maxEnemyCount = data.maxEnemyCount; }
+            currentStage = CSVLoader.Instance.GetStage(round);
+        }
+        roundTimeLeft = roundDuration;
+    }
+
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
     public void OnEnemyDied() { currentEnemyCount--; UpdateEnemyCountUI(); }
 
@@ -62,15 +76,14 @@ public class GameManager : MonoBehaviour
         if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
         int currentTotalSeconds = (int)totalElapsedTime;
         if (currentTotalSeconds != prevTotalTimeSeconds) { prevTotalTimeSeconds = currentTotalSeconds; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
+        if (currentStage != prevStage) { prevStage = currentStage; if (stageText != null) stageText.text = $"Stage: {currentStage}"; }
     }
 
     void NextRound()
     {
         currentRound++;
-        roundTimeLeft = roundDuration;
-        // Debug.Log($"[GameManager] Round {currentRound} started!");
-        EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
-        if (spawner != null) spawner.ApplyRoundSettings(currentRound);
+        ApplyRoundData(currentRound);
+        if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
     }
 
     void GameOver()
@@ -79,7 +92,6 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
-        // Debug.Log($"[GameManager] Game Over! Round: {currentRound} / Total: {FormatTime(totalElapsedTime)}");
         Time.timeScale = 1f;
         SceneManager.LoadScene("GameOverScene");
     }
@@ -90,6 +102,7 @@ public class GameManager : MonoBehaviour
         if (roundText != null) roundText.text = $"Round: {currentRound}";
         if (roundTimerText != null) roundTimerText.text = $"Time: {Mathf.CeilToInt(roundTimeLeft)}s";
         if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
+        if (stageText != null) stageText.text = $"Stage: {currentStage}";
     }
 
     void UpdateEnemyCountUI()
@@ -101,6 +114,7 @@ public class GameManager : MonoBehaviour
 
     public float GetTotalTime() => totalElapsedTime;
     public int GetCurrentRound() => currentRound;
+    public int GetCurrentStage() => currentStage;
 
     string FormatTime(float time)
     {
