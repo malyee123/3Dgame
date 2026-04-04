@@ -22,6 +22,7 @@ public class EnemyHealth : MonoBehaviour
     {
         maxHp = hp;
         currentHp = hp;
+        isDead = false;
         if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
@@ -53,7 +54,7 @@ public class EnemyHealth : MonoBehaviour
         else
         {
             if (CoinManager.Instance != null)
-                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill);
+                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
         Destroy(gameObject);
     }

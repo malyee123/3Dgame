@@ -375,7 +375,7 @@ public class PlayerSpawner : MonoBehaviour
 
     public Vector3 GetTriangleOffsetPublic(int stackIndex) => GetTriangleOffset(stackIndex);
     void UpdateSpawnButton() { if (spawnButton != null) spawnButton.interactable = !IsFieldFull(); }
-
+    public void ForceUpdateSpawnButton() { UpdateSpawnButton(); }
     Vector3 GetTriangleOffset(int stackIndex)
     {
         if (stackIndex <= 0) return Vector3.up * triangleOffsetY;

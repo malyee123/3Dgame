@@ -2955,6 +2955,7 @@ MonoBehaviour:
   mergeButton: {fileID: 1131088678}
   recipeBookButton: {fileID: 407315896}
   notificationDisplayTime: 3
+  specialSpawnButton: {fileID: 1865814871}
 --- !u!4 &1047692171
 Transform:
   m_ObjectHideFlags: 0

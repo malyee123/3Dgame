@@ -44,8 +44,7 @@ public class PlayerAttack : MonoBehaviour
         float damageMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float speedMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
         appliedDamage = characterData.attackDamage * damageMultiplier * (1f + passiveDamageBonus / 100f);
-        appliedCooldown = characterData.attackCooldown * speedMultiplier * (1f - passiveSpeedBonus / 100f);
-        if (appliedCooldown <= 0.1f) appliedCooldown = 0.1f;
+        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * speedMultiplier * (1f - passiveSpeedBonus / 100f));
     }
 
     public void ApplyPassiveBonus(float damageBonus, float speedBonus, float doubleChance, float twiceChance, float selfSpeedChance, float selfSpeedAmount, float selfSpeedDuration)
@@ -89,13 +88,7 @@ public class PlayerAttack : MonoBehaviour
             GameObject visual = Instantiate(characterData.characterPrefab, transform);
             visual.transform.localPosition = Vector3.zero;
         }
-        passiveDamageBonus = 0f;
-        passiveSpeedBonus = 0f;
-        doubleDamageChance = 0f;
-        attackTwiceChance = 0f;
-        selfSpeedUpChance = 0f;
-        selfSpeedUpAmount = 0f;
-        selfSpeedUpDuration = 0f;
+        passiveDamageBonus = passiveSpeedBonus = doubleDamageChance = attackTwiceChance = selfSpeedUpChance = selfSpeedUpAmount = selfSpeedUpDuration = 0f;
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
         StartCoroutine(InitSpumAfterFrame());
@@ -131,25 +124,17 @@ public class PlayerAttack : MonoBehaviour
         }
 
         float finalDamage = appliedDamage;
-        if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
-        {
-            finalDamage *= 2f;
-            Debug.Log($"[{characterData.characterName}] 2배 피해 발동! 데미지: {finalDamage}");
-        }
+        if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance) finalDamage *= 2f;
         health.TakeDamage(finalDamage);
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
         {
             health.TakeDamage(appliedDamage);
-            Debug.Log($"[{characterData.characterName}] 2번 타격 발동! 데미지: {appliedDamage}");
             StartCoroutine(SecondAttackAnimRoutine());
         }
 
         if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
-        {
             StartCoroutine(SelfSpeedBoostRoutine());
-            Debug.Log($"[{characterData.characterName}] 공속 일시 증가 발동! 증가량: {selfSpeedUpAmount}% / 지속: {selfSpeedUpDuration}초");
-        }
 
         cooldownTimer = 0f;
     }
@@ -172,8 +157,7 @@ public class PlayerAttack : MonoBehaviour
     System.Collections.IEnumerator SelfSpeedBoostRoutine()
     {
         isSelfSpeedBoosted = true;
-        appliedCooldown *= (1f - selfSpeedUpAmount / 100f);
-        if (appliedCooldown <= 0.1f) appliedCooldown = 0.1f;
+        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * (1f - selfSpeedUpAmount / 100f));
         yield return new WaitForSeconds(selfSpeedUpDuration);
         ApplyUpgradeStats();
         isSelfSpeedBoosted = false;
@@ -190,14 +174,9 @@ public class PlayerAttack : MonoBehaviour
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
             if (distance > characterData.attackRange) continue;
             float progress = enemy.GetPathProgress();
-            if (progress < smallestProgress)
+            if (progress < smallestProgress || (Mathf.Approximately(progress, smallestProgress) && distance < fallbackNearestDistance))
             {
                 smallestProgress = progress;
-                fallbackNearestDistance = distance;
-                backmostEnemy = enemy;
-            }
-            else if (Mathf.Approximately(progress, smallestProgress) && distance < fallbackNearestDistance)
-            {
                 fallbackNearestDistance = distance;
                 backmostEnemy = enemy;
             }

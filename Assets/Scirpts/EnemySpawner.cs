@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -44,34 +43,17 @@ public class EnemySpawner : MonoBehaviour
         if (CSVLoader.Instance != null)
         {
             RoundData data = CSVLoader.Instance.GetRoundData(round);
-            if (data != null)
-            {
-                currentEnemyHp = data.enemyHp;
-                currentSpawnDelay = data.enemySpawnDelay;
-                currentEnemySpeed = data.enemySpeed;
-            }
-            else
-            {
-                currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
-                currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
-            }
+            if (data != null) { currentEnemyHp = data.enemyHp; currentSpawnDelay = data.enemySpawnDelay; currentEnemySpeed = data.enemySpeed; }
+            else { currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - spawnDelayDecrement * (round - 1)); currentEnemyHp = baseEnemyHp + hpIncrement * (round - 1); }
         }
-        else
-        {
-            currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - (spawnDelayDecrement * (round - 1)));
-            currentEnemyHp = baseEnemyHp + (hpIncrement * (round - 1));
-        }
+        else { currentSpawnDelay = Mathf.Max(0.2f, baseSpawnDelay - spawnDelayDecrement * (round - 1)); currentEnemyHp = baseEnemyHp + hpIncrement * (round - 1); }
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
 
     IEnumerator SpawnRoutine()
     {
-        while (true)
-        {
-            SpawnEnemy();
-            yield return new WaitForSeconds(currentSpawnDelay);
-        }
+        while (true) { SpawnEnemy(); yield return new WaitForSeconds(currentSpawnDelay); }
     }
 
     void SpawnEnemy()

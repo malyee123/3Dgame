@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,8 +22,7 @@ public class MergeManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[MergeManager] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
@@ -50,16 +50,13 @@ public class MergeManager : MonoBehaviour
     {
         selectedUnit = unit;
         justSelected = true;
-
         if (unitActionUI != null && unit != null)
         {
             Vector3 screenPos = Camera.main.WorldToScreenPoint(unit.transform.position);
             screenPos.z = 0f;
-            RectTransform uiRect = unitActionUI.GetComponent<RectTransform>();
-            uiRect.position = screenPos + new Vector3(0, 80f, 0);
+            unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
             unitActionUI.SetActive(true);
         }
-
         RefreshMergeUI();
     }
 
@@ -76,14 +73,13 @@ public class MergeManager : MonoBehaviour
         }
         if (mergeButton != null) mergeButton.interactable = canMerge;
         if (mergeButtonCanvasGroup != null) mergeButtonCanvasGroup.alpha = canMerge ? 1f : 0.4f;
-        if (sellPriceText != null && selectedUnit != null && selectedUnit.characterData != null)
+        if (sellPriceText != null && selectedUnit?.characterData != null)
         {
             PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
             int count = 0;
             foreach (PlayerAttack unit in allUnits)
                 if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
-            int totalPrice = selectedUnit.characterData.sellPrice * count;
-            sellPriceText.text = $"{totalPrice}G";
+            sellPriceText.text = $"{selectedUnit.characterData.sellPrice * count}G";
         }
     }
 
@@ -93,10 +89,8 @@ public class MergeManager : MonoBehaviour
     {
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
         int currentTier = selectedUnit.characterData != null ? selectedUnit.characterData.tier : 1;
-        if (UpgradeManager.Instance != null)
-            if ((currentTier + 1) > UpgradeManager.Instance.UnlockedTier) return;
-        if (CoinManager.Instance != null)
-            if (!CoinManager.Instance.SpendCoins(150)) return;
+        if (UpgradeManager.Instance != null && (currentTier + 1) > UpgradeManager.Instance.UnlockedTier) return;
+        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(150)) return;
         bool merged = PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
         if (merged) { selectedUnit = null; if (unitActionUI != null) unitActionUI.SetActive(false); }
         RefreshMergeUI();
@@ -108,7 +102,7 @@ public class MergeManager : MonoBehaviour
         int spawnIndex = selectedUnit.spawnIndex;
         int sellPrice = selectedUnit.characterData != null ? selectedUnit.characterData.sellPrice : 0;
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        System.Collections.Generic.List<PlayerAttack> unitsToSell = new System.Collections.Generic.List<PlayerAttack>();
+        List<PlayerAttack> unitsToSell = new List<PlayerAttack>();
         foreach (PlayerAttack unit in allUnits)
             if (unit != null && unit.spawnIndex == spawnIndex) unitsToSell.Add(unit);
         int totalSellPrice = sellPrice * unitsToSell.Count;

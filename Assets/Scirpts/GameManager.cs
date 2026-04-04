@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = UnityEngine.Debug;
 
 public class GameManager : MonoBehaviour
 {
@@ -26,6 +25,7 @@ public class GameManager : MonoBehaviour
     private float roundTimeLeft;
     private float totalElapsedTime = 0f;
     private bool isGameOver = false;
+    private EnemySpawner enemySpawner;
 
     private int prevEnemyCount = -1;
     private int prevRound = -1;
@@ -35,13 +35,13 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[GameManager] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
     void Start()
     {
+        enemySpawner = FindFirstObjectByType<EnemySpawner>();
         ApplyRoundData(currentRound);
         UpdateAllUI();
     }
@@ -60,14 +60,10 @@ public class GameManager : MonoBehaviour
         if (CSVLoader.Instance != null)
         {
             RoundData data = CSVLoader.Instance.GetRoundData(round);
-            if (data != null)
-            {
-                roundDuration = data.roundDuration;
-                maxEnemyCount = data.maxEnemyCount;
-            }
+            if (data != null) { roundDuration = data.roundDuration; maxEnemyCount = data.maxEnemyCount; }
+            currentStage = CSVLoader.Instance.GetStage(round);
         }
         roundTimeLeft = roundDuration;
-        currentStage = CSVLoader.Instance != null ? CSVLoader.Instance.GetStage(round) : 1;
     }
 
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
@@ -87,8 +83,7 @@ public class GameManager : MonoBehaviour
     {
         currentRound++;
         ApplyRoundData(currentRound);
-        EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
-        if (spawner != null) spawner.ApplyRoundSettings(currentRound);
+        if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
     }
 
     void GameOver()

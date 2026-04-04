@@ -19,10 +19,7 @@ public class PassiveManager : MonoBehaviour
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
 
-        float totalDamageBonus = 0f;
-        float totalSpeedBonus = 0f;
-        float totalEnemySpeedDown = 0f;
-        float totalEnemyDefenseDown = 0f;
+        float totalDamageBonus = 0f, totalSpeedBonus = 0f, totalEnemySpeedDown = 0f, totalEnemyDefenseDown = 0f;
 
         foreach (PlayerAttack unit in allUnits)
         {
@@ -42,27 +39,16 @@ public class PassiveManager : MonoBehaviour
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
-
-            float doubleDamageChance = 0f;
-            float attackTwiceChance = 0f;
-            float selfSpeedUpChance = 0f;
-            float selfSpeedUpAmount = 0f;
-            float selfSpeedUpDuration = 0f;
-
+            float doubleDamageChance = 0f, attackTwiceChance = 0f, selfSpeedUpChance = 0f, selfSpeedUpAmount = 0f, selfSpeedUpDuration = 0f;
             foreach (PassiveEntry entry in unit.characterData.passives)
             {
                 switch (entry.passiveType)
                 {
                     case PassiveType.DoubleDamageChance: doubleDamageChance = entry.passiveValue; break;
                     case PassiveType.AttackTwiceChance: attackTwiceChance = entry.passiveValue; break;
-                    case PassiveType.SelfAttackSpeedUpChance:
-                        selfSpeedUpChance = entry.passiveValue;
-                        selfSpeedUpAmount = entry.passiveSecondValue;
-                        selfSpeedUpDuration = entry.passiveDuration;
-                        break;
+                    case PassiveType.SelfAttackSpeedUpChance: selfSpeedUpChance = entry.passiveValue; selfSpeedUpAmount = entry.passiveSecondValue; selfSpeedUpDuration = entry.passiveDuration; break;
                 }
             }
-
             unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleDamageChance, attackTwiceChance, selfSpeedUpChance, selfSpeedUpAmount, selfSpeedUpDuration);
         }
 
@@ -78,16 +64,12 @@ public class PassiveManager : MonoBehaviour
     void UpdatePassiveUI(float dmg, float spd, float enemySpd, float enemyDef)
     {
         if (passiveStatusText == null) return;
-
-        string text = "[ 패시브 현황 ]\n";
-        if (dmg > 0f) text += $"아군 공격력 +{dmg}%\n";
-        if (spd > 0f) text += $"아군 공속 +{spd}%\n";
-        if (enemySpd > 0f) text += $"적 이동속도 -{enemySpd}\n";
-        if (enemyDef > 0f) text += $"적 방어력 -{enemyDef}\n";
-
-        if (dmg == 0f && spd == 0f && enemySpd == 0f && enemyDef == 0f)
-            text = "";
-
+        if (dmg == 0f && spd == 0f && enemySpd == 0f && enemyDef == 0f) { passiveStatusText.text = ""; return; }
+        string text = "[ Passive Status ]\n";
+        if (dmg > 0f) text += $"ATK Damage +{dmg}%\n";
+        if (spd > 0f) text += $"ATK Speed +{spd}%\n";
+        if (enemySpd > 0f) text += $"Enemy Speed -{enemySpd}\n";
+        if (enemyDef > 0f) text += $"Enemy Defense -{enemyDef}\n";
         passiveStatusText.text = text;
     }
 }

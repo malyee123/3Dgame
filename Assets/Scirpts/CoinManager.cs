@@ -17,8 +17,7 @@ public class CoinManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[CoinManager] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
@@ -29,22 +28,20 @@ public class CoinManager : MonoBehaviour
         UpdateCoinUI();
     }
 
-    public void AddCoins(int amount)
+    public void AddCoins(int amount, bool applyKillBonus = false)
     {
-        int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
+        int bonus = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
         currentCoins += amount + bonus;
         UpdateCoinUI();
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
-        // Debug.Log($"[CoinManager] Coins: {currentCoins} (+{amount + bonus})");
     }
 
     public bool SpendCoins(int amount)
     {
-        if (currentCoins < amount) { /*Debug.Log("[CoinManager] Not enough coins!");*/ return false; }
+        if (currentCoins < amount) return false;
         currentCoins -= amount;
         UpdateCoinUI();
         if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
-        // Debug.Log($"[CoinManager] Coins: {currentCoins} (-{amount})");
         return true;
     }
 

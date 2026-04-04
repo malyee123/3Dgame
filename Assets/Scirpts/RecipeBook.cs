@@ -36,7 +36,7 @@ public class RecipeBook : MonoBehaviour
     private bool isNotificationShowing = false;
     private bool wasCraftable = false;
     private bool notificationShownThisCycle = false;
-
+    public GameObject specialSpawnButton;
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -59,7 +59,6 @@ public class RecipeBook : MonoBehaviour
             if (isPanelOpen) RefreshRecipeStates();
             else CheckNotificationOnly();
         }
-
         if (isNotificationShowing && !isPanelOpen)
         {
             notificationTimer -= Time.deltaTime;
@@ -184,8 +183,18 @@ public class RecipeBook : MonoBehaviour
         foreach (PlayerAttack p in excludeList) Destroy(p.gameObject);
         if (PlayerSpawner.Instance != null && recipe.result != null)
             PlayerSpawner.Instance.SpawnSpecificCharacter(recipe.result);
-        if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.SyncSlotStateFromScene();
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
+        StartCoroutine(SyncAfterDestroy());
+    }
+
+    System.Collections.IEnumerator SyncAfterDestroy()
+    {
+        yield return null;
+        if (PlayerSpawner.Instance != null)
+        {
+            PlayerSpawner.Instance.SyncSlotStateFromScene();
+            PlayerSpawner.Instance.ForceUpdateSpawnButton();
+        }
         RefreshRecipeStates();
     }
 
@@ -204,10 +213,10 @@ public class RecipeBook : MonoBehaviour
         }
         if (slotGroups.Count == 0) return;
         int targetSlot = -1;
-        int maxCount = -1;
+        int minCount = int.MaxValue;
         foreach (var kv in slotGroups)
         {
-            if (kv.Value.Count > maxCount) { maxCount = kv.Value.Count; targetSlot = kv.Key; }
+            if (kv.Value.Count < minCount) { minCount = kv.Value.Count; targetSlot = kv.Key; }
         }
         if (targetSlot < 0) return;
         PlayerAttack target = slotGroups[targetSlot][slotGroups[targetSlot].Count - 1];
@@ -229,18 +238,21 @@ public class RecipeBook : MonoBehaviour
         return count;
     }
 
-   
-
     void RebuildSlotLeader(int slotIndex, List<PlayerAttack> excludeList)
     {
         PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        bool leaderAssigned = false;
+        List<PlayerAttack> slotUnits = new List<PlayerAttack>();
         foreach (PlayerAttack p in players)
         {
             if (p == null || p.spawnIndex != slotIndex) continue;
             if (excludeList.Contains(p)) continue;
-            p.isLeader = !leaderAssigned;
-            leaderAssigned = true;
+            slotUnits.Add(p);
+        }
+        for (int i = 0; i < slotUnits.Count; i++)
+        {
+            slotUnits[i].isLeader = (i == 0);
+            slotUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[slotIndex].position
+                + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
         }
     }
 
@@ -257,6 +269,7 @@ public class RecipeBook : MonoBehaviour
         if (spawnButton != null) spawnButton.SetActive(!isPanelOpen);
         if (mergeButton != null) mergeButton.SetActive(!isPanelOpen);
         if (recipeBookButton != null) recipeBookButton.SetActive(!isPanelOpen);
+        if (specialSpawnButton != null) specialSpawnButton.SetActive(!isPanelOpen);
         SetPlayerInteraction(!isPanelOpen);
         if (isPanelOpen && MergeManager.Instance != null)
             MergeManager.Instance.HideUnitActionUI();
@@ -276,6 +289,7 @@ public class RecipeBook : MonoBehaviour
         if (spawnButton != null) spawnButton.SetActive(true);
         if (mergeButton != null) mergeButton.SetActive(true);
         if (recipeBookButton != null) recipeBookButton.SetActive(true);
+        if (specialSpawnButton != null) specialSpawnButton.SetActive(true);
         SetPlayerInteraction(true);
         if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
     }
