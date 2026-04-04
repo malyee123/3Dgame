@@ -3001,10 +3001,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 2492102594665920056, guid: 725640bbad4b362438fcc5820077c21c, type: 3}
-  baseSpawnDelay: 0.1
-  baseEnemyHp: 50
-  spawnDelayDecrement: 0.1
-  hpIncrement: 20
   pathManager: {fileID: 2072419691}
   spawnPosition: {x: -6, y: 3}
 --- !u!4 &1074021557
@@ -3734,8 +3730,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
-  - {fileID: 11400000, guid: 35d0be829ff16a9499cc7d72151a72f0, type: 2}
-  - {fileID: 11400000, guid: 52a96f2fbdf8da046bc4e879ffe86735, type: 2}
+  - {fileID: 11400000, guid: 3c7992c43a262df499e2dc6303188cf0, type: 2}
+  - {fileID: 11400000, guid: ef08195079c40ea418abe18e45c883bf, type: 2}
   - {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
   - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
   - {fileID: 11400000, guid: 1b12f3bf88c72f44da16626a49be96a6, type: 2}
@@ -3750,18 +3746,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9d1bd8b7928ea2f45b40114b4c04a5f3, type: 2}
   - {fileID: 11400000, guid: b11ce941942b3074aa886c094726c5fb, type: 2}
   - {fileID: 11400000, guid: 5c03f9cdbdb6cd847805e45a3e82443b, type: 2}
-  baseEnemyHp: 50
-  hpIncrement: 20
-  baseSpawnDelay: 1
-  spawnDelayDecrement: 0.1
   roundDataList:
-  - stage: 0
-    roundDuration: 0
-    maxEnemyCount: 0
-    enemyHp: 0
-    enemySpawnDelay: 0
+  - waveStart: 0
+    waveEnd: 0
+    stage: 0
+    baseHp: 0
+    hpIncrement: 0
+    spawnDelay: 0
+    spawnDelayDecrement: 0
     enemySpeed: 0
-    roundsPerStage: 0
+    maxEnemyCount: 0
+    roundDuration: 0
 --- !u!4 &1285911581
 Transform:
   m_ObjectHideFlags: 0
@@ -5845,8 +5840,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
-  - {fileID: 11400000, guid: 35d0be829ff16a9499cc7d72151a72f0, type: 2}
-  - {fileID: 11400000, guid: 52a96f2fbdf8da046bc4e879ffe86735, type: 2}
+  - {fileID: 11400000, guid: 3c7992c43a262df499e2dc6303188cf0, type: 2}
+  - {fileID: 11400000, guid: ef08195079c40ea418abe18e45c883bf, type: 2}
   - {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
   - {fileID: 11400000, guid: 45f4fe6ccbf99cc4385682c5216ca8a3, type: 2}
   - {fileID: 11400000, guid: 1b12f3bf88c72f44da16626a49be96a6, type: 2}

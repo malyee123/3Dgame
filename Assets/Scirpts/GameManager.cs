@@ -60,8 +60,12 @@ public class GameManager : MonoBehaviour
         if (CSVLoader.Instance != null)
         {
             RoundData data = CSVLoader.Instance.GetRoundData(round);
-            if (data != null) { roundDuration = data.roundDuration; maxEnemyCount = data.maxEnemyCount; }
-            currentStage = CSVLoader.Instance.GetStage(round);
+            if (data != null)
+            {
+                roundDuration = data.roundDuration;
+                maxEnemyCount = data.maxEnemyCount;
+                currentStage = data.stage;
+            }
         }
         roundTimeLeft = roundDuration;
     }

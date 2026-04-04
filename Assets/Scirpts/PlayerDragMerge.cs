@@ -5,16 +5,12 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
 {
-    [Header("Click Settings")]
-    public float doubleClickThreshold = 0.3f;
-
     [Header("Drag Settings")]
     public float dragSmoothSpeed = 15f;
 
     private Camera mainCamera;
     private bool isDragging;
-    private bool isHolding;
-    private float lastClickTime = 0f;
+    private bool isSelected;
     private Vector3 originalPosition;
     private int originalSlotIndex = -1;
     private Vector3 targetDragPosition;
@@ -39,26 +35,34 @@ public class PlayerDragMerge : MonoBehaviour
         if (mainCamera == null) return;
         if (playerAttack != null) originalSlotIndex = playerAttack.spawnIndex;
 
-        float timeSinceLastClick = Time.time - lastClickTime;
-        if (timeSinceLastClick <= doubleClickThreshold)
+        if (MergeManager.Instance != null && MergeManager.Instance.IsUnitActionUIActive())
         {
-            isHolding = true;
-            originalPosition = transform.position;
-            targetDragPosition = transform.position;
-            StartDrag();
+            // 클릭한 유닛이 선택된 슬롯의 유닛인지 확인
+            if (MergeManager.Instance.IsSelectedSlot(originalSlotIndex))
+            {
+                isSelected = true;
+                originalPosition = transform.position;
+                targetDragPosition = transform.position;
+                StartDrag();
+            }
+            else
+            {
+                // 다른 슬롯 클릭 시 UI 닫고 새로 선택
+                MergeManager.Instance.HideUnitActionUI();
+                ShowPanel();
+            }
         }
         else
         {
-            lastClickTime = Time.time;
             ShowPanel();
         }
     }
 
     void OnMouseUp()
     {
-        if (!isHolding) return;
+        if (!isSelected) return;
         if (isDragging) EndDrag();
-        isHolding = false;
+        isSelected = false;
     }
 
     void Update()

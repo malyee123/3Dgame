@@ -16,7 +16,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
   - {fileID: 11400000, guid: 79a58c3504265a34a80f7e2e492cef14, type: 2}
-  - {fileID: 11400000, guid: 35d0be829ff16a9499cc7d72151a72f0, type: 2}
-  - {fileID: 11400000, guid: 52a96f2fbdf8da046bc4e879ffe86735, type: 2}
+  - {fileID: 11400000, guid: 3c7992c43a262df499e2dc6303188cf0, type: 2}
+  - {fileID: 11400000, guid: ef08195079c40ea418abe18e45c883bf, type: 2}
   result: {fileID: 11400000, guid: 75f20d020ba72e74b9c6dbd6190c86dc, type: 2}
   recipeName: Tier2Recipe

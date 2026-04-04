@@ -118,4 +118,13 @@ public class MergeManager : MonoBehaviour
         selectedUnit = null;
         if (unitActionUI != null) unitActionUI.SetActive(false);
     }
+    public bool IsUnitActionUIActive()
+    {
+        return unitActionUI != null && unitActionUI.activeSelf;
+    }
+
+    public bool IsSelectedSlot(int slotIndex)
+    {
+        return selectedUnit != null && selectedUnit.spawnIndex == slotIndex;
+    }
 }
