@@ -22,9 +22,9 @@ public class GameOverUI : MonoBehaviour
         PlayerPrefs.SetInt("SkillPoints", currentPoints);
         PlayerPrefs.Save();
 
-        if (totalTimeText != null) totalTimeText.text = $"Total Time: {FormatTime(totalTime)}";
-        if (roundReachedText != null) roundReachedText.text = $"Round Reached: {lastRound}";
-        if (skillPointText != null) skillPointText.text = $"Skill Points Earned: +{earnedPoints} (Total: {currentPoints})";
+        if (totalTimeText != null) totalTimeText.text = $"생존 시간: {FormatTime(totalTime)}";
+        if (roundReachedText != null) roundReachedText.text = $"도달한 라운드: {lastRound}";
+        if (skillPointText != null) skillPointText.text = $"획득한 스킬포인트: +{earnedPoints} (누적: {currentPoints})";
     }
 
     public void RetryGame()
