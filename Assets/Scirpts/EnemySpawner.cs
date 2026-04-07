@@ -30,11 +30,11 @@ public class EnemySpawner : MonoBehaviour
         RoundData data = CSVLoader.Instance != null ? CSVLoader.Instance.GetRoundData(round) : null;
         if (data != null)
         {
-            // 구간 내 라운드 오프셋 계산 (waveStart부터 몇 번째 웨이브인지)
             int offsetInRange = round - data.waveStart;
             currentEnemyHp = data.baseHp + data.hpIncrement * offsetInRange;
             currentSpawnDelay = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
             currentEnemySpeed = data.enemySpeed;
+            if (CoinManager.Instance != null) CoinManager.Instance.coinsPerKill = data.coinsPerKill;
         }
         else
         {
@@ -45,7 +45,6 @@ public class EnemySpawner : MonoBehaviour
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
-
     IEnumerator SpawnRoutine()
     {
         while (true) { SpawnEnemy(); yield return new WaitForSeconds(currentSpawnDelay); }

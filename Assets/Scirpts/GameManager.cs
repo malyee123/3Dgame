@@ -88,6 +88,8 @@ public class GameManager : MonoBehaviour
         currentRound++;
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
+        if (BossManager.Instance != null)
+            BossManager.Instance.TrySpawnBoss(currentRound);
     }
 
     void GameOver()

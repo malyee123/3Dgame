@@ -1,3 +1,3 @@
-﻿waveStart,waveEnd,stage,baseHp,hpIncrement,spawnDelay,spawnDelayDecrement,enemySpeed,maxEnemyCount,roundDuration
-1,5,1,150,100,1,0.1,2,80,20
-6,9,1,600,50,1,0.1,2,80,20
+﻿waveStart,waveEnd,stage,baseHp,hpIncrement,spawnDelay,spawnDelayDecrement,enemySpeed,maxEnemyCount,roundDuration,coinsPerKill
+1,5,1,150,100,1,0.1,2,80,20,50
+6,9,1,600,50,1,0.1,2,80,20,20

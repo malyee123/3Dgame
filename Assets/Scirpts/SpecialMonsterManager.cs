@@ -58,15 +58,7 @@ public class SpecialMonsterManager : MonoBehaviour
         isButtonActive = true;
         if (spawnButtonObject != null && (RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen))
             spawnButtonObject.SetActive(true);
-        float timeLeft = buttonDisplayTime;
-        while (timeLeft > 0f)
-        {
-            if (spawnButtonObject != null) spawnButtonObject.SetActive(RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen);
-            if (buttonTimerText != null) buttonTimerText.text = $"Special";
-            timeLeft -= Time.deltaTime;
-            yield return null;
-        }
-        HideButton();
+        yield return null;
     }
 
     void OnSpawnButtonClicked()

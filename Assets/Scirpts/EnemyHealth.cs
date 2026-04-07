@@ -17,12 +17,14 @@ public class EnemyHealth : MonoBehaviour
 
     private float currentHp;
     private bool isDead = false;
+    private PlayerAttack lastAttacker = null;
 
     public void Init(float hp)
     {
         maxHp = hp;
         currentHp = hp;
         isDead = false;
+        lastAttacker = null;
         if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
@@ -32,9 +34,10 @@ public class EnemyHealth : MonoBehaviour
         if (currentHp <= 0f) Init(maxHp);
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, PlayerAttack attacker = null)
     {
         if (isDead) return;
+        if (attacker != null) lastAttacker = attacker;
         currentHp -= damage;
         if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
@@ -55,6 +58,19 @@ public class EnemyHealth : MonoBehaviour
         {
             if (CoinManager.Instance != null)
                 CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
+        }
+        if (lastAttacker != null && lastAttacker.characterData != null)
+        {
+            foreach (PassiveEntry entry in lastAttacker.characterData.passives)
+            {
+                if (entry.passiveType != PassiveType.SpecialCoinOnKillChance) continue;
+                if (Random.Range(0f, 100f) < entry.passiveValue)
+                {
+                    int coinAmount = (int)entry.passiveSecondValue;
+                    if (SpecialCoinManager.Instance != null)
+                        SpecialCoinManager.Instance.AddSpecialCoins(coinAmount);
+                }
+            }
         }
         Destroy(gameObject);
     }

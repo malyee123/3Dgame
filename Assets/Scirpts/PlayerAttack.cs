@@ -125,11 +125,11 @@ public class PlayerAttack : MonoBehaviour
 
         float finalDamage = appliedDamage;
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance) finalDamage *= 2f;
-        health.TakeDamage(finalDamage);
+        health.TakeDamage(finalDamage, this);
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
         {
-            health.TakeDamage(appliedDamage);
+            health.TakeDamage(appliedDamage, this);
             StartCoroutine(SecondAttackAnimRoutine());
         }
 
@@ -167,12 +167,20 @@ public class PlayerAttack : MonoBehaviour
     {
         EnemyMove[] enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         EnemyMove backmostEnemy = null;
+        EnemyMove bossTarget = null;
         float smallestProgress = Mathf.Infinity;
         float fallbackNearestDistance = Mathf.Infinity;
+
         foreach (EnemyMove enemy in enemies)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
             if (distance > characterData.attackRange) continue;
+            EnemyHealth health = enemy.GetComponent<EnemyHealth>();
+            if (health != null && health.isSpecial)
+            {
+                bossTarget = enemy;
+                continue;
+            }
             float progress = enemy.GetPathProgress();
             if (progress < smallestProgress || (Mathf.Approximately(progress, smallestProgress) && distance < fallbackNearestDistance))
             {
@@ -181,7 +189,7 @@ public class PlayerAttack : MonoBehaviour
                 backmostEnemy = enemy;
             }
         }
-        return backmostEnemy;
+        return bossTarget != null ? bossTarget : backmostEnemy;
     }
 
     bool IsTargetInRange(EnemyMove enemy)

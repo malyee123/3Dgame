@@ -11,6 +11,7 @@ public enum PassiveType
     DoubleDamageChance,
     AttackTwiceChance,
     SelfAttackSpeedUpChance,
+    SpecialCoinOnKillChance,
 }
 
 [System.Serializable]
