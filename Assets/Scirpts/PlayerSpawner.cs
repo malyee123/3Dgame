@@ -32,6 +32,7 @@ public class PlayerSpawner : MonoBehaviour
 
     [Header("UI")]
     public Button spawnButton;
+    public GameObject[] auraPrefabs;
 
     private int[] slotOccupancy;
     private string[] slotTagOwners;
@@ -154,7 +155,18 @@ public class PlayerSpawner : MonoBehaviour
         slotDirty = true;
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         UpdateSpawnButton();
+
+        if (auraPrefabs != null && characterData.tier - 1 < auraPrefabs.Length)
+        {
+            GameObject auraPrefab = auraPrefabs[characterData.tier - 1];
+            if (auraPrefab != null)
+            {
+                GameObject aura = Instantiate(auraPrefab, obj.transform);
+                aura.transform.localPosition = Vector3.zero;
+            }
+        }
     }
+
 
     public void SpawnSpecificCharacter(CharacterData characterData)
     {
@@ -321,7 +333,7 @@ public class PlayerSpawner : MonoBehaviour
         float totalWeight = 0f;
         for (int i = 0; i < tierSpawnWeights.Length; i++) { int tier = i + 1; if (tierMap.ContainsKey(tier)) totalWeight += tierSpawnWeights[i]; }
         if (totalWeight <= 0f) return characterDataList[Random.Range(0, characterDataList.Length)];
-        float rand = Random.Range(0f, totalWeight);
+           float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
         for (int i = 0; i < tierSpawnWeights.Length; i++)
         {

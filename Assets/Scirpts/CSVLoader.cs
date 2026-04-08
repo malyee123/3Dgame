@@ -15,6 +15,7 @@ public class RoundData
     public int maxEnemyCount;
     public float roundDuration;
     public int coinsPerKill;
+    public float enemyDefense;
 }
 
 [System.Serializable]
@@ -24,6 +25,7 @@ public class BossData
     public float hp;
     public float speed;
     public int reward;
+    public float defense;
 }
 
 public class CSVLoader : MonoBehaviour
@@ -71,7 +73,8 @@ public class CSVLoader : MonoBehaviour
             data.attackCooldown = float.Parse(col[4].Trim());
             data.attackRange = float.Parse(col[5].Trim());
             data.upgradeCost = int.Parse(col[6].Trim());
-            data.sellPrice = int.Parse(col[7].Trim());
+            data.sellPrice = int.Parse(col[7].Trim()); 
+            Debug.Log($"[CSV] {characterName} / damage={data.attackDamage} / cooldown={data.attackCooldown} / col¼ö={col.Length}");
         }
         Debug.Log("[CSVLoader] Character stats loaded");
     }
@@ -111,7 +114,7 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 11) continue;
+            if (col.Length < 12) continue;
             RoundData data = new RoundData();
             data.waveStart = int.Parse(col[0].Trim());
             data.waveEnd = int.Parse(col[1].Trim());
@@ -124,10 +127,12 @@ public class CSVLoader : MonoBehaviour
             data.maxEnemyCount = int.Parse(col[8].Trim());
             data.roundDuration = float.Parse(col[9].Trim());
             data.coinsPerKill = int.Parse(col[10].Trim());
+            data.enemyDefense = float.Parse(col[11].Trim());
             roundDataList.Add(data);
         }
         Debug.Log("[CSVLoader] Round stats loaded");
     }
+
     void LoadBossStats()
     {
         if (bossCSV == null) { Debug.LogWarning("[CSVLoader] boss.csv not found"); return; }
@@ -138,16 +143,18 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 4) continue;
+            if (col.Length < 5) continue;
             BossData data = new BossData();
             data.bossWave = int.Parse(col[0].Trim());
             data.hp = float.Parse(col[1].Trim());
             data.speed = float.Parse(col[2].Trim());
             data.reward = int.Parse(col[3].Trim());
+            data.defense = float.Parse(col[4].Trim());
             bossDataList.Add(data);
         }
         Debug.Log("[CSVLoader] Boss stats loaded");
     }
+
 
     public RoundData GetRoundData(int round)
     {

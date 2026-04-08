@@ -215,10 +215,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHp: 100
+  defense: 0
   hpSlider: {fileID: 5636807078509065139}
   hpFillImage: {fileID: 2184951827499982371}
   isSpecial: 0
   specialCoinReward: 0
+  damageTextPrefab: {fileID: 7710263174651298662, guid: 11733687031c55c4aac1b80c42a3f9f1, type: 3}
 --- !u!222 &2725980376595593548
 CanvasRenderer:
   m_ObjectHideFlags: 0

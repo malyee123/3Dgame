@@ -41,7 +41,7 @@ public class BossManager : MonoBehaviour
         {
             enemyHealth.isSpecial = true;
             enemyHealth.specialCoinReward = data.reward;
-            enemyHealth.Init(data.hp);
+            enemyHealth.Init(data.hp, data.defense);
         }
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }

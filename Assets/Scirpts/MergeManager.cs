@@ -66,8 +66,9 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit != null && PlayerSpawner.Instance != null)
         {
             int currentTier = selectedUnit.characterData != null ? selectedUnit.characterData.tier : 1;
+            int mergeCost = selectedUnit.characterData != null ? selectedUnit.characterData.upgradeCost : 150;
             bool tierAllowed = UpgradeManager.Instance == null || (currentTier + 1) <= UpgradeManager.Instance.UnlockedTier;
-            bool hasEnoughCoins = CoinManager.Instance != null && CoinManager.Instance.GetCoins() >= 150;
+            bool hasEnoughCoins = CoinManager.Instance != null && CoinManager.Instance.GetCoins() >= mergeCost;
             bool canManualMerge = PlayerSpawner.Instance.CanManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
             canMerge = tierAllowed && hasEnoughCoins && canManualMerge;
         }
@@ -89,8 +90,9 @@ public class MergeManager : MonoBehaviour
     {
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
         int currentTier = selectedUnit.characterData != null ? selectedUnit.characterData.tier : 1;
+        int mergeCost = selectedUnit.characterData != null ? selectedUnit.characterData.upgradeCost : 150;
         if (UpgradeManager.Instance != null && (currentTier + 1) > UpgradeManager.Instance.UnlockedTier) return;
-        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(150)) return;
+        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(mergeCost)) return;
         bool merged = PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData);
         if (merged) { selectedUnit = null; if (unitActionUI != null) unitActionUI.SetActive(false); }
         RefreshMergeUI();
@@ -118,13 +120,8 @@ public class MergeManager : MonoBehaviour
         selectedUnit = null;
         if (unitActionUI != null) unitActionUI.SetActive(false);
     }
-    public bool IsUnitActionUIActive()
-    {
-        return unitActionUI != null && unitActionUI.activeSelf;
-    }
 
-    public bool IsSelectedSlot(int slotIndex)
-    {
-        return selectedUnit != null && selectedUnit.spawnIndex == slotIndex;
-    }
+    public bool IsUnitActionUIActive() => unitActionUI != null && unitActionUI.activeSelf;
+
+    public bool IsSelectedSlot(int slotIndex) => selectedUnit != null && selectedUnit.spawnIndex == slotIndex;
 }

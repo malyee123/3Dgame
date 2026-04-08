@@ -16,6 +16,7 @@ public class EnemySpawner : MonoBehaviour
     private float currentEnemyHp;
     private float currentEnemySpeed;
     private Coroutine spawnCoroutine;
+    private float currentEnemyDefense = 0f;
 
     void Start()
     {
@@ -34,6 +35,7 @@ public class EnemySpawner : MonoBehaviour
             currentEnemyHp = data.baseHp + data.hpIncrement * offsetInRange;
             currentSpawnDelay = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
             currentEnemySpeed = data.enemySpeed;
+            currentEnemyDefense = data.enemyDefense;
             if (CoinManager.Instance != null) CoinManager.Instance.coinsPerKill = data.coinsPerKill;
         }
         else
@@ -41,6 +43,7 @@ public class EnemySpawner : MonoBehaviour
             currentEnemyHp = 50f;
             currentSpawnDelay = 1f;
             currentEnemySpeed = 2f;
+            currentEnemyDefense = 0f;
         }
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
@@ -58,7 +61,7 @@ public class EnemySpawner : MonoBehaviour
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = currentEnemySpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null) enemyHealth.Init(currentEnemyHp);
+        if (enemyHealth != null) enemyHealth.Init(currentEnemyHp, currentEnemyDefense);
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }
 }

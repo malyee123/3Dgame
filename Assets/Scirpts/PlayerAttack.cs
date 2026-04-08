@@ -125,18 +125,28 @@ public class PlayerAttack : MonoBehaviour
 
         float finalDamage = appliedDamage;
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance) finalDamage *= 2f;
-        health.TakeDamage(finalDamage, this);
+
+        StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
-        {
-            health.TakeDamage(appliedDamage, this);
             StartCoroutine(SecondAttackAnimRoutine());
-        }
 
         if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
             StartCoroutine(SelfSpeedBoostRoutine());
 
         cooldownTimer = 0f;
+    }
+
+    System.Collections.IEnumerator DealDamageWithDelay(EnemyMove target, float damage, bool isTwice)
+    {
+        yield return new WaitForSeconds(0.3f);
+        if (target == null) yield break;
+        EnemyHealth health = target.GetComponent<EnemyHealth>();
+        if (health == null) yield break;
+        health.TakeDamage(damage, this);
+        if (isTwice) yield break;
+        if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
+            StartCoroutine(DealDamageWithDelay(target, appliedDamage, true));
     }
 
     System.Collections.IEnumerator SecondAttackAnimRoutine()
