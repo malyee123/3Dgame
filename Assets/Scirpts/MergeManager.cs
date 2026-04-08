@@ -20,6 +20,11 @@ public class MergeManager : MonoBehaviour
     private PlayerAttack selectedUnit;
     private bool justSelected = false;
 
+    [Header("Range Indicator")]
+    public GameObject rangeIndicatorPrefab;
+    private GameObject currentRangeIndicator;
+
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -50,6 +55,7 @@ public class MergeManager : MonoBehaviour
     {
         selectedUnit = unit;
         justSelected = true;
+
         if (unitActionUI != null && unit != null)
         {
             Vector3 screenPos = Camera.main.WorldToScreenPoint(unit.transform.position);
@@ -57,7 +63,29 @@ public class MergeManager : MonoBehaviour
             unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
             unitActionUI.SetActive(true);
         }
+
+        HideRangeIndicator();
+        if (unit != null && unit.characterData != null)
+        {
+            currentRangeIndicator = new GameObject("RangeIndicator");
+            currentRangeIndicator.transform.position = unit.transform.position;
+            RangeIndicator indicator = currentRangeIndicator.AddComponent<RangeIndicator>();
+            indicator.SetRange(unit.characterData.attackRange);
+        }
+
         RefreshMergeUI();
+    }
+
+    public void HideUnitActionUI()
+    {
+        selectedUnit = null;
+        if (unitActionUI != null) unitActionUI.SetActive(false);
+        HideRangeIndicator();
+    }
+
+    void HideRangeIndicator()
+    {
+        if (currentRangeIndicator != null) { Destroy(currentRangeIndicator); currentRangeIndicator = null; }
     }
 
     void RefreshMergeUI()
@@ -115,11 +143,7 @@ public class MergeManager : MonoBehaviour
         RefreshMergeUI();
     }
 
-    public void HideUnitActionUI()
-    {
-        selectedUnit = null;
-        if (unitActionUI != null) unitActionUI.SetActive(false);
-    }
+    
 
     public bool IsUnitActionUIActive() => unitActionUI != null && unitActionUI.activeSelf;
 

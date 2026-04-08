@@ -1158,6 +1158,7 @@ MonoBehaviour:
   sellButton: {fileID: 397859698}
   sellPriceText: {fileID: 1707702779}
   gameCanvas: {fileID: 1288177586}
+  rangeIndicatorPrefab: {fileID: 8189201129180309283, guid: 67ae5258016fc9842ac521d798b42e67, type: 3}
 --- !u!4 &311896006
 Transform:
   m_ObjectHideFlags: 0
