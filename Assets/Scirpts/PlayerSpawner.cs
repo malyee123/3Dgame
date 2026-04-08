@@ -41,6 +41,9 @@ public class PlayerSpawner : MonoBehaviour
 
     void Awake()
     {
+        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
+        if (loaded != null && loaded.Length > 0)
+            characterDataList = loaded;
         if (Instance != null && Instance != this)
             Debug.LogWarning("[PlayerSpawner] Duplicate instance found!");
         Instance = this;

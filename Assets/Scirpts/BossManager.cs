@@ -4,11 +4,11 @@ public class BossManager : MonoBehaviour
 {
     public static BossManager Instance { get; private set; }
 
-    [Header("Boss Settings")]
-    public GameObject bossPrefab;
-    public PathManager pathManager;
+    [Header("Boss Prefabs")]
+    public GameObject[] bossPrefabs;
 
-    [Header("Spawn Position")]
+    [Header("Settings")]
+    public PathManager pathManager;
     public Vector2 spawnPosition = new Vector2(-6f, 3f);
 
     void Awake()
@@ -32,8 +32,14 @@ public class BossManager : MonoBehaviour
 
     void SpawnBoss(BossData data)
     {
-        if (bossPrefab == null) { Debug.LogWarning("[BossManager] bossPrefab is missing."); return; }
-        GameObject obj = Instantiate(bossPrefab, spawnPosition, Quaternion.identity);
+        if (bossPrefabs == null || data.bossId >= bossPrefabs.Length)
+        {
+            Debug.LogWarning("[BossManager] bossPrefab not found for bossId: " + data.bossId);
+            return;
+        }
+        GameObject prefab = bossPrefabs[data.bossId];
+        if (prefab == null) return;
+        GameObject obj = Instantiate(prefab, spawnPosition, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = data.speed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();

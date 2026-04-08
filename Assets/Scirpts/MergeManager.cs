@@ -48,11 +48,20 @@ public class MergeManager : MonoBehaviour
             if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
             selectedUnit = null;
             unitActionUI.SetActive(false);
+            HideRangeIndicator();
         }
     }
 
     public void SelectUnit(PlayerAttack unit)
     {
+        if (selectedUnit == unit)
+        {
+            selectedUnit = null;
+            unitActionUI.SetActive(false);
+            HideRangeIndicator();
+            return;
+        }
+
         selectedUnit = unit;
         justSelected = true;
 

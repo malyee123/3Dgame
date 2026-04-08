@@ -41,7 +41,11 @@ public class RecipeBook : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-    }
+
+        RecipeData[] loaded = Resources.LoadAll<RecipeData>("RecipeData");
+        if (loaded != null && loaded.Length > 0)
+            recipes = loaded;
+    }   
 
     void Start()
     {

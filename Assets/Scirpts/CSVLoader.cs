@@ -22,6 +22,7 @@ public class RoundData
 public class BossData
 {
     public int bossWave;
+    public int bossId;
     public float hp;
     public float speed;
     public int reward;
@@ -46,6 +47,9 @@ public class CSVLoader : MonoBehaviour
 
     void Awake()
     {
+        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
+        if (loaded != null && loaded.Length > 0)
+            characterDataList = loaded;
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         LoadCharacterStats();
@@ -143,13 +147,14 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 5) continue;
+            if (col.Length < 6) continue;
             BossData data = new BossData();
             data.bossWave = int.Parse(col[0].Trim());
-            data.hp = float.Parse(col[1].Trim());
-            data.speed = float.Parse(col[2].Trim());
-            data.reward = int.Parse(col[3].Trim());
-            data.defense = float.Parse(col[4].Trim());
+            data.bossId = int.Parse(col[1].Trim());
+            data.hp = float.Parse(col[2].Trim());
+            data.speed = float.Parse(col[3].Trim());
+            data.reward = int.Parse(col[4].Trim());
+            data.defense = float.Parse(col[5].Trim());
             bossDataList.Add(data);
         }
         Debug.Log("[CSVLoader] Boss stats loaded");

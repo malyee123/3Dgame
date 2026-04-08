@@ -35,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.002, y: 2.836}
+  m_AnchoredPosition: {x: 0.0020049, y: 2.906}
   m_SizeDelta: {x: 948.693, y: 34.567}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5636807078509065139
@@ -104,7 +104,7 @@ GameObject:
   - component: {fileID: 2725980376595593548}
   - component: {fileID: -8886812878513143067}
   m_Layer: 0
-  m_Name: Boss
+  m_Name: Boss 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -359,7 +359,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -9.9845, y: -7.4972}
+  m_AnchoredPosition: {x: -5.0000916, y: -8.644699}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5807571981997087740
@@ -396,8 +396,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: 0, y: -3.7537}
-  m_SizeDelta: {x: 0, y: 7.4949}
+  m_AnchoredPosition: {x: 0, y: -6.17}
+  m_SizeDelta: {x: 0, y: 2.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1025822683702997771
 CanvasRenderer:
