@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 3450550721364380778}
   - component: {fileID: -4224196809069148067}
   - component: {fileID: 2725980376595593548}
-  - component: {fileID: -8886812878513143067}
+  - component: {fileID: 8612103621012266194}
   m_Layer: 0
   m_Name: Boss 3
   m_TagString: Untagged
@@ -119,7 +119,7 @@ RectTransform:
   m_GameObject: {fileID: 2492102594665920056}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3760784658293014336}
@@ -128,7 +128,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -0.6593, y: -0.80509}
-  m_SizeDelta: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 0.4, y: 0.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!212 &419905062849834522
 SpriteRenderer:
@@ -179,7 +179,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: ee9eeeb453bff524283628c023cdc76f, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0b333e75f31780e4886515d951888fa4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -229,7 +229,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2492102594665920056}
   m_CullTransparentMesh: 1
---- !u!95 &-8886812878513143067
+--- !u!95 &8612103621012266194
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
@@ -239,7 +239,7 @@ Animator:
   m_GameObject: {fileID: 2492102594665920056}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: b65e3596944148f48b068d145fde6df8, type: 2}
+  m_Controller: {fileID: 9100000, guid: a247b509c6998e24daecc17283b08d98, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

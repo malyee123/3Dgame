@@ -74,6 +74,7 @@ public class PlayerSpawner : MonoBehaviour
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
         if (CoinManager.Instance != null) { if (!CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return; }
+        if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
     }
 
@@ -82,19 +83,17 @@ public class PlayerSpawner : MonoBehaviour
         if (IsFieldFull()) { Debug.Log("[SpecialSpawn] 필드 가득 참"); return; }
         if (SpecialCoinManager.Instance == null) { Debug.Log("[SpecialSpawn] SpecialCoinManager 없음"); return; }
         if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) { Debug.Log("[SpecialSpawn] 코인 부족"); return; }
-
         SyncSlotStateFromScene();
-
-        CharacterData selectedData = GetRandomSpecialCharacterData();   
+        CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) { Debug.Log("[SpecialSpawn] CharacterData 선택 실패 - 티어 해금 확인 필요"); return; }
-
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) { Debug.Log("[SpecialSpawn] 슬롯 없음"); return; }
-
+        if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
         Debug.Log($"[SpecialSpawn] {selectedData.characterName} 소환 성공!");
     }
 
+    
     CharacterData GetRandomSpecialCharacterData()
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
@@ -156,6 +155,12 @@ public class PlayerSpawner : MonoBehaviour
         slotOccupancy[spawnIndex]++;
         slotTagOwners[spawnIndex] = unitTag;
         slotDirty = true;
+
+        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        foreach (PlayerAttack unit in allUnits)
+            if (unit != null && unit.spawnIndex == spawnIndex && unit.isLeader)
+                unit.MarkSlotMatesDirty();
+
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         UpdateSpawnButton();
 
@@ -169,7 +174,6 @@ public class PlayerSpawner : MonoBehaviour
             }
         }
     }
-
 
     public void SpawnSpecificCharacter(CharacterData characterData)
     {
@@ -377,7 +381,15 @@ public class PlayerSpawner : MonoBehaviour
         if (slotOccupancy[slotIndex] > 0) slotOccupancy[slotIndex]--;
         if (slotOccupancy[slotIndex] == 0) slotTagOwners[slotIndex] = null;
         slotDirty = true;
-        if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
+        if (PassiveManager.Instance != null)
+            StartCoroutine(RecalculateNextFrame());
+    }
+
+    System.Collections.IEnumerator RecalculateNextFrame()
+    {
+        yield return null;
+        if (PassiveManager.Instance != null)
+            PassiveManager.Instance.RecalculatePassives();
     }
 
     public void RegisterUnit(PlayerAttack unit, int slotIndex)

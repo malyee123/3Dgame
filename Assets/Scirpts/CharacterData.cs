@@ -12,6 +12,11 @@ public enum PassiveType
     AttackTwiceChance,
     SelfAttackSpeedUpChance,
     SpecialCoinOnKillChance,
+    SelfAttackDamageUpChance,
+    StunChance,
+    ExecuteChance,
+    BuffNearbyAllyAttackSpeed,
+    AoeStunEveryNHits,
 }
 
 [System.Serializable]

@@ -4,29 +4,15 @@ using UnityEngine;
 [System.Serializable]
 public class RoundData
 {
-    public int waveStart;
-    public int waveEnd;
-    public int stage;
-    public float baseHp;
-    public float hpIncrement;
-    public float spawnDelay;
-    public float spawnDelayDecrement;
-    public float enemySpeed;
-    public int maxEnemyCount;
-    public float roundDuration;
-    public int coinsPerKill;
-    public float enemyDefense;
+    public int waveStart, waveEnd, stage, maxEnemyCount, coinsPerKill;
+    public float baseHp, hpIncrement, spawnDelay, spawnDelayDecrement, enemySpeed, roundDuration, enemyDefense;
 }
 
 [System.Serializable]
 public class BossData
 {
-    public int bossWave;
-    public int bossId;
-    public float hp;
-    public float speed;
-    public int reward;
-    public float defense;
+    public int bossWave, bossId, reward;
+    public float hp, speed, defense;
 }
 
 public class CSVLoader : MonoBehaviour
@@ -34,10 +20,7 @@ public class CSVLoader : MonoBehaviour
     public static CSVLoader Instance { get; private set; }
 
     [Header("CSV Files")]
-    public TextAsset characterCSV;
-    public TextAsset passiveCSV;
-    public TextAsset roundCSV;
-    public TextAsset bossCSV;
+    public TextAsset characterCSV, passiveCSV, roundCSV, bossCSV;
 
     [Header("Character Data List")]
     public CharacterData[] characterDataList;
@@ -45,13 +28,20 @@ public class CSVLoader : MonoBehaviour
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
 
+    private Dictionary<string, CharacterData> characterDataMap = new Dictionary<string, CharacterData>();
+
     void Awake()
     {
-        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
-        if (loaded != null && loaded.Length > 0)
-            characterDataList = loaded;
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+
+        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
+        if (loaded != null && loaded.Length > 0) characterDataList = loaded;
+
+        // 이름 기반 빠른 조회를 위한 딕셔너리 빌드
+        foreach (CharacterData data in characterDataList)
+            if (data != null) characterDataMap[data.characterName] = data;
+
         LoadCharacterStats();
         LoadPassiveStats();
         LoadRoundStats();
@@ -68,8 +58,7 @@ public class CSVLoader : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
             if (col.Length < 8) continue;
-            string characterName = col[0].Trim();
-            CharacterData data = FindCharacterData(characterName);
+            CharacterData data = FindCharacterData(col[0].Trim());
             if (data == null) continue;
             data.tier = int.Parse(col[1].Trim());
             data.unitTag = col[2].Trim();
@@ -77,8 +66,7 @@ public class CSVLoader : MonoBehaviour
             data.attackCooldown = float.Parse(col[4].Trim());
             data.attackRange = float.Parse(col[5].Trim());
             data.upgradeCost = int.Parse(col[6].Trim());
-            data.sellPrice = int.Parse(col[7].Trim()); 
-            Debug.Log($"[CSV] {characterName} / damage={data.attackDamage} / cooldown={data.attackCooldown} / col��={col.Length}");
+            data.sellPrice = int.Parse(col[7].Trim());
         }
         Debug.Log("[CSVLoader] Character stats loaded");
     }
@@ -95,8 +83,7 @@ public class CSVLoader : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
             if (col.Length < 5) continue;
-            string characterName = col[0].Trim();
-            CharacterData data = FindCharacterData(characterName);
+            CharacterData data = FindCharacterData(col[0].Trim());
             if (data == null) continue;
             PassiveEntry entry = new PassiveEntry();
             System.Enum.TryParse(col[1].Trim(), out entry.passiveType);
@@ -119,20 +106,21 @@ public class CSVLoader : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
             if (col.Length < 12) continue;
-            RoundData data = new RoundData();
-            data.waveStart = int.Parse(col[0].Trim());
-            data.waveEnd = int.Parse(col[1].Trim());
-            data.stage = int.Parse(col[2].Trim());
-            data.baseHp = float.Parse(col[3].Trim());
-            data.hpIncrement = float.Parse(col[4].Trim());
-            data.spawnDelay = float.Parse(col[5].Trim());
-            data.spawnDelayDecrement = float.Parse(col[6].Trim());
-            data.enemySpeed = float.Parse(col[7].Trim());
-            data.maxEnemyCount = int.Parse(col[8].Trim());
-            data.roundDuration = float.Parse(col[9].Trim());
-            data.coinsPerKill = int.Parse(col[10].Trim());
-            data.enemyDefense = float.Parse(col[11].Trim());
-            roundDataList.Add(data);
+            roundDataList.Add(new RoundData
+            {
+                waveStart = int.Parse(col[0].Trim()),
+                waveEnd = int.Parse(col[1].Trim()),
+                stage = int.Parse(col[2].Trim()),
+                baseHp = float.Parse(col[3].Trim()),
+                hpIncrement = float.Parse(col[4].Trim()),
+                spawnDelay = float.Parse(col[5].Trim()),
+                spawnDelayDecrement = float.Parse(col[6].Trim()),
+                enemySpeed = float.Parse(col[7].Trim()),
+                maxEnemyCount = int.Parse(col[8].Trim()),
+                roundDuration = float.Parse(col[9].Trim()),
+                coinsPerKill = int.Parse(col[10].Trim()),
+                enemyDefense = float.Parse(col[11].Trim())
+            });
         }
         Debug.Log("[CSVLoader] Round stats loaded");
     }
@@ -148,18 +136,18 @@ public class CSVLoader : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
             if (col.Length < 6) continue;
-            BossData data = new BossData();
-            data.bossWave = int.Parse(col[0].Trim());
-            data.bossId = int.Parse(col[1].Trim());
-            data.hp = float.Parse(col[2].Trim());
-            data.speed = float.Parse(col[3].Trim());
-            data.reward = int.Parse(col[4].Trim());
-            data.defense = float.Parse(col[5].Trim());
-            bossDataList.Add(data);
+            bossDataList.Add(new BossData
+            {
+                bossWave = int.Parse(col[0].Trim()),
+                bossId = int.Parse(col[1].Trim()),
+                hp = float.Parse(col[2].Trim()),
+                speed = float.Parse(col[3].Trim()),
+                reward = int.Parse(col[4].Trim()),
+                defense = float.Parse(col[5].Trim())
+            });
         }
         Debug.Log("[CSVLoader] Boss stats loaded");
     }
-
 
     public RoundData GetRoundData(int round)
     {
@@ -175,11 +163,10 @@ public class CSVLoader : MonoBehaviour
         return null;
     }
 
-    CharacterData FindCharacterData(string characterName)
+    CharacterData FindCharacterData(string name)
     {
-        foreach (CharacterData data in characterDataList)
-            if (data != null && data.characterName == characterName) return data;
-        Debug.LogWarning($"[CSVLoader] '{characterName}' CharacterData not found");
+        if (characterDataMap.TryGetValue(name, out CharacterData data)) return data;
+        Debug.LogWarning($"[CSVLoader] '{name}' CharacterData not found");
         return null;
     }
 }

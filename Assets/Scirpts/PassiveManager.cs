@@ -36,27 +36,77 @@ public class PassiveManager : MonoBehaviour
             }
         }
 
+        // 고정 패시브 로그
+        if (totalDamageBonus > 0f) Debug.Log($"[Passive] AllAttackDamageUp 적용 +{totalDamageBonus}%");
+        if (totalSpeedBonus > 0f) Debug.Log($"[Passive] AllAttackSpeedUp 적용 +{totalSpeedBonus}%");
+        if (totalEnemySpeedDown > 0f) Debug.Log($"[Passive] AllEnemySpeedDown 적용 -{totalEnemySpeedDown} (적 {allEnemies.Length}마리)");
+        if (totalEnemyDefenseDown > 0f) Debug.Log($"[Passive] AllEnemyDefenseDown 적용 -{totalEnemyDefenseDown}");
+
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
-            float doubleDamageChance = 0f, attackTwiceChance = 0f, selfSpeedUpChance = 0f, selfSpeedUpAmount = 0f, selfSpeedUpDuration = 0f;
+            float doubleChance = 0f, twiceChance = 0f;
+            float selfSpeedChance = 0f, selfSpeedAmount = 0f, selfSpeedDuration = 0f;
+            float selfDamageChance = 0f, selfDamageAmount = 0f, selfDamageDuration = 0f;
+            float stunChance = 0f, stunDuration = 0f;
+            float executeChance = 0f, executeHpThreshold = 0f, executeBossDamagePercent = 0f;
+            float buffAllyChance = 0f, buffAllyAmount = 0f, buffAllyDuration = 0f;
+            float aoeStunEveryN = 0f, aoeStunRange = 0f, aoeStunDuration = 0f;
+
             foreach (PassiveEntry entry in unit.characterData.passives)
             {
                 switch (entry.passiveType)
                 {
-                    case PassiveType.DoubleDamageChance: doubleDamageChance = entry.passiveValue; break;
-                    case PassiveType.AttackTwiceChance: attackTwiceChance = entry.passiveValue; break;
-                    case PassiveType.SelfAttackSpeedUpChance: selfSpeedUpChance = entry.passiveValue; selfSpeedUpAmount = entry.passiveSecondValue; selfSpeedUpDuration = entry.passiveDuration; break;
+                    case PassiveType.DoubleDamageChance:
+                        doubleChance = entry.passiveValue; break;
+                    case PassiveType.AttackTwiceChance:
+                        twiceChance = entry.passiveValue; break;
+                    case PassiveType.SelfAttackSpeedUpChance:
+                        selfSpeedChance = entry.passiveValue;
+                        selfSpeedAmount = entry.passiveSecondValue;
+                        selfSpeedDuration = entry.passiveDuration;
+                        break;
+                    case PassiveType.SelfAttackDamageUpChance:
+                        selfDamageChance = entry.passiveValue;
+                        selfDamageAmount = entry.passiveSecondValue;
+                        selfDamageDuration = entry.passiveDuration;
+                        break;
+                    case PassiveType.StunChance:
+                        stunChance = entry.passiveValue;
+                        stunDuration = entry.passiveDuration;
+                        break;
+                    case PassiveType.ExecuteChance:
+                        executeChance = entry.passiveValue;
+                        executeHpThreshold = entry.passiveSecondValue;
+                        executeBossDamagePercent = entry.passiveDuration;
+                        break;
+                    case PassiveType.BuffNearbyAllyAttackSpeed:
+                        buffAllyChance = entry.passiveValue;
+                        buffAllyAmount = entry.passiveSecondValue;
+                        buffAllyDuration = entry.passiveDuration;
+                        break;
+                    case PassiveType.AoeStunEveryNHits:
+                        aoeStunEveryN = entry.passiveValue;
+                        aoeStunRange = entry.passiveSecondValue;
+                        aoeStunDuration = entry.passiveDuration;
+                        break;
                 }
             }
-            unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleDamageChance, attackTwiceChance, selfSpeedUpChance, selfSpeedUpAmount, selfSpeedUpDuration);
+            unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleChance, twiceChance,
+                selfSpeedChance, selfSpeedAmount, selfSpeedDuration,
+                selfDamageChance, selfDamageAmount, selfDamageDuration,
+                stunChance, stunDuration,
+                executeChance, executeHpThreshold, executeBossDamagePercent,
+                buffAllyChance, buffAllyAmount, buffAllyDuration,
+                aoeStunEveryN, aoeStunRange, aoeStunDuration);
         }
 
         foreach (EnemyMove enemy in allEnemies)
-        {
-            if (enemy == null) continue;
-            enemy.ApplySpeedPenalty(totalEnemySpeedDown);
-        }
+            if (enemy != null) enemy.ApplySpeedPenalty(totalEnemySpeedDown);
+
+        EnemyHealth[] allEnemyHealths = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (EnemyHealth eh in allEnemyHealths)
+            if (eh != null) eh.ApplyDefenseDown(totalEnemyDefenseDown);
 
         UpdatePassiveUI(totalDamageBonus, totalSpeedBonus, totalEnemySpeedDown, totalEnemyDefenseDown);
     }
@@ -65,11 +115,11 @@ public class PassiveManager : MonoBehaviour
     {
         if (passiveStatusText == null) return;
         if (dmg == 0f && spd == 0f && enemySpd == 0f && enemyDef == 0f) { passiveStatusText.text = ""; return; }
-        string text = "[ Passive Status ]\n";
-        if (dmg > 0f) text += $"ATK Damage +{dmg}%\n";
-        if (spd > 0f) text += $"ATK Speed +{spd}%\n";
-        if (enemySpd > 0f) text += $"Enemy Speed -{enemySpd}\n";
-        if (enemyDef > 0f) text += $"Enemy Defense -{enemyDef}\n";
-        passiveStatusText.text = text;
+        System.Text.StringBuilder sb = new System.Text.StringBuilder("[ Passive Status ]\n");
+        if (dmg > 0f) sb.Append($"ATK Damage +{dmg}%\n");
+        if (spd > 0f) sb.Append($"ATK Speed +{spd}%\n");
+        if (enemySpd > 0f) sb.Append($"Enemy Speed -{enemySpd}\n");
+        if (enemyDef > 0f) sb.Append($"Enemy Defense -{enemyDef}\n");
+        passiveStatusText.text = sb.ToString();
     }
 }
