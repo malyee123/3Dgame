@@ -1,7 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -41,12 +41,10 @@ public class PlayerSpawner : MonoBehaviour
 
     void Awake()
     {
-        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
-        if (loaded != null && loaded.Length > 0)
-            characterDataList = loaded;
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[PlayerSpawner] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
+        if (loaded != null && loaded.Length > 0) characterDataList = loaded;
     }
 
     void Start()
@@ -73,27 +71,25 @@ public class PlayerSpawner : MonoBehaviour
         if (selectedData == null) { Debug.LogWarning("[PlayerSpawner] No valid CharacterData."); return; }
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
-        if (CoinManager.Instance != null) { if (!CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return; }
-        if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
+        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return;
+        MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
     }
 
     public void TrySpecialSpawn()
     {
-        if (IsFieldFull()) { Debug.Log("[SpecialSpawn] 필드 가득 참"); return; }
-        if (SpecialCoinManager.Instance == null) { Debug.Log("[SpecialSpawn] SpecialCoinManager 없음"); return; }
-        if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) { Debug.Log("[SpecialSpawn] 코인 부족"); return; }
+        if (IsFieldFull()) return;
+        if (SpecialCoinManager.Instance == null) return;
+        if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) return;
         SyncSlotStateFromScene();
         CharacterData selectedData = GetRandomSpecialCharacterData();
-        if (selectedData == null) { Debug.Log("[SpecialSpawn] CharacterData 선택 실패 - 티어 해금 확인 필요"); return; }
+        if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) { Debug.Log("[SpecialSpawn] 슬롯 없음"); return; }
-        if (MergeManager.Instance != null) MergeManager.Instance.HideUnitActionUI();
+        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
+        MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
-        Debug.Log($"[SpecialSpawn] {selectedData.characterName} 소환 성공!");
     }
 
-    
     CharacterData GetRandomSpecialCharacterData()
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
@@ -117,7 +113,6 @@ public class PlayerSpawner : MonoBehaviour
             int tier = specialSpawnMinTier + i;
             if (tierMap.ContainsKey(tier)) totalWeight += specialTierSpawnWeights[i];
         }
-
         if (totalWeight <= 0f) return null;
 
         float rand = Random.Range(0f, totalWeight);
@@ -130,15 +125,13 @@ public class PlayerSpawner : MonoBehaviour
             if (rand <= cumulative)
                 return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
         }
-
         return null;
     }
 
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
     {
         int stackIndex = slotOccupancy[spawnIndex];
-        Vector3 spawnPosition = spawnPoints[spawnIndex].position + GetTriangleOffset(stackIndex);
-        GameObject obj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+        GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position + GetTriangleOffset(stackIndex), Quaternion.identity);
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
@@ -156,6 +149,7 @@ public class PlayerSpawner : MonoBehaviour
         slotTagOwners[spawnIndex] = unitTag;
         slotDirty = true;
 
+        // 새 유닛 소환 시 리더의 슬롯메이트 캐시 갱신
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
             if (unit != null && unit.spawnIndex == spawnIndex && unit.isLeader)
@@ -187,25 +181,19 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
         int currentTier = -1;
-        for (int i = 0; i < unitsInSlot.Count; i++)
+        foreach (PlayerAttack unit in unitsInSlot)
         {
-            CharacterData baseData = unitsInSlot[i].characterData;
-            if (baseData == null) continue;
-            currentTier = Mathf.Max(1, baseData.tier);
+            if (unit.characterData == null) continue;
+            currentTier = Mathf.Max(1, unit.characterData.tier);
             break;
         }
         if (currentTier < 0) return null;
         int targetTier = currentTier + 1;
         List<CharacterData> candidates = new List<CharacterData>();
-        if (characterDataList != null)
+        foreach (CharacterData data in characterDataList)
         {
-            for (int i = 0; i < characterDataList.Length; i++)
-            {
-                CharacterData data = characterDataList[i];
-                if (data == null) continue;
-                if (Mathf.Max(1, data.tier) != targetTier) continue;
-                candidates.Add(data);
-            }
+            if (data == null) continue;
+            if (Mathf.Max(1, data.tier) == targetTier) candidates.Add(data);
         }
         if (candidates.Count == 0) { Debug.LogWarning($"[PlayerSpawner] Merge failed: no data for tier={targetTier}"); return null; }
         return candidates[Random.Range(0, candidates.Count)];
@@ -215,8 +203,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         SyncSlotStateFromScene();
         int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
-        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
-        return sameTagUnits.Count >= maxUnitsPerSlot;
+        return GetUnitsInSlot(spawnIndex, unitTag, selectedTier).Count >= maxUnitsPerSlot;
     }
 
     public bool TryManualMerge(int spawnIndex, string unitTag, CharacterData selectedData)
@@ -225,38 +212,33 @@ public class PlayerSpawner : MonoBehaviour
         int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
         List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
         if (sameTagUnits.Count < maxUnitsPerSlot) return false;
-        int survivorIndex = 0;
-        PlayerAttack survivor = sameTagUnits[survivorIndex];
+
+        PlayerAttack survivor = sameTagUnits[0];
         CharacterData mergedData = GetRandomNextLevelCharacterData(sameTagUnits);
         if (mergedData == null) return false;
-        for (int i = 0; i < maxUnitsPerSlot; i++)
-        {
-            if (i == survivorIndex) continue;
-            GameObject removeObj = sameTagUnits[i].gameObject;
-            removeObj.SetActive(false);
-            Destroy(removeObj);
-        }
+
+        for (int i = 1; i < maxUnitsPerSlot; i++) { sameTagUnits[i].gameObject.SetActive(false); Destroy(sameTagUnits[i].gameObject); }
+
         survivor.ApplyCharacterData(mergedData);
         survivor.isLeader = true;
         string newUnitTag = GetUnitTag(mergedData);
         survivor.unitTag = newUnitTag;
         survivor.spawnIndex = -1;
         SyncSlotStateFromScene();
+
         if (!tagToSlots.TryGetValue(newUnitTag, out List<int> existingSlots)) existingSlots = new List<int>();
         List<int> availableTaggedSlots = new List<int>();
-        for (int i = 0; i < existingSlots.Count; i++)
+        foreach (int s in existingSlots)
         {
-            int s = existingSlots[i];
             if (s < 0 || s >= slotOccupancy.Length) continue;
-            if (slotOccupancy[s] >= maxUnitsPerSlot) continue;
-            availableTaggedSlots.Add(s);
+            if (slotOccupancy[s] < maxUnitsPerSlot) availableTaggedSlots.Add(s);
         }
+
         if (availableTaggedSlots.Count > 0)
         {
             int targetSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
             survivor.spawnIndex = targetSlot;
-            int stackIndex = slotOccupancy[targetSlot];
-            survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(stackIndex);
+            survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(slotOccupancy[targetSlot]);
         }
         else
         {
@@ -269,6 +251,7 @@ public class PlayerSpawner : MonoBehaviour
                 survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(0);
             }
         }
+
         SyncSlotStateFromScene();
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         return true;
@@ -283,7 +266,11 @@ public class PlayerSpawner : MonoBehaviour
             if (player == null || player.spawnIndex != spawnIndex) continue;
             string playerTag = !string.IsNullOrWhiteSpace(player.unitTag) ? player.unitTag.Trim() : GetUnitTag(player.characterData);
             if (playerTag != unitTag) continue;
-            if (requiredTier > 0) { int playerTier = player.characterData != null ? Mathf.Max(1, player.characterData.tier) : -1; if (playerTier != requiredTier) continue; }
+            if (requiredTier > 0)
+            {
+                int playerTier = player.characterData != null ? Mathf.Max(1, player.characterData.tier) : -1;
+                if (playerTier != requiredTier) continue;
+            }
             result.Add(player);
         }
         return result;
@@ -338,9 +325,9 @@ public class PlayerSpawner : MonoBehaviour
             tierMap[tier].Add(data);
         }
         float totalWeight = 0f;
-        for (int i = 0; i < tierSpawnWeights.Length; i++) { int tier = i + 1; if (tierMap.ContainsKey(tier)) totalWeight += tierSpawnWeights[i]; }
+        for (int i = 0; i < tierSpawnWeights.Length; i++) { if (tierMap.ContainsKey(i + 1)) totalWeight += tierSpawnWeights[i]; }
         if (totalWeight <= 0f) return characterDataList[Random.Range(0, characterDataList.Length)];
-           float rand = Random.Range(0f, totalWeight);
+        float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
         for (int i = 0; i < tierSpawnWeights.Length; i++)
         {
@@ -356,23 +343,28 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
         List<int> availableTaggedSlots = new List<int>();
-        for (int i = 0; i < slots.Count; i++)
+        foreach (int existingSlot in slots)
         {
-            int existingSlot = slots[i];
             if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
-            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot) continue;
-            if (slotOccupancy[existingSlot] == 0) continue;
+            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot || slotOccupancy[existingSlot] == 0) continue;
             availableTaggedSlots.Add(existingSlot);
         }
         if (availableTaggedSlots.Count > 0) { slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)]; return true; }
         List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++) { if (slotOccupancy[i] == 0) emptySlots.Add(i); }
-        if (emptySlots.Count > 0) { int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)]; slotTagOwners[randomEmptySlot] = unitTag; if (!slots.Contains(randomEmptySlot)) slots.Add(randomEmptySlot); slotIndex = randomEmptySlot; return true; }
+        if (emptySlots.Count > 0)
+        {
+            int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
+            slotTagOwners[randomEmptySlot] = unitTag;
+            if (!slots.Contains(randomEmptySlot)) slots.Add(randomEmptySlot);
+            slotIndex = randomEmptySlot;
+            return true;
+        }
         slotIndex = -1;
         return false;
     }
 
-    public bool IsFieldFull() { if (slotOccupancy == null) return false; for (int i = 0; i < slotOccupancy.Length; i++) { if (slotOccupancy[i] == 0) return false; } return true; }
+    public bool IsFieldFull() { if (slotOccupancy == null) return false; foreach (int o in slotOccupancy) { if (o == 0) return false; } return true; }
     public bool IsSlotEmpty(int slotIndex) { if (slotOccupancy == null || slotIndex < 0 || slotIndex >= slotOccupancy.Length) return false; return slotOccupancy[slotIndex] == 0; }
 
     public void UnregisterUnit(PlayerAttack unit, int slotIndex)
@@ -381,15 +373,13 @@ public class PlayerSpawner : MonoBehaviour
         if (slotOccupancy[slotIndex] > 0) slotOccupancy[slotIndex]--;
         if (slotOccupancy[slotIndex] == 0) slotTagOwners[slotIndex] = null;
         slotDirty = true;
-        if (PassiveManager.Instance != null)
-            StartCoroutine(RecalculateNextFrame());
+        StartCoroutine(RecalculateNextFrame());
     }
 
-    System.Collections.IEnumerator RecalculateNextFrame()
+    IEnumerator RecalculateNextFrame()
     {
         yield return null;
-        if (PassiveManager.Instance != null)
-            PassiveManager.Instance.RecalculatePassives();
+        if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
     }
 
     public void RegisterUnit(PlayerAttack unit, int slotIndex)
@@ -401,8 +391,9 @@ public class PlayerSpawner : MonoBehaviour
     }
 
     public Vector3 GetTriangleOffsetPublic(int stackIndex) => GetTriangleOffset(stackIndex);
+    public void ForceUpdateSpawnButton() => UpdateSpawnButton();
     void UpdateSpawnButton() { if (spawnButton != null) spawnButton.interactable = !IsFieldFull(); }
-    public void ForceUpdateSpawnButton() { UpdateSpawnButton(); }
+
     Vector3 GetTriangleOffset(int stackIndex)
     {
         if (stackIndex <= 0) return Vector3.up * triangleOffsetY;
@@ -411,5 +402,9 @@ public class PlayerSpawner : MonoBehaviour
         return Vector3.zero;
     }
 
-    string GetUnitTag(CharacterData characterData) { if (characterData == null) return "Unknown"; if (!string.IsNullOrWhiteSpace(characterData.unitTag)) return characterData.unitTag.Trim(); return characterData.characterName; }
+    string GetUnitTag(CharacterData data)
+    {
+        if (data == null) return "Unknown";
+        return !string.IsNullOrWhiteSpace(data.unitTag) ? data.unitTag.Trim() : data.characterName;
+    }
 }

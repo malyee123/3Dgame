@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 public class EnemyMove : MonoBehaviour
 {
@@ -8,7 +8,7 @@ public class EnemyMove : MonoBehaviour
     private int waypointIndex = 0;
     private PathManager pathManager;
     private SpriteRenderer spriteRenderer;
-    [SerializeField] private float speedPenalty = 0f; // 인스펙터에서 확인 가능
+    [SerializeField] private float speedPenalty = 0f;
     private bool isStunned = false;
 
     public void SetPathManager(PathManager pm) => pathManager = pm;
@@ -62,8 +62,7 @@ public class EnemyMove : MonoBehaviour
         if (target == null) return;
         float currentSpeed = Mathf.Max(0f, speed - speedPenalty);
         transform.position = Vector2.MoveTowards(transform.position, target.position, currentSpeed * Time.deltaTime);
-        if (spriteRenderer != null)
-            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
+        if (spriteRenderer != null) spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
             waypointIndex++;

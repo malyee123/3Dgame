@@ -34,14 +34,10 @@ public class CSVLoader : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-
         CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
         if (loaded != null && loaded.Length > 0) characterDataList = loaded;
-
-        // 이름 기반 빠른 조회를 위한 딕셔너리 빌드
         foreach (CharacterData data in characterDataList)
             if (data != null) characterDataMap[data.characterName] = data;
-
         LoadCharacterStats();
         LoadPassiveStats();
         LoadRoundStats();

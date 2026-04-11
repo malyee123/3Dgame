@@ -1,2 +1,6 @@
 ﻿characterName,passiveType,passiveValue,passiveSecondValue,passiveDuration
-Tier1_1,AllEnemyDefenseDown,10,0,0
+Tier1_1,SpecialCoinOnKillChance,100,30,3
+Tier1_2,SpecialCoinOnKillChance,100,30,3
+Tier1_3,SpecialCoinOnKillChance,100,30,3
+Tier1_4,SpecialCoinOnKillChance,100,30,3
+Tier1_5,SpecialCoinOnKillChance,100,30,3

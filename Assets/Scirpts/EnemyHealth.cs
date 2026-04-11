@@ -28,20 +28,12 @@ public class EnemyHealth : MonoBehaviour
 
     public void Init(float hp, float def = 0f)
     {
-        maxHp = hp;
-        currentHp = hp;
-        defense = def;
-        defenseDown = 0f;
-        isDead = false;
-        lastAttacker = null;
+        maxHp = hp; currentHp = hp; defense = def; defenseDown = 0f; isDead = false; lastAttacker = null;
         if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
 
-    void Start()
-    {
-        if (currentHp <= 0f) Init(maxHp, defense);
-    }
+    void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
     public void ApplyDefenseDown(float amount) => defenseDown = amount;
 
@@ -51,8 +43,6 @@ public class EnemyHealth : MonoBehaviour
         if (attacker != null) lastAttacker = attacker;
         float effectiveDefense = Mathf.Max(0f, defense - defenseDown);
         float actualDamage = Mathf.Max(1f, damage - effectiveDefense);
-        if (defenseDown > 0f)
-            Debug.Log($"[Passive] AllEnemyDefenseDown 데미지 계산: 원본방어력={defense} 감소={defenseDown} 실효방어력={effectiveDefense} 최종피해={actualDamage}");
         currentHp -= actualDamage;
         if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
@@ -60,7 +50,6 @@ public class EnemyHealth : MonoBehaviour
         if (currentHp <= 0f) Die();
     }
 
-    // 처형 (즉사)
     public void ExecuteKill()
     {
         if (isDead) return;
@@ -70,7 +59,6 @@ public class EnemyHealth : MonoBehaviour
         Die();
     }
 
-    // 보스 퍼센트 데미지
     public void TakePercentDamage(float percent, PlayerAttack attacker = null)
     {
         if (isDead) return;
@@ -94,13 +82,11 @@ public class EnemyHealth : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
         if (isSpecial)
         {
-            if (SpecialCoinManager.Instance != null)
-                SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
+            if (SpecialCoinManager.Instance != null) SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
         }
         else
         {
-            if (CoinManager.Instance != null)
-                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
+            if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
         if (lastAttacker != null && lastAttacker.characterData != null)
         {

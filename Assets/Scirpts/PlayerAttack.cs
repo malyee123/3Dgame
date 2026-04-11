@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -41,11 +41,11 @@ public class PlayerAttack : MonoBehaviour
 
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
-    private bool isDragging = false;
     private bool isAllySpeedBoosted = false;
+    private bool isDragging = false;
     private SPUM_Prefabs spumPrefabs;
 
-    private int hitCounter = 0; // AoeStun 카운터
+    private int hitCounter = 0;
     private const int gridWidth = 5;
 
     private List<PlayerAttack> cachedSlotMates = new List<PlayerAttack>();
@@ -120,12 +120,7 @@ public class PlayerAttack : MonoBehaviour
         isAllySpeedBoosted = false;
     }
 
-    public void SetDragging(bool dragging)
-    {
-        isDragging = dragging;
-        slotMatesDirty = true;
-    }
-
+    public void SetDragging(bool dragging) { isDragging = dragging; slotMatesDirty = true; }
     public void MarkSlotMatesDirty() => slotMatesDirty = true;
 
     void Update()
@@ -185,7 +180,6 @@ public class PlayerAttack : MonoBehaviour
     {
         if (spumPrefabs != null && spumPrefabs.OverrideController != null)
             spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
-
         if (slotMatesDirty) RefreshSlotMatesCache();
         foreach (PlayerAttack mate in cachedSlotMates)
         {
@@ -249,7 +243,6 @@ public class PlayerAttack : MonoBehaviour
             BuffNearbyAllies();
         }
 
-        // N회 타격 카운터
         if (aoeStunEveryN > 0f)
         {
             hitCounter++;
@@ -267,20 +260,15 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator AoeStunRoutine(EnemyMove target)
     {
         yield return new WaitForSeconds(0.35f);
-
         float targetProgress = target != null ? target.GetPathProgress() : -1f;
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         if (allEnemies.Length == 0) yield break;
-
-        if (target == null)
-            targetProgress = allEnemies[0].GetPathProgress();
-
+        if (target == null) targetProgress = allEnemies[0].GetPathProgress();
         int stunCount = 0;
         foreach (EnemyMove enemy in allEnemies)
         {
             if (enemy == null) continue;
-            float progress = enemy.GetPathProgress();
-            if (Mathf.Abs(progress - targetProgress) <= aoeStunRange)
+            if (Mathf.Abs(enemy.GetPathProgress() - targetProgress) <= aoeStunRange)
             {
                 enemy.ApplyStun(aoeStunDuration);
                 EnemyHealth health = enemy.GetComponent<EnemyHealth>();
@@ -294,13 +282,12 @@ public class PlayerAttack : MonoBehaviour
     void BuffNearbyAllies()
     {
         if (spawnIndex < 0) return;
-        List<int> adjacentSlots = new List<int>();
         int idx = spawnIndex;
+        List<int> adjacentSlots = new List<int>();
         if (idx % gridWidth != 0) adjacentSlots.Add(idx - 1);
         if (idx % gridWidth != gridWidth - 1) adjacentSlots.Add(idx + 1);
         if (idx - gridWidth >= 0) adjacentSlots.Add(idx - gridWidth);
         if (idx + gridWidth < 25) adjacentSlots.Add(idx + gridWidth);
-
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (int slot in adjacentSlots)
             foreach (PlayerAttack unit in allUnits)
@@ -345,6 +332,7 @@ public class PlayerAttack : MonoBehaviour
         PlayAttackAnimAll();
     }
 
+    // 버그 수정: 기존 SelfSpeedBoostRoutine이 SelfDamage 로직을 쓰고 있었음
     IEnumerator SelfSpeedBoostRoutine()
     {
         isSelfSpeedBoosted = true;
@@ -372,7 +360,6 @@ public class PlayerAttack : MonoBehaviour
         EnemyMove bossTarget = null;
         float smallestProgress = Mathf.Infinity;
         float fallbackNearest = Mathf.Infinity;
-
         foreach (EnemyMove enemy in enemies)
         {
             if (enemy == null) continue;

@@ -1,4 +1,3 @@
-// ========== MergeManager.cs ==========
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -50,10 +49,8 @@ public class MergeManager : MonoBehaviour
     public void SelectUnit(PlayerAttack unit)
     {
         if (selectedUnit == unit) { HideUnitActionUI(); return; }
-
         selectedUnit = unit;
         justSelected = true;
-
         if (unitActionUI != null && unit != null)
         {
             Vector3 screenPos = Camera.main.WorldToScreenPoint(unit.transform.position);
@@ -61,7 +58,6 @@ public class MergeManager : MonoBehaviour
             unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
             unitActionUI.SetActive(true);
         }
-
         HideRangeIndicator();
         if (unit != null && unit.characterData != null)
         {
@@ -69,7 +65,6 @@ public class MergeManager : MonoBehaviour
             currentRangeIndicator.transform.position = unit.transform.position;
             currentRangeIndicator.AddComponent<RangeIndicator>().SetRange(unit.characterData.attackRange);
         }
-
         RefreshMergeUI();
     }
 
@@ -128,12 +123,10 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit == null || PlayerSpawner.Instance == null) return;
         int spawnIndex = selectedUnit.spawnIndex;
         int sellPrice = selectedUnit.characterData != null ? selectedUnit.characterData.sellPrice : 0;
-
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         List<PlayerAttack> toSell = new List<PlayerAttack>();
         foreach (PlayerAttack unit in allUnits)
             if (unit != null && unit.spawnIndex == spawnIndex) toSell.Add(unit);
-
         foreach (PlayerAttack unit in toSell) { PlayerSpawner.Instance.UnregisterUnit(unit, unit.spawnIndex); Destroy(unit.gameObject); }
         if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(sellPrice * toSell.Count);
         HideUnitActionUI();

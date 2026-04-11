@@ -36,12 +36,6 @@ public class PassiveManager : MonoBehaviour
             }
         }
 
-        // 고정 패시브 로그
-        if (totalDamageBonus > 0f) Debug.Log($"[Passive] AllAttackDamageUp 적용 +{totalDamageBonus}%");
-        if (totalSpeedBonus > 0f) Debug.Log($"[Passive] AllAttackSpeedUp 적용 +{totalSpeedBonus}%");
-        if (totalEnemySpeedDown > 0f) Debug.Log($"[Passive] AllEnemySpeedDown 적용 -{totalEnemySpeedDown} (적 {allEnemies.Length}마리)");
-        if (totalEnemyDefenseDown > 0f) Debug.Log($"[Passive] AllEnemyDefenseDown 적용 -{totalEnemyDefenseDown}");
-
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
@@ -57,39 +51,14 @@ public class PassiveManager : MonoBehaviour
             {
                 switch (entry.passiveType)
                 {
-                    case PassiveType.DoubleDamageChance:
-                        doubleChance = entry.passiveValue; break;
-                    case PassiveType.AttackTwiceChance:
-                        twiceChance = entry.passiveValue; break;
-                    case PassiveType.SelfAttackSpeedUpChance:
-                        selfSpeedChance = entry.passiveValue;
-                        selfSpeedAmount = entry.passiveSecondValue;
-                        selfSpeedDuration = entry.passiveDuration;
-                        break;
-                    case PassiveType.SelfAttackDamageUpChance:
-                        selfDamageChance = entry.passiveValue;
-                        selfDamageAmount = entry.passiveSecondValue;
-                        selfDamageDuration = entry.passiveDuration;
-                        break;
-                    case PassiveType.StunChance:
-                        stunChance = entry.passiveValue;
-                        stunDuration = entry.passiveDuration;
-                        break;
-                    case PassiveType.ExecuteChance:
-                        executeChance = entry.passiveValue;
-                        executeHpThreshold = entry.passiveSecondValue;
-                        executeBossDamagePercent = entry.passiveDuration;
-                        break;
-                    case PassiveType.BuffNearbyAllyAttackSpeed:
-                        buffAllyChance = entry.passiveValue;
-                        buffAllyAmount = entry.passiveSecondValue;
-                        buffAllyDuration = entry.passiveDuration;
-                        break;
-                    case PassiveType.AoeStunEveryNHits:
-                        aoeStunEveryN = entry.passiveValue;
-                        aoeStunRange = entry.passiveSecondValue;
-                        aoeStunDuration = entry.passiveDuration;
-                        break;
+                    case PassiveType.DoubleDamageChance: doubleChance = entry.passiveValue; break;
+                    case PassiveType.AttackTwiceChance: twiceChance = entry.passiveValue; break;
+                    case PassiveType.SelfAttackSpeedUpChance: selfSpeedChance = entry.passiveValue; selfSpeedAmount = entry.passiveSecondValue; selfSpeedDuration = entry.passiveDuration; break;
+                    case PassiveType.SelfAttackDamageUpChance: selfDamageChance = entry.passiveValue; selfDamageAmount = entry.passiveSecondValue; selfDamageDuration = entry.passiveDuration; break;
+                    case PassiveType.StunChance: stunChance = entry.passiveValue; stunDuration = entry.passiveDuration; break;
+                    case PassiveType.ExecuteChance: executeChance = entry.passiveValue; executeHpThreshold = entry.passiveSecondValue; executeBossDamagePercent = entry.passiveDuration; break;
+                    case PassiveType.BuffNearbyAllyAttackSpeed: buffAllyChance = entry.passiveValue; buffAllyAmount = entry.passiveSecondValue; buffAllyDuration = entry.passiveDuration; break;
+                    case PassiveType.AoeStunEveryNHits: aoeStunEveryN = entry.passiveValue; aoeStunRange = entry.passiveSecondValue; aoeStunDuration = entry.passiveDuration; break;
                 }
             }
             unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleChance, twiceChance,
