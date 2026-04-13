@@ -163,14 +163,21 @@ public class PlayerSpawner : MonoBehaviour
         slotTagOwners[spawnIndex] = unitTag;
         slotDirty = true;
 
+        if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
+        UpdateSpawnButton();
+        UpdateSlotAura(spawnIndex, characterData.tier);
+
+        // 다음 프레임에 슬롯메이트 캐시 갱신 (새 유닛 등록 완료 후)
+        StartCoroutine(MarkSlotMatesDirtyNextFrame(spawnIndex));
+    }
+
+    IEnumerator MarkSlotMatesDirtyNextFrame(int spawnIndex)
+    {
+        yield return null;
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
             if (unit != null && unit.spawnIndex == spawnIndex)
                 unit.MarkSlotMatesDirty();
-
-        if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
-        UpdateSpawnButton();
-        UpdateSlotAura(spawnIndex, characterData.tier);
     }
 
     public void UpdateSlotAura(int slotIndex, int tier)
@@ -297,6 +304,8 @@ public class PlayerSpawner : MonoBehaviour
         SyncSlotStateFromScene();
         if (finalSlot >= 0) UpdateSlotAura(finalSlot, mergedData.tier);
         if (slotOccupancy[spawnIndex] == 0) RemoveSlotAura(spawnIndex);
+
+        if (finalSlot >= 0) StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         return true;

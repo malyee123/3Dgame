@@ -168,10 +168,12 @@ public class PlayerAttack : MonoBehaviour
     {
         cachedSlotMates.Clear();
         PlayerAttack[] all = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        Debug.Log($"[Cache] 전체 유닛 수: {all.Length}, 내 spawnIndex: {spawnIndex}");
         foreach (PlayerAttack unit in all)
         {
             if (unit == null || unit == this || unit.spawnIndex != spawnIndex) continue;
             cachedSlotMates.Add(unit);
+            Debug.Log($"[Cache] 슬롯메이트 추가: {unit.characterData?.characterName}");
         }
         slotMatesDirty = false;
     }
@@ -180,7 +182,11 @@ public class PlayerAttack : MonoBehaviour
     {
         if (spumPrefabs != null && spumPrefabs.OverrideController != null)
             spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
+
         if (slotMatesDirty) RefreshSlotMatesCache();
+
+        Debug.Log($"[PlayerAttack] 슬롯메이트 수: {cachedSlotMates.Count} / spawnIndex: {spawnIndex}");
+
         foreach (PlayerAttack mate in cachedSlotMates)
         {
             if (mate == null) continue;
