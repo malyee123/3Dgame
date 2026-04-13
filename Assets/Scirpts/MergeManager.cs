@@ -51,20 +51,33 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit == unit) { HideUnitActionUI(); return; }
         selectedUnit = unit;
         justSelected = true;
+
         if (unitActionUI != null && unit != null)
         {
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(unit.transform.position);
+            // 슬롯 중앙 위치 기준으로 UI 배치
+            Vector3 slotPos = (PlayerSpawner.Instance != null && unit.spawnIndex >= 0)
+                ? PlayerSpawner.Instance.spawnPoints[unit.spawnIndex].position
+                : unit.transform.position;
+
+            Vector3 screenPos = Camera.main.WorldToScreenPoint(slotPos);
             screenPos.z = 0f;
             unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
             unitActionUI.SetActive(true);
         }
+
         HideRangeIndicator();
         if (unit != null && unit.characterData != null)
         {
+            // 사거리도 슬롯 중앙 기준
+            Vector3 slotPos = (PlayerSpawner.Instance != null && unit.spawnIndex >= 0)
+                ? PlayerSpawner.Instance.spawnPoints[unit.spawnIndex].position
+                : unit.transform.position;
+
             currentRangeIndicator = new GameObject("RangeIndicator");
-            currentRangeIndicator.transform.position = unit.transform.position;
+            currentRangeIndicator.transform.position = slotPos;
             currentRangeIndicator.AddComponent<RangeIndicator>().SetRange(unit.characterData.attackRange);
         }
+
         RefreshMergeUI();
     }
 

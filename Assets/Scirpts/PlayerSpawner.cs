@@ -62,8 +62,6 @@ public class PlayerSpawner : MonoBehaviour
         slotTagOwners = new string[spawnPoints.Length];
         slotAuras = new GameObject[spawnPoints.Length];
         slotAuraTiers = new int[spawnPoints.Length];
-
-        // 한 프레임 뒤에 버튼 상태 업데이트 (SpecialCoinManager 초기화 후)
         StartCoroutine(InitButtonNextFrame());
     }
 
@@ -167,7 +165,7 @@ public class PlayerSpawner : MonoBehaviour
 
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
-            if (unit != null && unit.spawnIndex == spawnIndex && unit.isLeader)
+            if (unit != null && unit.spawnIndex == spawnIndex)
                 unit.MarkSlotMatesDirty();
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
@@ -181,7 +179,14 @@ public class PlayerSpawner : MonoBehaviour
         int prefabIndex = Mathf.Clamp(tier - 1, 0, auraPrefabs.Length - 1);
         GameObject auraPrefab = auraPrefabs[prefabIndex];
         if (auraPrefab == null) return;
-        if (slotAuras[slotIndex] != null && slotAuraTiers[slotIndex] == tier) return;
+
+        // 같은 티어면 위치만 슬롯으로 복귀
+        if (slotAuras[slotIndex] != null && slotAuraTiers[slotIndex] == tier)
+        {
+            slotAuras[slotIndex].transform.position = spawnPoints[slotIndex].position;
+            return;
+        }
+
         if (slotAuras[slotIndex] != null) Destroy(slotAuras[slotIndex]);
         GameObject aura = Instantiate(auraPrefab, spawnPoints[slotIndex].position, Quaternion.identity);
         slotAuras[slotIndex] = aura;
@@ -336,18 +341,39 @@ public class PlayerSpawner : MonoBehaviour
     {
         for (int i = 0; i < slotOccupancy.Length; i++) { slotOccupancy[i] = 0; slotTagOwners[i] = null; }
         tagToSlots.Clear();
+
         PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+
+        // 슬롯별 유닛 그룹화
+        Dictionary<int, List<PlayerAttack>> slotGroups = new Dictionary<int, List<PlayerAttack>>();
         foreach (PlayerAttack player in players)
         {
             if (player == null) continue;
             int index = player.spawnIndex;
             if (index < 0 || index >= slotOccupancy.Length) continue;
-            string tag = !string.IsNullOrWhiteSpace(player.unitTag) ? player.unitTag.Trim() : GetUnitTag(player.characterData);
-            if (string.IsNullOrWhiteSpace(tag)) continue;
-            slotOccupancy[index]++;
-            slotTagOwners[index] = tag;
-            if (!tagToSlots.TryGetValue(tag, out List<int> slots)) { slots = new List<int>(); tagToSlots[tag] = slots; }
-            if (!slots.Contains(index)) slots.Add(index);
+            if (!slotGroups.ContainsKey(index)) slotGroups[index] = new List<PlayerAttack>();
+            slotGroups[index].Add(player);
+        }
+
+        // 슬롯별로 Y값 내림차순 정렬 후 첫 번째만 리더
+        foreach (var kv in slotGroups)
+        {
+            int index = kv.Key;
+            List<PlayerAttack> unitList = kv.Value;
+            unitList.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
+
+            for (int i = 0; i < unitList.Count; i++)
+            {
+                PlayerAttack player = unitList[i];
+                player.isLeader = (i == 0);
+
+                string tag = !string.IsNullOrWhiteSpace(player.unitTag) ? player.unitTag.Trim() : GetUnitTag(player.characterData);
+                if (string.IsNullOrWhiteSpace(tag)) continue;
+                slotOccupancy[index]++;
+                slotTagOwners[index] = tag;
+                if (!tagToSlots.TryGetValue(tag, out List<int> slots)) { slots = new List<int>(); tagToSlots[tag] = slots; }
+                if (!slots.Contains(index)) slots.Add(index);
+            }
         }
     }
 
