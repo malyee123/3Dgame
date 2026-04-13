@@ -1,14 +1,14 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class SpecialCoinManager : MonoBehaviour
 {
     public static SpecialCoinManager Instance { get; private set; }
 
-    [Header("Special Coin UI")]
+    [Header("UI")]
     public TextMeshProUGUI specialCoinText;
 
-    private int specialCoins = 0;
+    private int specialCoins;
 
     void Awake()
     {
@@ -16,13 +16,13 @@ public class SpecialCoinManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start() { UpdateUI(); }
+    void Start() => UpdateUI();
 
     public void AddSpecialCoins(int amount)
     {
         specialCoins += amount;
         UpdateUI();
-        // Debug.Log($"[SpecialCoinManager] Special coins added: +{amount} (Total: {specialCoins})");
+        if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.ForceUpdateSpawnButton();
     }
 
     public bool SpendSpecialCoins(int amount)
@@ -30,6 +30,7 @@ public class SpecialCoinManager : MonoBehaviour
         if (specialCoins < amount) return false;
         specialCoins -= amount;
         UpdateUI();
+        if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.ForceUpdateSpawnButton();
         return true;
     }
 

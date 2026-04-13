@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -32,8 +33,13 @@ public class PlayerSpawner : MonoBehaviour
 
     [Header("UI")]
     public Button spawnButton;
+    public Button specialSpawnButton;
+
+    [Header("Aura Settings")]
     public GameObject[] auraPrefabs;
 
+    private GameObject[] slotAuras;
+    private int[] slotAuraTiers;
     private int[] slotOccupancy;
     private string[] slotTagOwners;
     private readonly Dictionary<string, List<int>> tagToSlots = new Dictionary<string, List<int>>();
@@ -54,6 +60,16 @@ public class PlayerSpawner : MonoBehaviour
         if (characterDataList == null || characterDataList.Length == 0) { Debug.LogError("[PlayerSpawner] CharacterData list is empty!"); return; }
         slotOccupancy = new int[spawnPoints.Length];
         slotTagOwners = new string[spawnPoints.Length];
+        slotAuras = new GameObject[spawnPoints.Length];
+        slotAuraTiers = new int[spawnPoints.Length];
+
+        // 한 프레임 뒤에 버튼 상태 업데이트 (SpecialCoinManager 초기화 후)
+        StartCoroutine(InitButtonNextFrame());
+    }
+
+    IEnumerator InitButtonNextFrame()
+    {
+        yield return null;
         UpdateSpawnButton();
     }
 
@@ -149,7 +165,6 @@ public class PlayerSpawner : MonoBehaviour
         slotTagOwners[spawnIndex] = unitTag;
         slotDirty = true;
 
-        // 새 유닛 소환 시 리더의 슬롯메이트 캐시 갱신
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
             if (unit != null && unit.spawnIndex == spawnIndex && unit.isLeader)
@@ -157,16 +172,37 @@ public class PlayerSpawner : MonoBehaviour
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         UpdateSpawnButton();
+        UpdateSlotAura(spawnIndex, characterData.tier);
+    }
 
-        if (auraPrefabs != null && characterData.tier - 1 < auraPrefabs.Length)
+    public void UpdateSlotAura(int slotIndex, int tier)
+    {
+        if (auraPrefabs == null || auraPrefabs.Length == 0) return;
+        int prefabIndex = Mathf.Clamp(tier - 1, 0, auraPrefabs.Length - 1);
+        GameObject auraPrefab = auraPrefabs[prefabIndex];
+        if (auraPrefab == null) return;
+        if (slotAuras[slotIndex] != null && slotAuraTiers[slotIndex] == tier) return;
+        if (slotAuras[slotIndex] != null) Destroy(slotAuras[slotIndex]);
+        GameObject aura = Instantiate(auraPrefab, spawnPoints[slotIndex].position, Quaternion.identity);
+        slotAuras[slotIndex] = aura;
+        slotAuraTiers[slotIndex] = tier;
+    }
+
+    public void RemoveSlotAura(int slotIndex)
+    {
+        if (slotAuras == null || slotIndex < 0 || slotIndex >= slotAuras.Length) return;
+        if (slotAuras[slotIndex] != null)
         {
-            GameObject auraPrefab = auraPrefabs[characterData.tier - 1];
-            if (auraPrefab != null)
-            {
-                GameObject aura = Instantiate(auraPrefab, obj.transform);
-                aura.transform.localPosition = Vector3.zero;
-            }
+            Destroy(slotAuras[slotIndex]);
+            slotAuras[slotIndex] = null;
+            slotAuraTiers[slotIndex] = 0;
         }
+    }
+
+    public GameObject GetSlotAura(int slotIndex)
+    {
+        if (slotAuras == null || slotIndex < 0 || slotIndex >= slotAuras.Length) return null;
+        return slotAuras[slotIndex];
     }
 
     public void SpawnSpecificCharacter(CharacterData characterData)
@@ -234,11 +270,12 @@ public class PlayerSpawner : MonoBehaviour
             if (slotOccupancy[s] < maxUnitsPerSlot) availableTaggedSlots.Add(s);
         }
 
+        int finalSlot = -1;
         if (availableTaggedSlots.Count > 0)
         {
-            int targetSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
-            survivor.spawnIndex = targetSlot;
-            survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(slotOccupancy[targetSlot]);
+            finalSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
+            survivor.spawnIndex = finalSlot;
+            survivor.transform.position = spawnPoints[finalSlot].position + GetTriangleOffset(slotOccupancy[finalSlot]);
         }
         else
         {
@@ -246,13 +283,16 @@ public class PlayerSpawner : MonoBehaviour
             for (int i = 0; i < slotOccupancy.Length; i++) { if (slotOccupancy[i] == 0) emptySlots.Add(i); }
             if (emptySlots.Count > 0)
             {
-                int targetSlot = emptySlots[Random.Range(0, emptySlots.Count)];
-                survivor.spawnIndex = targetSlot;
-                survivor.transform.position = spawnPoints[targetSlot].position + GetTriangleOffset(0);
+                finalSlot = emptySlots[Random.Range(0, emptySlots.Count)];
+                survivor.spawnIndex = finalSlot;
+                survivor.transform.position = spawnPoints[finalSlot].position + GetTriangleOffset(0);
             }
         }
 
         SyncSlotStateFromScene();
+        if (finalSlot >= 0) UpdateSlotAura(finalSlot, mergedData.tier);
+        if (slotOccupancy[spawnIndex] == 0) RemoveSlotAura(spawnIndex);
+
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         return true;
     }
@@ -371,7 +411,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (slotIndex < 0 || slotIndex >= slotOccupancy.Length) return;
         if (slotOccupancy[slotIndex] > 0) slotOccupancy[slotIndex]--;
-        if (slotOccupancy[slotIndex] == 0) slotTagOwners[slotIndex] = null;
+        if (slotOccupancy[slotIndex] == 0) { slotTagOwners[slotIndex] = null; RemoveSlotAura(slotIndex); }
         slotDirty = true;
         StartCoroutine(RecalculateNextFrame());
     }
@@ -388,11 +428,21 @@ public class PlayerSpawner : MonoBehaviour
         slotOccupancy[slotIndex]++;
         slotTagOwners[slotIndex] = GetUnitTag(unit.characterData);
         slotDirty = true;
+        if (unit.characterData != null) UpdateSlotAura(slotIndex, unit.characterData.tier);
     }
 
     public Vector3 GetTriangleOffsetPublic(int stackIndex) => GetTriangleOffset(stackIndex);
     public void ForceUpdateSpawnButton() => UpdateSpawnButton();
-    void UpdateSpawnButton() { if (spawnButton != null) spawnButton.interactable = !IsFieldFull(); }
+
+    void UpdateSpawnButton()
+    {
+        bool fieldFull = IsFieldFull();
+        if (spawnButton != null) spawnButton.interactable = !fieldFull;
+        if (specialSpawnButton != null)
+            specialSpawnButton.interactable = !fieldFull &&
+                SpecialCoinManager.Instance != null &&
+                SpecialCoinManager.Instance.GetSpecialCoins() >= specialSpawnCost;
+    }
 
     Vector3 GetTriangleOffset(int stackIndex)
     {

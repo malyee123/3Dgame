@@ -6739,16 +6739,17 @@ MonoBehaviour:
   specialSpawnMinTier: 2
   specialSpawnMaxTier: 4
   specialTierSpawnWeights:
-  - 90
-  - 8
-  - 2
+  - 0
+  - 0
+  - 100
   spawnButton: {fileID: 1300881649}
+  specialSpawnButton: {fileID: 1865814873}
   auraPrefabs:
   - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
-  - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
-  - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
-  - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
-  - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
+  - {fileID: 5712427001683537798, guid: 57a6010299daa5c4cbf9fa3b2aa1ab66, type: 3}
+  - {fileID: 5712427001683537798, guid: 2e6ada37f857da04f9dc073df452b8ae, type: 3}
+  - {fileID: 5712427001683537798, guid: 0546ac0bb727f3a44b23aca0d41ed09b, type: 3}
+  - {fileID: 5712427001683537798, guid: ff8b6b50072494a4d9ad335d9f6e41cb, type: 3}
 --- !u!4 &1839764168
 Transform:
   m_ObjectHideFlags: 0
@@ -7403,7 +7404,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32f627d8d5be1d34ba96b47c8f065689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoinManager
-  startingCoins: 300
+  startingCoins: 10000
   coinsPerKill: 10
   spawnCost: 100
   coinText: {fileID: 1885635016}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
@@ -15,6 +16,7 @@ public class PlayerDragMerge : MonoBehaviour
     private int originalSlotIndex = -1;
     private Vector3 targetDragPosition;
     private PlayerAttack playerAttack;
+    private GameObject currentAura;
 
     private List<Transform> slotMates = new List<Transform>();
     private List<Vector3> slotMateOriginalPositions = new List<Vector3>();
@@ -37,7 +39,6 @@ public class PlayerDragMerge : MonoBehaviour
 
         if (MergeManager.Instance != null && MergeManager.Instance.IsUnitActionUIActive())
         {
-            // 클릭한 유닛이 선택된 슬롯의 유닛인지 확인
             if (MergeManager.Instance.IsSelectedSlot(originalSlotIndex))
             {
                 isSelected = true;
@@ -47,7 +48,6 @@ public class PlayerDragMerge : MonoBehaviour
             }
             else
             {
-                // 다른 슬롯 클릭 시 UI 닫고 새로 선택
                 MergeManager.Instance.HideUnitActionUI();
                 ShowPanel();
             }
@@ -77,6 +77,10 @@ public class PlayerDragMerge : MonoBehaviour
         targetDragPosition = mouseWorld;
         transform.position = Vector3.Lerp(transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
 
+        // 오라도 같이 이동
+        if (currentAura != null)
+            currentAura.transform.position = Vector3.Lerp(currentAura.transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
+
         for (int i = 0; i < slotMates.Count; i++)
         {
             if (slotMates[i] == null) continue;
@@ -94,11 +98,16 @@ public class PlayerDragMerge : MonoBehaviour
             PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
             if (mateAttack != null) mateAttack.SetDragging(true);
         }
+
+        // 드래그 시작 시 오라 참조
+        if (PlayerSpawner.Instance != null)
+            currentAura = PlayerSpawner.Instance.GetSlotAura(originalSlotIndex);
     }
 
     void EndDrag()
     {
         isDragging = false;
+        currentAura = null;
         if (playerAttack != null) playerAttack.SetDragging(false);
         foreach (Transform mate in slotMates)
         {
@@ -114,12 +123,16 @@ public class PlayerDragMerge : MonoBehaviour
         }
         else
         {
+            // 이동 실패 시 원래 위치로 복귀
             transform.position = originalPosition;
             for (int i = 0; i < slotMates.Count; i++)
             {
                 if (slotMates[i] == null) continue;
                 slotMates[i].position = slotMateOriginalPositions[i];
             }
+            // 오라도 원래 슬롯 위치로 복귀
+            if (PlayerSpawner.Instance != null)
+                PlayerSpawner.Instance.UpdateSlotAura(originalSlotIndex, playerAttack?.characterData?.tier ?? 1);
         }
 
         slotMates.Clear();
@@ -134,6 +147,7 @@ public class PlayerDragMerge : MonoBehaviour
         List<PlayerAttack> targetUnits = new List<PlayerAttack>();
         List<PlayerAttack> myUnits = new List<PlayerAttack>();
         myUnits.Add(playerAttack);
+
         foreach (Transform mate in slotMates)
         {
             if (mate == null) continue;
@@ -145,6 +159,7 @@ public class PlayerDragMerge : MonoBehaviour
             if (p == null) continue;
             if (p.spawnIndex == targetSlot) targetUnits.Add(p);
         }
+
         for (int i = 0; i < targetUnits.Count; i++)
         {
             targetUnits[i].spawnIndex = originalSlotIndex;
@@ -155,10 +170,21 @@ public class PlayerDragMerge : MonoBehaviour
             myUnits[i].spawnIndex = targetSlot;
             myUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
         }
+
         foreach (PlayerAttack p in targetUnits) p.isLeader = false;
         foreach (PlayerAttack p in myUnits) p.isLeader = false;
         if (targetUnits.Count > 0) targetUnits[0].isLeader = true;
         if (myUnits.Count > 0) myUnits[0].isLeader = true;
+
+        // 스왑 후 양쪽 슬롯 오라 강제 교체 (같은 티어여도 위치 갱신 위해 제거 후 재생성)
+        PlayerSpawner.Instance.RemoveSlotAura(targetSlot);
+        PlayerSpawner.Instance.RemoveSlotAura(originalSlotIndex);
+
+        if (myUnits.Count > 0 && myUnits[0].characterData != null)
+            PlayerSpawner.Instance.UpdateSlotAura(targetSlot, myUnits[0].characterData.tier);
+        if (targetUnits.Count > 0 && targetUnits[0].characterData != null)
+            PlayerSpawner.Instance.UpdateSlotAura(originalSlotIndex, targetUnits[0].characterData.tier);
+
         PlayerSpawner.Instance.SyncSlotStateFromScene();
     }
 
@@ -214,7 +240,9 @@ public class PlayerDragMerge : MonoBehaviour
     {
         if (PlayerSpawner.Instance == null || playerAttack == null) return;
         PlayerSpawner.Instance.UnregisterUnit(playerAttack, originalSlotIndex);
+        PlayerSpawner.Instance.RemoveSlotAura(originalSlotIndex);
         PlayerSpawner.Instance.RegisterUnit(playerAttack, targetSlot);
+
         for (int i = 0; i < slotMates.Count; i++)
         {
             if (slotMates[i] == null) continue;
@@ -222,6 +250,7 @@ public class PlayerDragMerge : MonoBehaviour
             if (mate != null) mate.spawnIndex = targetSlot;
             slotMates[i].position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(i + 1);
         }
+
         transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(0);
         playerAttack.spawnIndex = targetSlot;
         originalSlotIndex = targetSlot;

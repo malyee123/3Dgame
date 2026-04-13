@@ -1,10 +1,5 @@
 fileFormatVersion: 2
 guid: 756133746464c40c0bc40c68946125ea
-PrefabImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
   productId: 192104
@@ -12,3 +7,8 @@ AssetOrigin:
   packageVersion: 3.1.0
   assetPath: Assets/SPUM/Resources/Addons/Legacy/2_Prefab/SPUM_20250805194624011.prefab
   uploadId: 777923
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
