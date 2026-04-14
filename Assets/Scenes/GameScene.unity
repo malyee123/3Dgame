@@ -3188,6 +3188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   maxEnemyCount: 100
   roundDuration: 3
+  bossWaveInterval: 3
   enemyCountText: {fileID: 1603918615}
   roundText: {fileID: 1144987974}
   roundTimerText: {fileID: 304515278}
@@ -3460,6 +3461,9 @@ MonoBehaviour:
   warningImage: {fileID: 350260172}
   warningDuration: 2
   blinkInterval: 0.25
+  hpScalePerStage: 2
+  defenseScalePerStage: 1.5
+  rewardScalePerStage: 1.5
 --- !u!4 &933755196
 Transform:
   m_ObjectHideFlags: 0
@@ -4506,11 +4510,14 @@ MonoBehaviour:
     roundDuration: 0
     enemyDefense: 0
   bossDataList:
-  - bossWave: 0
+  - bossType: 0
+    stage: 0
+    bossWaveLevel: 0
     reward: 0
     hp: 0
     speed: 0
     defense: 0
+    forceDamageOne: 0
 --- !u!4 &1285911581
 Transform:
   m_ObjectHideFlags: 0
@@ -6401,6 +6408,7 @@ Transform:
   - {fileID: 497940460}
   - {fileID: 1179917475}
   - {fileID: 782955277}
+  - {fileID: 2104499728}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1784290779
@@ -7494,12 +7502,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2104499726}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1769749563}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -7511,7 +7519,6 @@ SceneRoots:
   - {fileID: 1839764168}
   - {fileID: 1680692415}
   - {fileID: 970306410}
-  - {fileID: 2104499728}
   - {fileID: 1288177587}
   - {fileID: 1769749563}
   - {fileID: 1047692171}

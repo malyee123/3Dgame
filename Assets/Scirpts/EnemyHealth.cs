@@ -13,6 +13,7 @@ public class EnemyHealth : MonoBehaviour
 
     [Header("Special Monster")]
     public bool isSpecial = false;
+    public bool forceDamageOne = false;
     public int specialCoinReward = 0;
 
     [Header("Damage Text")]
@@ -41,8 +42,19 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
         if (attacker != null) lastAttacker = attacker;
-        float effectiveDefense = Mathf.Max(0f, defense - defenseDown);
-        float actualDamage = Mathf.Max(1f, damage - effectiveDefense);
+
+        float actualDamage;
+        if (forceDamageOne)
+        {
+            // 보스3: 받는 데미지 무조건 1
+            actualDamage = 1f;
+        }
+        else
+        {
+            float effectiveDefense = Mathf.Max(0f, defense - defenseDown);
+            actualDamage = Mathf.Max(1f, damage - effectiveDefense);
+        }
+
         currentHp -= actualDamage;
         if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
@@ -65,12 +77,12 @@ public class EnemyHealth : MonoBehaviour
         TakeDamage(damage, attacker);
     }
 
-    void ShowDamageText(float damage)
+    public void ShowDamageText(float damage)
     {
         if (damageTextPrefab == null) return;
         GameObject obj = Instantiate(damageTextPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
         DamageText dt = obj.GetComponent<DamageText>();
-        if (dt != null) dt.Init(damage, transform);
+        if (dt != null) dt.Init(damage, transform, isSpecial ? 6f : 3f, isSpecial ? 1f : 0.5f);
     }
 
     void Die()
@@ -84,8 +96,6 @@ public class EnemyHealth : MonoBehaviour
         {
             if (SpecialCoinManager.Instance != null)
                 SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
-
-            // 보스 처치 시 즉시 다음 웨이브로 진행
             if (GameManager.Instance != null)
                 GameManager.Instance.OnBossKilled();
         }

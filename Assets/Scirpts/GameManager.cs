@@ -12,6 +12,9 @@ public class GameManager : MonoBehaviour
     [Header("Round Settings")]
     public float roundDuration = 60f;
 
+    [Header("Boss Wave Settings")]
+    public int bossWaveInterval = 10;
+
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
     public TextMeshProUGUI roundText;
@@ -34,6 +37,8 @@ public class GameManager : MonoBehaviour
     private int prevRoundTimeLeft = -1;
     private int prevTotalTimeSeconds = -1;
     private int prevStage = -1;
+
+    public bool IsWarning => isWarning;
 
     void Awake()
     {
@@ -109,10 +114,10 @@ public class GameManager : MonoBehaviour
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
 
-        if (CSVLoader.Instance != null && CSVLoader.Instance.GetBossData(currentRound) != null)
+        if (currentRound % bossWaveInterval == 0)
         {
             isBossWave = true;
-            BossManager.Instance?.TrySpawnBoss(currentRound);
+            BossManager.Instance?.TrySpawnBoss();
         }
     }
 

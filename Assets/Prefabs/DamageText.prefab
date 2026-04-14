@@ -100,7 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageText
   moveSpeed: 1
-  fadeDuration: 0.5
+  fadeDuration: 1
 --- !u!114 &-1125095042041145531
 MonoBehaviour:
   m_ObjectHideFlags: 0

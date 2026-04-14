@@ -13,14 +13,15 @@ public class DamageText : MonoBehaviour
     private Transform target;
     private Vector3 offset;
 
-    public void Init(float damage, Transform followTarget)
+    public void Init(float damage, Transform followTarget, float fontSize = 3f, float heightOffset = 0.5f)
     {
         text = GetComponent<TextMeshPro>();
         if (text == null) { Destroy(gameObject); return; }
         text.text = ((int)damage).ToString();
+        text.fontSize = fontSize;
         originalColor = text.color;
         target = followTarget;
-        offset = transform.position - followTarget.position;
+        offset = transform.position - followTarget.position + Vector3.up * heightOffset;
         initialized = true;
     }
 

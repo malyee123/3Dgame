@@ -126,6 +126,7 @@ public class PlayerAttack : MonoBehaviour
     void Update()
     {
         if (isDragging || !isLeader) return;
+        if (GameManager.Instance != null && GameManager.Instance.IsWarning) return;
         cooldownTimer += Time.deltaTime;
         if (cooldownTimer < appliedCooldown) return;
         AttackWithLockedTarget();

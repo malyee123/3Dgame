@@ -11,8 +11,9 @@ public class RoundData
 [System.Serializable]
 public class BossData
 {
-    public int bossWave, reward;
+    public int bossType, stage, bossWaveLevel, reward;
     public float hp, speed, defense;
+    public bool forceDamageOne;
 }
 
 public class CSVLoader : MonoBehaviour
@@ -128,14 +129,17 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 5) continue;
+            if (col.Length < 8) continue;
             bossDataList.Add(new BossData
             {
-                bossWave = int.Parse(col[0].Trim()),
-                hp = float.Parse(col[1].Trim()),
-                speed = float.Parse(col[2].Trim()),
-                reward = int.Parse(col[3].Trim()),
-                defense = float.Parse(col[4].Trim())
+                bossType = int.Parse(col[0].Trim()),
+                stage = int.Parse(col[1].Trim()),
+                bossWaveLevel = int.Parse(col[2].Trim()),
+                hp = float.Parse(col[3].Trim()),
+                speed = float.Parse(col[4].Trim()),
+                reward = int.Parse(col[5].Trim()),
+                defense = float.Parse(col[6].Trim()),
+                forceDamageOne = int.Parse(col[7].Trim()) == 1
             });
         }
     }
@@ -147,11 +151,28 @@ public class CSVLoader : MonoBehaviour
         return roundDataList.Count > 0 ? roundDataList[roundDataList.Count - 1] : null;
     }
 
-    public BossData GetBossData(int wave)
+    // bossType, stage, waveLevel로 보스 데이터 조회
+    public BossData GetBossDataByTypeStageLevel(int bossType, int stage, int waveLevel)
     {
         foreach (BossData data in bossDataList)
-            if (data.bossWave == wave) return data;
+            if (data.bossType == bossType && data.stage == stage && data.bossWaveLevel == waveLevel) return data;
         return null;
+    }
+
+    // 특정 타입의 최고 스테이지 데이터 반환 (무한 스케일링용)
+    public BossData GetMaxStageBossData(int bossType, int waveLevel)
+    {
+        BossData maxData = null;
+        int maxStage = 0;
+        foreach (BossData data in bossDataList)
+        {
+            if (data.bossType == bossType && data.bossWaveLevel == waveLevel && data.stage > maxStage)
+            {
+                maxStage = data.stage;
+                maxData = data;
+            }
+        }
+        return maxData;
     }
 
     CharacterData FindCharacterData(string name)
