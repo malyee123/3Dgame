@@ -46,7 +46,6 @@ public class EnemyHealth : MonoBehaviour
         float actualDamage;
         if (forceDamageOne)
         {
-            // 보스3: 받는 데미지 무조건 1
             actualDamage = 1f;
         }
         else

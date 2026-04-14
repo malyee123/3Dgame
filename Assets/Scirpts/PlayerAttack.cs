@@ -114,7 +114,6 @@ public class PlayerAttack : MonoBehaviour
         isAllySpeedBoosted = true;
         float original = appliedCooldown;
         appliedCooldown = Mathf.Max(0.1f, appliedCooldown * (1f - amount / 100f));
-        Debug.Log($"[Passive] BuffNearbyAlly 공속 버프 받음! +{amount}% {duration}초");
         yield return new WaitForSeconds(duration);
         appliedCooldown = original;
         isAllySpeedBoosted = false;
@@ -169,12 +168,10 @@ public class PlayerAttack : MonoBehaviour
     {
         cachedSlotMates.Clear();
         PlayerAttack[] all = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        Debug.Log($"[Cache] 전체 유닛 수: {all.Length}, 내 spawnIndex: {spawnIndex}");
         foreach (PlayerAttack unit in all)
         {
             if (unit == null || unit == this || unit.spawnIndex != spawnIndex) continue;
             cachedSlotMates.Add(unit);
-            Debug.Log($"[Cache] 슬롯메이트 추가: {unit.characterData?.characterName}");
         }
         slotMatesDirty = false;
     }
@@ -185,8 +182,6 @@ public class PlayerAttack : MonoBehaviour
             spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
 
         if (slotMatesDirty) RefreshSlotMatesCache();
-
-        Debug.Log($"[PlayerAttack] 슬롯메이트 수: {cachedSlotMates.Count} / spawnIndex: {spawnIndex}");
 
         foreach (PlayerAttack mate in cachedSlotMates)
         {
@@ -210,45 +205,27 @@ public class PlayerAttack : MonoBehaviour
 
         float finalDamage = appliedDamage;
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
-        {
             finalDamage *= 2f;
-            Debug.Log($"[Passive] DoubleDamage 발동! 피해: {finalDamage}");
-        }
 
         StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
-        {
-            Debug.Log("[Passive] AttackTwice 발동!");
             StartCoroutine(SecondAttackAnimRoutine());
-        }
 
         if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
-        {
-            Debug.Log($"[Passive] SelfAttackSpeedUp 발동! +{selfSpeedUpAmount}% {selfSpeedUpDuration}초");
             StartCoroutine(SelfSpeedBoostRoutine());
-        }
 
         if (selfDamageUpChance > 0f && !isSelfDamageBoosted && Random.Range(0f, 100f) < selfDamageUpChance)
-        {
-            Debug.Log($"[Passive] SelfAttackDamageUp 발동! +{selfDamageUpAmount}% {selfDamageUpDuration}초");
             StartCoroutine(SelfDamageBoostRoutine());
-        }
 
         if (stunChance > 0f && Random.Range(0f, 100f) < stunChance)
-        {
-            Debug.Log($"[Passive] Stun 발동! {stunDuration}초");
             currentTarget.ApplyStun(stunDuration);
-        }
 
         if (executeChance > 0f && Random.Range(0f, 100f) < executeChance)
             StartCoroutine(ExecuteCheckRoutine(currentTarget));
 
         if (buffAllyChance > 0f && Random.Range(0f, 100f) < buffAllyChance)
-        {
-            Debug.Log($"[Passive] BuffNearbyAlly 발동! +{buffAllyAmount}% {buffAllyDuration}초");
             BuffNearbyAllies();
-        }
 
         if (aoeStunEveryN > 0f)
         {
@@ -256,7 +233,6 @@ public class PlayerAttack : MonoBehaviour
             if (hitCounter >= (int)aoeStunEveryN)
             {
                 hitCounter = 0;
-                Debug.Log($"[Passive] AoeStun 발동! 범위:{aoeStunRange} 지속:{aoeStunDuration}초");
                 StartCoroutine(AoeStunRoutine(currentTarget));
             }
         }
@@ -271,7 +247,6 @@ public class PlayerAttack : MonoBehaviour
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         if (allEnemies.Length == 0) yield break;
         if (target == null) targetProgress = allEnemies[0].GetPathProgress();
-        int stunCount = 0;
         foreach (EnemyMove enemy in allEnemies)
         {
             if (enemy == null) continue;
@@ -280,10 +255,8 @@ public class PlayerAttack : MonoBehaviour
                 enemy.ApplyStun(aoeStunDuration);
                 EnemyHealth health = enemy.GetComponent<EnemyHealth>();
                 if (health != null) health.TakeDamage(appliedDamage, this);
-                stunCount++;
             }
         }
-        Debug.Log($"[Passive] AoeStun {stunCount}마리 기절 + 데미지!");
     }
 
     void BuffNearbyAllies()
@@ -339,7 +312,6 @@ public class PlayerAttack : MonoBehaviour
         PlayAttackAnimAll();
     }
 
-    // 버그 수정: 기존 SelfSpeedBoostRoutine이 SelfDamage 로직을 쓰고 있었음
     IEnumerator SelfSpeedBoostRoutine()
     {
         isSelfSpeedBoosted = true;

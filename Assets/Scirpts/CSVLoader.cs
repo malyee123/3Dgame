@@ -151,7 +151,6 @@ public class CSVLoader : MonoBehaviour
         return roundDataList.Count > 0 ? roundDataList[roundDataList.Count - 1] : null;
     }
 
-    // bossType, stage, waveLevel로 보스 데이터 조회
     public BossData GetBossDataByTypeStageLevel(int bossType, int stage, int waveLevel)
     {
         foreach (BossData data in bossDataList)
@@ -159,7 +158,6 @@ public class CSVLoader : MonoBehaviour
         return null;
     }
 
-    // 특정 타입의 최고 스테이지 데이터 반환 (무한 스케일링용)
     public BossData GetMaxStageBossData(int bossType, int waveLevel)
     {
         BossData maxData = null;

@@ -18,9 +18,9 @@ public class BossManager : MonoBehaviour
     public float blinkInterval = 0.25f;
 
     [Header("Infinite Scaling")]
-    public float hpScalePerStage = 2f;       // CSV 최고 스테이지 이후 스테이지당 체력 배율
-    public float defenseScalePerStage = 1.5f; // 방어력 배율
-    public float rewardScalePerStage = 1.5f;  // 보상 배율
+    public float hpScalePerStage = 2f;
+    public float defenseScalePerStage = 1.5f;
+    public float rewardScalePerStage = 1.5f;
 
     private GameObject currentBoss;
     private int bossWaveCount = 0;
@@ -46,8 +46,6 @@ public class BossManager : MonoBehaviour
         int randomType = Random.Range(0, 3);
 
         BossData data = CSVLoader.Instance.GetBossDataByTypeStageLevel(randomType, currentStage, waveLevel);
-
-        // CSV에 해당 스테이지 데이터 없으면 최고 스테이지 기반으로 스케일링
         if (data == null)
         {
             BossData maxData = CSVLoader.Instance.GetMaxStageBossData(randomType, waveLevel);
@@ -60,7 +58,6 @@ public class BossManager : MonoBehaviour
 
     BossData ScaleBossData(BossData baseData, int currentStage)
     {
-        // CSV 최고 스테이지 이후 초과 스테이지 수 계산
         int extraStages = currentStage - baseData.stage;
         float multiplier = Mathf.Pow(hpScalePerStage, extraStages);
         float defMultiplier = Mathf.Pow(defenseScalePerStage, extraStages);
@@ -81,13 +78,7 @@ public class BossManager : MonoBehaviour
 
     IEnumerator WarningThenSpawn(BossData data)
     {
-        if (GameManager.Instance != null) GameManager.Instance.SetWarning(true);
-        if (PauseManager.Instance != null) PauseManager.Instance.SetWarningMode(true);
-        EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
-        if (spawner != null) spawner.SetPaused(true);
-        EnemyMove[] enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
-        foreach (EnemyMove e in enemies) e.SetPaused(true);
-
+        // 게임 멈추지 않고 Warning 이미지만 깜빡인 후 보스 소환
         if (warningImage != null)
         {
             float elapsed = 0f;
@@ -100,13 +91,6 @@ public class BossManager : MonoBehaviour
                 elapsed += blinkInterval * 2f;
             }
         }
-
-
-        if (GameManager.Instance != null) GameManager.Instance.SetWarning(false);
-        if (PauseManager.Instance != null) PauseManager.Instance.SetWarningMode(false);
-        if (spawner != null) spawner.SetPaused(false);
-        enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
-        foreach (EnemyMove e in enemies) e.SetPaused(false);
 
         SpawnBoss(data);
     }
@@ -138,7 +122,3 @@ public class BossManager : MonoBehaviour
     public bool IsBossAlive() => currentBoss != null && currentBoss.activeSelf;
     public void ClearBossRef() { currentBoss = null; }
 }
-
-
-
-

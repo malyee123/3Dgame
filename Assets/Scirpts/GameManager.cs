@@ -110,6 +110,9 @@ public class GameManager : MonoBehaviour
         isBossWave = false;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
 
+        // 보스 웨이브 종료 후 일반 스폰 재개
+        if (enemySpawner != null) enemySpawner.SetPaused(false);
+
         currentRound++;
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
@@ -117,6 +120,8 @@ public class GameManager : MonoBehaviour
         if (currentRound % bossWaveInterval == 0)
         {
             isBossWave = true;
+            // 보스 웨이브 시작 시 일반 스폰 중지
+            if (enemySpawner != null) enemySpawner.SetPaused(true);
             BossManager.Instance?.TrySpawnBoss();
         }
     }
