@@ -14,8 +14,7 @@ public class PauseManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-            Debug.LogWarning("[PauseManager] Duplicate instance found!");
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
@@ -32,7 +31,19 @@ public class PauseManager : MonoBehaviour
         if (pausePanel != null) pausePanel.SetActive(isPaused);
         if (blockerPanel != null) blockerPanel.SetActive(isPaused);
         SetPlayerInteraction(!isPaused);
-        // Debug.Log($"[PauseManager] {(isPaused ? "Paused" : "Resumed")}");
+    }
+
+    // 보스 경고 중 상호작용 차단 (설정 버튼 제외)
+    public void SetWarningMode(bool isWarning)
+    {
+        SetPlayerInteraction(!isWarning);
+        if (PlayerSpawner.Instance != null)
+        {
+            if (PlayerSpawner.Instance.spawnButton != null)
+                PlayerSpawner.Instance.spawnButton.interactable = !isWarning;
+            if (PlayerSpawner.Instance.specialSpawnButton != null)
+                PlayerSpawner.Instance.specialSpawnButton.interactable = !isWarning;
+        }
     }
 
     void SetPlayerInteraction(bool enabled)

@@ -25,6 +25,8 @@ public class GameManager : MonoBehaviour
     private float roundTimeLeft;
     private float totalElapsedTime = 0f;
     private bool isGameOver = false;
+    private bool isBossWave = false;
+    private bool isWarning = false;
     private EnemySpawner enemySpawner;
 
     private int prevEnemyCount = -1;
@@ -48,12 +50,14 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (isGameOver) return;
+        if (isGameOver || isWarning) return;
         totalElapsedTime += Time.deltaTime;
         roundTimeLeft -= Time.deltaTime;
         UpdateUIIfChanged();
         if (roundTimeLeft <= 0f) NextRound();
     }
+
+    public void SetWarning(bool warning) => isWarning = warning;
 
     void ApplyRoundData(int round)
     {
@@ -73,6 +77,13 @@ public class GameManager : MonoBehaviour
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
     public void OnEnemyDied() { currentEnemyCount--; UpdateEnemyCountUI(); }
 
+    public void OnBossKilled()
+    {
+        if (!isBossWave) return;
+        if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
+        roundTimeLeft = 0f;
+    }
+
     void UpdateUIIfChanged()
     {
         int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
@@ -85,11 +96,24 @@ public class GameManager : MonoBehaviour
 
     void NextRound()
     {
+        if (isBossWave && BossManager.Instance != null && BossManager.Instance.IsBossAlive())
+        {
+            GameOver();
+            return;
+        }
+
+        isBossWave = false;
+        if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
+
         currentRound++;
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
-        if (BossManager.Instance != null)
-            BossManager.Instance.TrySpawnBoss(currentRound);
+
+        if (CSVLoader.Instance != null && CSVLoader.Instance.GetBossData(currentRound) != null)
+        {
+            isBossWave = true;
+            BossManager.Instance?.TrySpawnBoss(currentRound);
+        }
     }
 
     void GameOver()

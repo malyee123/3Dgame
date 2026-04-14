@@ -363,7 +363,6 @@ public class PlayerAttack : MonoBehaviour
     {
         EnemyMove[] enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         EnemyMove backmostEnemy = null;
-        EnemyMove bossTarget = null;
         float smallestProgress = Mathf.Infinity;
         float fallbackNearest = Mathf.Infinity;
         foreach (EnemyMove enemy in enemies)
@@ -371,8 +370,6 @@ public class PlayerAttack : MonoBehaviour
             if (enemy == null) continue;
             float dist = Vector2.Distance(transform.position, enemy.transform.position);
             if (dist > characterData.attackRange) continue;
-            EnemyHealth health = enemy.GetComponent<EnemyHealth>();
-            if (health != null && health.isSpecial) { bossTarget = enemy; continue; }
             float progress = enemy.GetPathProgress();
             if (progress < smallestProgress || (Mathf.Approximately(progress, smallestProgress) && dist < fallbackNearest))
             {
@@ -381,7 +378,7 @@ public class PlayerAttack : MonoBehaviour
                 backmostEnemy = enemy;
             }
         }
-        return bossTarget != null ? bossTarget : backmostEnemy;
+        return backmostEnemy;
     }
 
     bool IsTargetInRange(EnemyMove enemy)

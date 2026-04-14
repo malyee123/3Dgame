@@ -10,9 +10,11 @@ public class EnemyMove : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     [SerializeField] private float speedPenalty = 0f;
     private bool isStunned = false;
+    private bool isPaused = false;
 
     public void SetPathManager(PathManager pm) => pathManager = pm;
     public void ApplySpeedPenalty(float penalty) => speedPenalty = penalty;
+    public void SetPaused(bool paused) => isPaused = paused;
 
     public void ApplyStun(float duration)
     {
@@ -25,11 +27,9 @@ public class EnemyMove : MonoBehaviour
         isStunned = true;
         float originalSpeed = speed;
         speed = 0f;
-        Debug.Log($"[Passive] Stun 적용! {duration}초");
         yield return new WaitForSeconds(duration);
         speed = originalSpeed;
         isStunned = false;
-        Debug.Log("[Passive] Stun 해제");
     }
 
     public float GetPathProgress()
@@ -58,6 +58,7 @@ public class EnemyMove : MonoBehaviour
 
     void Update()
     {
+        if (isPaused) return;
         Transform target = pathManager.GetWaypoint(waypointIndex);
         if (target == null) return;
         float currentSpeed = Mathf.Max(0f, speed - speedPenalty);

@@ -11,7 +11,7 @@ public class RoundData
 [System.Serializable]
 public class BossData
 {
-    public int bossWave, bossId, reward;
+    public int bossWave, reward;
     public float hp, speed, defense;
 }
 
@@ -64,7 +64,6 @@ public class CSVLoader : MonoBehaviour
             data.upgradeCost = int.Parse(col[6].Trim());
             data.sellPrice = int.Parse(col[7].Trim());
         }
-        Debug.Log("[CSVLoader] Character stats loaded");
     }
 
     void LoadPassiveStats()
@@ -88,7 +87,6 @@ public class CSVLoader : MonoBehaviour
             entry.passiveDuration = float.Parse(col[4].Trim());
             data.passives.Add(entry);
         }
-        Debug.Log("[CSVLoader] Passive stats loaded");
     }
 
     void LoadRoundStats()
@@ -118,7 +116,6 @@ public class CSVLoader : MonoBehaviour
                 enemyDefense = float.Parse(col[11].Trim())
             });
         }
-        Debug.Log("[CSVLoader] Round stats loaded");
     }
 
     void LoadBossStats()
@@ -131,18 +128,16 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 6) continue;
+            if (col.Length < 5) continue;
             bossDataList.Add(new BossData
             {
                 bossWave = int.Parse(col[0].Trim()),
-                bossId = int.Parse(col[1].Trim()),
-                hp = float.Parse(col[2].Trim()),
-                speed = float.Parse(col[3].Trim()),
-                reward = int.Parse(col[4].Trim()),
-                defense = float.Parse(col[5].Trim())
+                hp = float.Parse(col[1].Trim()),
+                speed = float.Parse(col[2].Trim()),
+                reward = int.Parse(col[3].Trim()),
+                defense = float.Parse(col[4].Trim())
             });
         }
-        Debug.Log("[CSVLoader] Boss stats loaded");
     }
 
     public RoundData GetRoundData(int round)

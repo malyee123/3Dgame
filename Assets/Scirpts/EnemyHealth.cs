@@ -53,7 +53,6 @@ public class EnemyHealth : MonoBehaviour
     public void ExecuteKill()
     {
         if (isDead) return;
-        Debug.Log("[Passive] Execute 발동! 즉사");
         currentHp = 0f;
         if (hpSlider != null) hpSlider.value = 0f;
         Die();
@@ -63,7 +62,6 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
         float damage = maxHp * (percent / 100f);
-        Debug.Log($"[Passive] Execute 보스 퍼센트 데미지 발동! 최대체력의 {percent}% = {damage}");
         TakeDamage(damage, attacker);
     }
 
@@ -79,28 +77,35 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
         if (GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
+
         if (isSpecial)
         {
-            if (SpecialCoinManager.Instance != null) SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
+            if (SpecialCoinManager.Instance != null)
+                SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
+
+            // 보스 처치 시 즉시 다음 웨이브로 진행
+            if (GameManager.Instance != null)
+                GameManager.Instance.OnBossKilled();
         }
         else
         {
-            if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
+            if (CoinManager.Instance != null)
+                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
+
         if (lastAttacker != null && lastAttacker.characterData != null)
         {
             foreach (PassiveEntry entry in lastAttacker.characterData.passives)
             {
                 if (entry.passiveType != PassiveType.SpecialCoinOnKillChance) continue;
                 if (Random.Range(0f, 100f) < entry.passiveValue)
-                {
-                    Debug.Log($"[Passive] SpecialCoinOnKill 발동! +{(int)entry.passiveSecondValue}");
                     if (SpecialCoinManager.Instance != null)
                         SpecialCoinManager.Instance.AddSpecialCoins((int)entry.passiveSecondValue);
-                }
             }
         }
+
         Destroy(gameObject);
     }
 }

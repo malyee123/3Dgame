@@ -15,8 +15,9 @@ public class EnemySpawner : MonoBehaviour
     private float currentSpawnDelay;
     private float currentEnemyHp;
     private float currentEnemySpeed;
-    private Coroutine spawnCoroutine;
     private float currentEnemyDefense = 0f;
+    private Coroutine spawnCoroutine;
+    private bool isPaused = false;
 
     void Start()
     {
@@ -25,6 +26,8 @@ public class EnemySpawner : MonoBehaviour
         if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
         ApplyRoundSettings(1);
     }
+
+    public void SetPaused(bool paused) => isPaused = paused;
 
     public void ApplyRoundSettings(int round)
     {
@@ -48,9 +51,14 @@ public class EnemySpawner : MonoBehaviour
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
         spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
+
     IEnumerator SpawnRoutine()
     {
-        while (true) { SpawnEnemy(); yield return new WaitForSeconds(currentSpawnDelay); }
+        while (true)
+        {
+            if (!isPaused) SpawnEnemy();
+            yield return new WaitForSeconds(currentSpawnDelay);
+        }
     }
 
     void SpawnEnemy()
