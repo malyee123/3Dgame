@@ -13,7 +13,8 @@ public class GameManager : MonoBehaviour
     public float roundDuration = 60f;
 
     [Header("Boss Wave Settings")]
-    public int bossWaveInterval = 10;
+    public int bossWaveInterval = 3;
+    public float bossRoundDuration = 40f;
 
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
@@ -64,6 +65,8 @@ public class GameManager : MonoBehaviour
 
     public void SetWarning(bool warning) => isWarning = warning;
 
+    public void ExtendRoundTime(float time) => roundTimeLeft = time;
+
     void ApplyRoundData(int round)
     {
         if (CSVLoader.Instance != null)
@@ -79,6 +82,23 @@ public class GameManager : MonoBehaviour
         roundTimeLeft = roundDuration;
     }
 
+    int GetDisplayRound()
+    {
+        if (CSVLoader.Instance == null) return currentRound;
+        RoundData data = CSVLoader.Instance.GetRoundData(currentRound);
+        if (data == null) return currentRound;
+             
+        // 현재 스테이지의 첫 번째 구간 waveStart 찾기
+        int stageWaveStart = data.waveStart;
+        foreach (RoundData rd in CSVLoader.Instance.roundDataList)
+        {
+            if (rd.stage == data.stage && rd.waveStart < stageWaveStart)
+                stageWaveStart = rd.waveStart;
+        }
+
+        return currentRound - stageWaveStart + 1;
+    }
+
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
     public void OnEnemyDied() { currentEnemyCount--; UpdateEnemyCountUI(); }
 
@@ -92,7 +112,9 @@ public class GameManager : MonoBehaviour
     void UpdateUIIfChanged()
     {
         int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
-        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
+        int displayRound = GetDisplayRound();
+
+        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {displayRound}"; }
         if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
         int currentTotalSeconds = (int)totalElapsedTime;
         if (currentTotalSeconds != prevTotalTimeSeconds) { prevTotalTimeSeconds = currentTotalSeconds; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
@@ -109,8 +131,6 @@ public class GameManager : MonoBehaviour
 
         isBossWave = false;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
-
-        // 보스 웨이브 종료 후 일반 스폰 재개
         if (enemySpawner != null) enemySpawner.SetPaused(false);
 
         currentRound++;
@@ -120,7 +140,6 @@ public class GameManager : MonoBehaviour
         if (currentRound % bossWaveInterval == 0)
         {
             isBossWave = true;
-            // 보스 웨이브 시작 시 일반 스폰 중지
             if (enemySpawner != null) enemySpawner.SetPaused(true);
             BossManager.Instance?.TrySpawnBoss();
         }
@@ -139,7 +158,7 @@ public class GameManager : MonoBehaviour
     void UpdateAllUI()
     {
         UpdateEnemyCountUI();
-        if (roundText != null) roundText.text = $"Round: {currentRound}";
+        if (roundText != null) roundText.text = $"Round: {GetDisplayRound()}";
         if (roundTimerText != null) roundTimerText.text = $"Time: {Mathf.CeilToInt(roundTimeLeft)}s";
         if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
         if (stageText != null) stageText.text = $"Stage: {currentStage}";

@@ -108,6 +108,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
         int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+        Debug.Log($"UnlockedTier={unlockedTier}, MinTier={specialSpawnMinTier}, MaxTier={specialSpawnMaxTier}");
         int maxTier = Mathf.Min(specialSpawnMaxTier, unlockedTier);
         if (unlockedTier < specialSpawnMinTier) return null;
 

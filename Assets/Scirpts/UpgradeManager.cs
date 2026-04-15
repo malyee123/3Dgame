@@ -44,6 +44,7 @@ public class UpgradeManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        Debug.Log($"[UpgradeManager] Awake - UnlockedTier: {UnlockedTier}");
     }
 
     public int GetSkillPoints() => PlayerPrefs.GetInt("SkillPoints", 0);

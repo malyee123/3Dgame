@@ -13,6 +13,7 @@ public class EnemyHealth : MonoBehaviour
 
     [Header("Special Monster")]
     public bool isSpecial = false;
+    public bool isBoss = false;
     public bool forceDamageOne = false;
     public int specialCoinReward = 0;
 
@@ -45,9 +46,7 @@ public class EnemyHealth : MonoBehaviour
 
         float actualDamage;
         if (forceDamageOne)
-        {
             actualDamage = 1f;
-        }
         else
         {
             float effectiveDefense = Mathf.Max(0f, defense - defenseDown);
@@ -72,8 +71,7 @@ public class EnemyHealth : MonoBehaviour
     public void TakePercentDamage(float percent, PlayerAttack attacker = null)
     {
         if (isDead) return;
-        float damage = maxHp * (percent / 100f);
-        TakeDamage(damage, attacker);
+        TakeDamage(maxHp * (percent / 100f), attacker);
     }
 
     public void ShowDamageText(float damage)
@@ -95,7 +93,9 @@ public class EnemyHealth : MonoBehaviour
         {
             if (SpecialCoinManager.Instance != null)
                 SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
-            if (GameManager.Instance != null)
+
+            // 보스일 때만 웨이브 종료 처리
+            if (isBoss && GameManager.Instance != null)
                 GameManager.Instance.OnBossKilled();
         }
         else

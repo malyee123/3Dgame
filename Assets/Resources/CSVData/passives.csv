@@ -1,6 +1,6 @@
 ﻿characterName,passiveType,passiveValue,passiveSecondValue,passiveDuration
-Tier1_1,SpecialCoinOnKillChance,100,30,3
-Tier1_2,SpecialCoinOnKillChance,100,30,3
-Tier1_3,SpecialCoinOnKillChance,100,30,3
-Tier1_4,SpecialCoinOnKillChance,100,30,3
-Tier1_5,SpecialCoinOnKillChance,100,30,3
+Tier1_1,AoeStunEveryNHits,2,2,0
+Tier1_2,AoeStunEveryNHits,2,2,0
+Tier1_3,AoeStunEveryNHits,2,2,0
+Tier1_4,AoeStunEveryNHits,2,2,0
+Tier1_5,AoeStunEveryNHits,2,2,0

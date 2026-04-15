@@ -24,6 +24,7 @@ public class BossManager : MonoBehaviour
 
     private GameObject currentBoss;
     private int bossWaveCount = 0;
+    private int lastStage = 1;
 
     void Awake()
     {
@@ -40,9 +41,16 @@ public class BossManager : MonoBehaviour
     public void TrySpawnBoss()
     {
         if (CSVLoader.Instance == null) return;
+        int currentStage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
+
+        if (currentStage != lastStage)
+        {
+            bossWaveCount = 0;
+            lastStage = currentStage;
+        }
+
         bossWaveCount++;
         int waveLevel = Mathf.Clamp(bossWaveCount, 1, 5);
-        int currentStage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
         int randomType = Random.Range(0, 3);
 
         BossData data = CSVLoader.Instance.GetBossDataByTypeStageLevel(randomType, currentStage, waveLevel);
@@ -78,7 +86,6 @@ public class BossManager : MonoBehaviour
 
     IEnumerator WarningThenSpawn(BossData data)
     {
-        // 게임 멈추지 않고 Warning 이미지만 깜빡인 후 보스 소환
         if (warningImage != null)
         {
             float elapsed = 0f;
@@ -111,10 +118,14 @@ public class BossManager : MonoBehaviour
         if (enemyHealth != null)
         {
             enemyHealth.isSpecial = true;
+            enemyHealth.isBoss = true;
             enemyHealth.forceDamageOne = data.forceDamageOne;
             enemyHealth.specialCoinReward = data.reward;
             enemyHealth.Init(data.hp, data.defense);
         }
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.ExtendRoundTime(GameManager.Instance.bossRoundDuration);
 
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }

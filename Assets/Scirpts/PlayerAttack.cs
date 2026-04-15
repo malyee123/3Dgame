@@ -242,15 +242,17 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator AoeStunRoutine(EnemyMove target)
     {
+        // 코루틴 시작 시점에 타겟 위치 저장 (타겟 사망해도 위치 유지)
+        Vector3 targetPos = target != null ? target.transform.position : transform.position;
+
         yield return new WaitForSeconds(0.35f);
-        float targetProgress = target != null ? target.GetPathProgress() : -1f;
+
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
-        if (allEnemies.Length == 0) yield break;
-        if (target == null) targetProgress = allEnemies[0].GetPathProgress();
         foreach (EnemyMove enemy in allEnemies)
         {
             if (enemy == null) continue;
-            if (Mathf.Abs(enemy.GetPathProgress() - targetProgress) <= aoeStunRange)
+            if (enemy == target) continue; // 타겟 본인 제외 (이중 데미지 방지)
+            if (Vector2.Distance(enemy.transform.position, targetPos) <= aoeStunRange)
             {
                 enemy.ApplyStun(aoeStunDuration);
                 EnemyHealth health = enemy.GetComponent<EnemyHealth>();
