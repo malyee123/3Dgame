@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -82,7 +81,7 @@ public class PlayerSpawner : MonoBehaviour
         if (IsFieldFull()) return;
         SyncSlotStateFromScene();
         CharacterData selectedData = GetRandomCharacterData();
-        if (selectedData == null) { Debug.LogWarning("[PlayerSpawner] No valid CharacterData."); return; }
+        if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
         if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return;
@@ -108,7 +107,6 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
         int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
-        Debug.Log($"UnlockedTier={unlockedTier}, MinTier={specialSpawnMinTier}, MaxTier={specialSpawnMaxTier}");
         int maxTier = Mathf.Min(specialSpawnMaxTier, unlockedTier);
         if (unlockedTier < specialSpawnMinTier) return null;
 
@@ -167,8 +165,6 @@ public class PlayerSpawner : MonoBehaviour
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         UpdateSpawnButton();
         UpdateSlotAura(spawnIndex, characterData.tier);
-
-        // 다음 프레임에 슬롯메이트 캐시 갱신 (새 유닛 등록 완료 후)
         StartCoroutine(MarkSlotMatesDirtyNextFrame(spawnIndex));
     }
 
@@ -188,7 +184,6 @@ public class PlayerSpawner : MonoBehaviour
         GameObject auraPrefab = auraPrefabs[prefabIndex];
         if (auraPrefab == null) return;
 
-        // 같은 티어면 위치만 슬롯으로 복귀
         if (slotAuras[slotIndex] != null && slotAuraTiers[slotIndex] == tier)
         {
             slotAuras[slotIndex].transform.position = spawnPoints[slotIndex].position;
@@ -244,7 +239,7 @@ public class PlayerSpawner : MonoBehaviour
             if (data == null) continue;
             if (Mathf.Max(1, data.tier) == targetTier) candidates.Add(data);
         }
-        if (candidates.Count == 0) { Debug.LogWarning($"[PlayerSpawner] Merge failed: no data for tier={targetTier}"); return null; }
+        if (candidates.Count == 0) return null;
         return candidates[Random.Range(0, candidates.Count)];
     }
 
@@ -305,7 +300,6 @@ public class PlayerSpawner : MonoBehaviour
         SyncSlotStateFromScene();
         if (finalSlot >= 0) UpdateSlotAura(finalSlot, mergedData.tier);
         if (slotOccupancy[spawnIndex] == 0) RemoveSlotAura(spawnIndex);
-
         if (finalSlot >= 0) StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
@@ -353,8 +347,6 @@ public class PlayerSpawner : MonoBehaviour
         tagToSlots.Clear();
 
         PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-
-        // 슬롯별 유닛 그룹화
         Dictionary<int, List<PlayerAttack>> slotGroups = new Dictionary<int, List<PlayerAttack>>();
         foreach (PlayerAttack player in players)
         {
@@ -365,18 +357,15 @@ public class PlayerSpawner : MonoBehaviour
             slotGroups[index].Add(player);
         }
 
-        // 슬롯별로 Y값 내림차순 정렬 후 첫 번째만 리더
         foreach (var kv in slotGroups)
         {
             int index = kv.Key;
             List<PlayerAttack> unitList = kv.Value;
             unitList.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
-
             for (int i = 0; i < unitList.Count; i++)
             {
                 PlayerAttack player = unitList[i];
                 player.isLeader = (i == 0);
-
                 string tag = !string.IsNullOrWhiteSpace(player.unitTag) ? player.unitTag.Trim() : GetUnitTag(player.characterData);
                 if (string.IsNullOrWhiteSpace(tag)) continue;
                 slotOccupancy[index]++;

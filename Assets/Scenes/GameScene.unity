@@ -3211,8 +3211,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   maxEnemyCount: 100
-  roundDuration: 3
-  bossWaveInterval: 3
+  roundDuration: 10
+  bossWaveInterval: 10
+  bossRoundDuration: 40
   enemyCountText: {fileID: 1603918615}
   roundText: {fileID: 1144987974}
   roundTimerText: {fileID: 304515278}

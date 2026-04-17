@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -54,11 +55,9 @@ public class MergeManager : MonoBehaviour
 
         if (unitActionUI != null && unit != null)
         {
-            // 슬롯 중앙 위치 기준으로 UI 배치
             Vector3 slotPos = (PlayerSpawner.Instance != null && unit.spawnIndex >= 0)
                 ? PlayerSpawner.Instance.spawnPoints[unit.spawnIndex].position
                 : unit.transform.position;
-
             Vector3 screenPos = Camera.main.WorldToScreenPoint(slotPos);
             screenPos.z = 0f;
             unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
@@ -68,11 +67,9 @@ public class MergeManager : MonoBehaviour
         HideRangeIndicator();
         if (unit != null && unit.characterData != null)
         {
-            // 사거리도 슬롯 중앙 기준
             Vector3 slotPos = (PlayerSpawner.Instance != null && unit.spawnIndex >= 0)
                 ? PlayerSpawner.Instance.spawnPoints[unit.spawnIndex].position
                 : unit.transform.position;
-
             currentRangeIndicator = new GameObject("RangeIndicator");
             currentRangeIndicator.transform.position = slotPos;
             currentRangeIndicator.AddComponent<RangeIndicator>().SetRange(unit.characterData.attackRange);
@@ -144,6 +141,17 @@ public class MergeManager : MonoBehaviour
         if (CoinManager.Instance != null) CoinManager.Instance.AddCoins(sellPrice * toSell.Count);
         HideUnitActionUI();
         RefreshMergeUI();
+        StartCoroutine(UpdateButtonNextFrame());
+    }
+
+    IEnumerator UpdateButtonNextFrame()
+    {
+        yield return null;
+        if (PlayerSpawner.Instance != null)
+        {
+            PlayerSpawner.Instance.SyncSlotStateFromScene();
+            PlayerSpawner.Instance.ForceUpdateSpawnButton();
+        }
     }
 
     public bool IsUnitActionUIActive() => unitActionUI != null && unitActionUI.activeSelf;

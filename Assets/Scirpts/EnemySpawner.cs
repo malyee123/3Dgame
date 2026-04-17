@@ -24,14 +24,14 @@ public class EnemySpawner : MonoBehaviour
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (pathManager == null) { Debug.LogError("[EnemySpawner] PathManager not found."); return; }
         if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
-        ApplyRoundSettings(1);
     }
 
     public void SetPaused(bool paused) => isPaused = paused;
 
     public void ApplyRoundSettings(int round)
     {
-        RoundData data = CSVLoader.Instance != null ? CSVLoader.Instance.GetRoundData(round) : null;
+        int stage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
+        RoundData data = CSVLoader.Instance != null ? CSVLoader.Instance.GetRoundData(round, stage) : null;
         if (data != null)
         {
             int offsetInRange = round - data.waveStart;
@@ -54,6 +54,7 @@ public class EnemySpawner : MonoBehaviour
 
     IEnumerator SpawnRoutine()
     {
+        yield return new WaitForSeconds(currentSpawnDelay);
         while (true)
         {
             if (!isPaused) SpawnEnemy();

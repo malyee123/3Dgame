@@ -67,19 +67,15 @@ public class BossManager : MonoBehaviour
     BossData ScaleBossData(BossData baseData, int currentStage)
     {
         int extraStages = currentStage - baseData.stage;
-        float multiplier = Mathf.Pow(hpScalePerStage, extraStages);
-        float defMultiplier = Mathf.Pow(defenseScalePerStage, extraStages);
-        float rewardMultiplier = Mathf.Pow(rewardScalePerStage, extraStages);
-
         return new BossData
         {
             bossType = baseData.bossType,
             stage = currentStage,
             bossWaveLevel = baseData.bossWaveLevel,
-            hp = baseData.hp * multiplier,
+            hp = baseData.hp * Mathf.Pow(hpScalePerStage, extraStages),
             speed = baseData.speed,
-            reward = Mathf.RoundToInt(baseData.reward * rewardMultiplier),
-            defense = baseData.defense * defMultiplier,
+            reward = Mathf.RoundToInt(baseData.reward * Mathf.Pow(rewardScalePerStage, extraStages)),
+            defense = baseData.defense * Mathf.Pow(defenseScalePerStage, extraStages),
             forceDamageOne = baseData.forceDamageOne
         };
     }
@@ -98,7 +94,6 @@ public class BossManager : MonoBehaviour
                 elapsed += blinkInterval * 2f;
             }
         }
-
         SpawnBoss(data);
     }
 

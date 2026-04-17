@@ -93,8 +93,6 @@ public class EnemyHealth : MonoBehaviour
         {
             if (SpecialCoinManager.Instance != null)
                 SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
-
-            // 보스일 때만 웨이브 종료 처리
             if (isBoss && GameManager.Instance != null)
                 GameManager.Instance.OnBossKilled();
         }

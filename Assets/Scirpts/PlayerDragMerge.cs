@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(Collider2D))]
 public class PlayerDragMerge : MonoBehaviour
@@ -77,7 +76,6 @@ public class PlayerDragMerge : MonoBehaviour
         targetDragPosition = mouseWorld;
         transform.position = Vector3.Lerp(transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
 
-        // 오라도 같이 이동
         if (currentAura != null)
             currentAura.transform.position = Vector3.Lerp(currentAura.transform.position, targetDragPosition, Time.deltaTime * dragSmoothSpeed);
 
@@ -98,8 +96,6 @@ public class PlayerDragMerge : MonoBehaviour
             PlayerAttack mateAttack = mate.GetComponent<PlayerAttack>();
             if (mateAttack != null) mateAttack.SetDragging(true);
         }
-
-        // 드래그 시작 시 오라 참조
         if (PlayerSpawner.Instance != null)
             currentAura = PlayerSpawner.Instance.GetSlotAura(originalSlotIndex);
     }
@@ -123,14 +119,12 @@ public class PlayerDragMerge : MonoBehaviour
         }
         else
         {
-            // 이동 실패 시 원래 위치로 복귀
             transform.position = originalPosition;
             for (int i = 0; i < slotMates.Count; i++)
             {
                 if (slotMates[i] == null) continue;
                 slotMates[i].position = slotMateOriginalPositions[i];
             }
-            // 오라도 원래 슬롯 위치로 복귀
             if (PlayerSpawner.Instance != null)
                 PlayerSpawner.Instance.UpdateSlotAura(originalSlotIndex, playerAttack?.characterData?.tier ?? 1);
         }
@@ -176,7 +170,6 @@ public class PlayerDragMerge : MonoBehaviour
         if (targetUnits.Count > 0) targetUnits[0].isLeader = true;
         if (myUnits.Count > 0) myUnits[0].isLeader = true;
 
-        // 스왑 후 양쪽 슬롯 오라 강제 교체 (같은 티어여도 위치 갱신 위해 제거 후 재생성)
         PlayerSpawner.Instance.RemoveSlotAura(targetSlot);
         PlayerSpawner.Instance.RemoveSlotAura(originalSlotIndex);
 

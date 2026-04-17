@@ -33,7 +33,6 @@ public class PauseManager : MonoBehaviour
         SetPlayerInteraction(!isPaused);
     }
 
-    // 보스 경고 중 상호작용 차단 (설정 버튼 제외)
     public void SetWarningMode(bool isWarning)
     {
         SetPlayerInteraction(!isWarning);

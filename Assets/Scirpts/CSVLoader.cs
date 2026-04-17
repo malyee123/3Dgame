@@ -144,11 +144,31 @@ public class CSVLoader : MonoBehaviour
         }
     }
 
-    public RoundData GetRoundData(int round)
+    public RoundData GetRoundData(int round, int stage)
     {
         foreach (RoundData data in roundDataList)
-            if (round >= data.waveStart && round <= data.waveEnd) return data;
-        return roundDataList.Count > 0 ? roundDataList[roundDataList.Count - 1] : null;
+            if (data.stage == stage && round >= data.waveStart && round <= data.waveEnd) return data;
+        RoundData fallback = null;
+        int maxStage = 0;
+        foreach (RoundData data in roundDataList)
+            if (data.stage > maxStage) { maxStage = data.stage; fallback = data; }
+        return fallback;
+    }
+
+    public int GetMaxStage()
+    {
+        int max = 1;
+        foreach (RoundData rd in roundDataList)
+            if (rd.stage > max) max = rd.stage;
+        return max;
+    }
+
+    public int GetStageEndRound(int stage)
+    {
+        int maxWave = 0;
+        foreach (RoundData rd in roundDataList)
+            if (rd.stage == stage && rd.waveEnd > maxWave) maxWave = rd.waveEnd;
+        return maxWave == 0 ? 50 : maxWave;
     }
 
     public BossData GetBossDataByTypeStageLevel(int bossType, int stage, int waveLevel)

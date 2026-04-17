@@ -86,6 +86,7 @@ public class SpecialMonsterManager : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
         StartCoroutine(DespawnAfterTime(obj, enemyHealth, specialMonsterLifetime));
     }
+
     IEnumerator DespawnAfterTime(GameObject obj, EnemyHealth health, float lifetime)
     {
         yield return new WaitForSeconds(lifetime);
@@ -94,7 +95,6 @@ public class SpecialMonsterManager : MonoBehaviour
             bool alreadyDead = health == null || !health.gameObject.activeInHierarchy;
             if (!alreadyDead && GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
             Destroy(obj);
-            // Debug.Log("[SpecialMonsterManager] Special monster despawned.");
         }
     }
 }
