@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+#if UNITY_6000_0_OR_NEWER
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
@@ -35,6 +38,9 @@ public class PlayerManager : MonoBehaviour
 
     void Start()
     {
+        #if UNITY_6000_0_OR_NEWER
+        CheckInputSystemUIModule();
+        #endif
         if(_savedUnitList.Count.Equals(0) || _playerList.Count.Equals(0))
             GetPlayerList();
     }
@@ -42,9 +48,15 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         if(EventSystem.current.IsPointerOverGameObject()) return;
+        #if UNITY_6000_0_OR_NEWER
+        if(Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()), Vector2.zero);
+        #else
         if(Input.GetMouseButtonDown(0))
         {
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+        #endif
             
             if(hit.collider != null)
             {
@@ -258,5 +270,53 @@ public class PlayerManager : MonoBehaviour
         Debug.Log("Screenshot Saved : " + filename);
         _bg.SetActive(true);
     }
+    #if UNITY_6000_0_OR_NEWER
+    void CheckInputSystemUIModule()
+    {
+        if (EventSystem.current == null)
+        {
+            Debug.LogWarning("[SPUM] EventSystem not found in scene");
+            return;
+        }
 
+        var currentModule = EventSystem.current.currentInputModule;
+        
+        // StandaloneInputModule Remove and InputSystemUIInputModule Add
+        if (currentModule == null || currentModule.GetType().Name != "InputSystemUIInputModule")
+        {
+            // StandaloneInputModule Remove
+            var standaloneModule = EventSystem.current.GetComponent<StandaloneInputModule>();
+            if (standaloneModule != null)
+            {
+                DestroyImmediate(standaloneModule);
+                Debug.Log("[SPUM] StandaloneInputModule removed");
+            }
+
+            // Other InputModules Remove
+            if (currentModule != null && currentModule != standaloneModule)
+            {
+                DestroyImmediate(currentModule);
+            }
+
+            // InputSystemUIInputModule Add
+            try
+            {
+                var inputSystemModule = EventSystem.current.gameObject.AddComponent(System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem"));
+                Debug.Log("[SPUM] InputSystemUIInputModule added to EventSystem for Unity 6+ compatibility");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[SPUM] Failed to add InputSystemUIInputModule: {e.Message}");
+                
+                // 실패 시 StandaloneInputModule 복원
+                EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
+                Debug.Log("[SPUM] StandaloneInputModule restored as fallback");
+            }
+        }
+        else
+        {
+            Debug.Log("[SPUM] InputSystemUIInputModule already configured");
+        }
+    }
+    #endif
 }

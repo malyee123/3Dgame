@@ -201,9 +201,4 @@ public class SPUM_Prefabs : MonoBehaviour
         
         return clip;
     }
-
-    internal void PlayAnimation(PlayerState aTTACK)
-    {
-        throw new NotImplementedException();
-    }
 }
