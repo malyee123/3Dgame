@@ -45,6 +45,7 @@ public class CharacterData : ScriptableObject
     public float attackRange = 3f;
     public float attackDamage = 10f;
     public float attackCooldown = 0.5f;
+    public float attackHitDelay = 0.3f;
 
     [Header("Merge Settings")]
     [Min(1)] public int tier = 1;

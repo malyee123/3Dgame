@@ -14,18 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Tier2_5
   characterPrefab: {fileID: 6311861856165175232, guid: 22278203e8d524358894260c10cb0a79, type: 3}
-  characterSprite: {fileID: 21300000, guid: 40a2ede3eaf8d934a88b224c1e23f92a, type: 3}
+  characterSprite: {fileID: -4618462627772441395, guid: 0a51c664a26c11c4ebe02ecb8154ad54, type: 3}
   unitTag: Tier2_5
   characterColor: {r: 1, g: 1, b: 1, a: 1}
-  attackRange: 12
-  attackDamage: 35
-  attackCooldown: 0.5
+  attackRange: 3
+  attackDamage: 120
+  attackCooldown: 2
+  attackHitDelay: 0.5
   tier: 2
-  upgradeCost: 100
+  upgradeCost: 200
   sellPrice: 80
   attackAnimIndex: 0
   passives:
   - passiveType: 5
-    passiveValue: 20
+    passiveValue: 12
     passiveSecondValue: 0
     passiveDuration: 0

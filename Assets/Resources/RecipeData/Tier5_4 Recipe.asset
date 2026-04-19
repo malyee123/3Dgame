@@ -10,13 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7a3bd52f047e754daa7f4cfa6e95dec, type: 3}
-  m_Name: Tier2 Recipe
+  m_Name: Tier5_4 Recipe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeData
   ingredients:
-  - {fileID: 11400000, guid: d67325d01127f3c4cac4dbf19d4fde4b, type: 2}
-  - {fileID: 11400000, guid: 32c871cb6f411814185946cc5046cfe2, type: 2}
-  - {fileID: 11400000, guid: 8769bf838438d3444b04123478bd4496, type: 2}
+  - {fileID: 11400000, guid: f592476ae8967f64e933aee1f85447f5, type: 2}
+  - {fileID: 11400000, guid: ea4bc427e88e02944892864c58bc9907, type: 2}
   - {fileID: 11400000, guid: 35fc7cf2f9ab72645822708c37f73469, type: 2}
-  - {fileID: 11400000, guid: 0e4b04a75c3545742b801fd208e7de02, type: 2}
-  result: {fileID: 11400000, guid: 89e76a8bedf2c9c48bd599fa4ac687fb, type: 2}
-  recipeName: Tier2Recipe
+  result: {fileID: 11400000, guid: 0f5b4ca93e8d37e4588ec14bbf6fe3a9, type: 2}
+  recipeName: Tier5Resipe

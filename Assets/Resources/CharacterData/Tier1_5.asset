@@ -14,14 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Tier1_5
   characterPrefab: {fileID: 7127064250040410633, guid: 74081d2c7552d4c17953e46326368c4b, type: 3}
-  characterSprite: {fileID: 21300000, guid: bdca9049656e7c14cbd31eca159bbc78, type: 3}
+  characterSprite: {fileID: -1586025864253916591, guid: 08f171195a4b37547b19278439f93552, type: 3}
   unitTag: Tier1_5
   characterColor: {r: 1, g: 1, b: 1, a: 1}
-  attackRange: 7
-  attackDamage: 20
-  attackCooldown: 0.5
+  attackRange: 3
+  attackDamage: 60
+  attackCooldown: 1
+  attackHitDelay: 0.5
   tier: 1
-  mergeGroupId: A
   upgradeCost: 100
+  sellPrice: 50
   attackAnimIndex: 2
   passives: []

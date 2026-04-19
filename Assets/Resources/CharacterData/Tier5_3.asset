@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3607dce4df97295498523a0d0898f70b, type: 3}
+  m_Name: Tier5_3
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterName: Tier5_3
+  characterPrefab: {fileID: 3940971648069719279, guid: 328859b9107468741b4800e19e515e55, type: 3}
+  characterSprite: {fileID: -831400496402652719, guid: 095fae19713832c49be5e369dd874fe8, type: 3}
+  unitTag: Tier5_3
+  characterColor: {r: 1, g: 1, b: 1, a: 1}
+  attackRange: 1.5
+  attackDamage: 21000
+  attackCooldown: 2
+  attackHitDelay: 0.5
+  tier: 5
+  upgradeCost: 500
+  sellPrice: 1000
+  attackAnimIndex: 1
+  passives:
+  - passiveType: 4
+    passiveValue: 15
+    passiveSecondValue: 0
+    passiveDuration: 0
+  - passiveType: 5
+    passiveValue: 14
+    passiveSecondValue: 0
+    passiveDuration: 0

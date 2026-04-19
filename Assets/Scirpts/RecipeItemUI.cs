@@ -74,22 +74,26 @@ public class RecipeItemUI : MonoBehaviour
 
         if (recipe.ingredients != null)
         {
+            Dictionary<string, int> usedCount = new Dictionary<string, int>();
+
             for (int i = 0; i < ingredientImages.Count; i++)
             {
                 if (i >= recipe.ingredients.Length) break;
-                UpdateIngredientState(ingredientImages[i], recipe.ingredients[i], fieldUnits);
+                CharacterData data = recipe.ingredients[i];
+                if (data == null) continue;
+
+                string name = data.characterName;
+                if (!usedCount.ContainsKey(name)) usedCount[name] = 0;
+                usedCount[name]++;
+
+                int have = fieldUnits.ContainsKey(name) ? fieldUnits[name] : 0;
+                bool has = have >= usedCount[name];
+                ingredientImages[i].color = has ? brightColor : dimColor;
             }
         }
 
         if (canCraftHighlight != null) canCraftHighlight.SetActive(canCraft);
         if (craftButton != null) craftButton.interactable = canCraft;
-    }
-
-    void UpdateIngredientState(Image img, CharacterData data, Dictionary<string, int> fieldUnits)
-    {
-        if (img == null || data == null) return;
-        bool has = fieldUnits.ContainsKey(data.characterName) && fieldUnits[data.characterName] > 0;
-        img.color = has ? brightColor : dimColor;
     }
 
     void SetIngredientImage(Image img, CharacterData data)

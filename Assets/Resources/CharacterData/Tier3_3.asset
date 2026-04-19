@@ -14,13 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Tier3_3
   characterPrefab: {fileID: 6586271469749049026, guid: 014fe8d68eb894953acd12f99324c58a, type: 3}
-  characterSprite: {fileID: 21300000, guid: d5d6a87da9d33f24b908798578be3581, type: 3}
+  characterSprite: {fileID: 5299924407541326493, guid: c85625ea7485cb140a84113278f6d6d2, type: 3}
   unitTag: Tier3_3
   characterColor: {r: 1, g: 1, b: 1, a: 1}
-  attackRange: 30
-  attackDamage: 40
-  attackCooldown: 0.5
+  attackRange: 1.5
+  attackDamage: 750
+  attackCooldown: 2
+  attackHitDelay: 0.3
   tier: 3
-  mergeGroupId: A
-  upgradeCost: 100
-  passives: []
+  upgradeCost: 300
+  sellPrice: 200
+  attackAnimIndex: 0
+  passives:
+  - passiveType: 10
+    passiveValue: 10
+    passiveSecondValue: 0
+    passiveDuration: 1.2
+  - passiveType: 4
+    passiveValue: 5
+    passiveSecondValue: 0
+    passiveDuration: 0

@@ -243,7 +243,7 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator AoeStunRoutine(EnemyMove target)
     {
         Vector3 targetPos = target != null ? target.transform.position : transform.position;
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(characterData.attackHitDelay);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
@@ -276,7 +276,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ExecuteCheckRoutine(EnemyMove target)
     {
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(characterData.attackHitDelay);
         if (target == null) yield break;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;
@@ -295,7 +295,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator DealDamageWithDelay(EnemyMove target, float damage, bool isTwice)
     {
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(characterData.attackHitDelay);
         if (target == null) yield break;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;

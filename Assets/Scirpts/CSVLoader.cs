@@ -54,7 +54,7 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 8) continue;
+            if (col.Length < 9) continue;
             CharacterData data = FindCharacterData(col[0].Trim());
             if (data == null) continue;
             data.tier = int.Parse(col[1].Trim());
@@ -64,6 +64,7 @@ public class CSVLoader : MonoBehaviour
             data.attackRange = float.Parse(col[5].Trim());
             data.upgradeCost = int.Parse(col[6].Trim());
             data.sellPrice = int.Parse(col[7].Trim());
+            data.attackHitDelay = float.Parse(col[8].Trim());
         }
     }
 
