@@ -126,7 +126,10 @@ public class PlayerDragMerge : MonoBehaviour
                 slotMates[i].position = slotMateOriginalPositions[i];
             }
             if (PlayerSpawner.Instance != null)
+            {
+                PlayerSpawner.Instance.RemoveSlotAura(originalSlotIndex);
                 PlayerSpawner.Instance.UpdateSlotAura(originalSlotIndex, playerAttack?.characterData?.tier ?? 1);
+            }
         }
 
         slotMates.Clear();
@@ -157,12 +160,16 @@ public class PlayerDragMerge : MonoBehaviour
         for (int i = 0; i < targetUnits.Count; i++)
         {
             targetUnits[i].spawnIndex = originalSlotIndex;
-            targetUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[originalSlotIndex].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+            bool isTier5 = targetUnits[i].characterData != null && targetUnits[i].characterData.tier >= 5;
+            Vector3 offset = isTier5 ? Vector3.zero : PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+            targetUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[originalSlotIndex].position + offset;
         }
         for (int i = 0; i < myUnits.Count; i++)
         {
             myUnits[i].spawnIndex = targetSlot;
-            myUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+            bool isTier5 = myUnits[i].characterData != null && myUnits[i].characterData.tier >= 5;
+            Vector3 offset = isTier5 ? Vector3.zero : PlayerSpawner.Instance.GetTriangleOffsetPublic(i);
+            myUnits[i].transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + offset;
         }
 
         foreach (PlayerAttack p in targetUnits) p.isLeader = false;
@@ -240,11 +247,16 @@ public class PlayerDragMerge : MonoBehaviour
         {
             if (slotMates[i] == null) continue;
             PlayerAttack mate = slotMates[i].GetComponent<PlayerAttack>();
+            bool isTier5 = mate != null && mate.characterData != null && mate.characterData.tier >= 5;
+            Vector3 offset = isTier5 ? Vector3.zero : PlayerSpawner.Instance.GetTriangleOffsetPublic(i + 1);
             if (mate != null) mate.spawnIndex = targetSlot;
-            slotMates[i].position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(i + 1);
+            slotMates[i].position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + offset;
         }
 
-        transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position + PlayerSpawner.Instance.GetTriangleOffsetPublic(0);
+        bool isPlayerTier5 = playerAttack.characterData != null && playerAttack.characterData.tier >= 5;
+        transform.position = PlayerSpawner.Instance.spawnPoints[targetSlot].position +
+            (isPlayerTier5 ? Vector3.zero : PlayerSpawner.Instance.GetTriangleOffsetPublic(0));
+
         playerAttack.spawnIndex = targetSlot;
         originalSlotIndex = targetSlot;
         originalPosition = transform.position;
