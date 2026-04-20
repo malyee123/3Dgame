@@ -9,8 +9,10 @@ public class EnemyMove : MonoBehaviour
     private PathManager pathManager;
     private SpriteRenderer spriteRenderer;
     [SerializeField] private float speedPenalty = 0f;
+    [SerializeField] private float tempSpeedPenalty = 0f;
     private bool isStunned = false;
     private bool isPaused = false;
+    private bool isTempSlowed = false;
 
     public void SetPathManager(PathManager pm) => pathManager = pm;
     public void ApplySpeedPenalty(float penalty) => speedPenalty = penalty;
@@ -20,6 +22,21 @@ public class EnemyMove : MonoBehaviour
     {
         if (isStunned) return;
         StartCoroutine(StunRoutine(duration));
+    }
+
+    public void ApplyTempSpeedPenalty(float amount, float duration)
+    {
+        if (isTempSlowed) return;
+        StartCoroutine(TempSpeedPenaltyRoutine(amount, duration));
+    }
+
+    IEnumerator TempSpeedPenaltyRoutine(float amount, float duration)
+    {
+        isTempSlowed = true;
+        tempSpeedPenalty = amount;
+        yield return new WaitForSeconds(duration);
+        tempSpeedPenalty = 0f;
+        isTempSlowed = false;
     }
 
     IEnumerator StunRoutine(float duration)
@@ -61,7 +78,7 @@ public class EnemyMove : MonoBehaviour
         if (isPaused) return;
         Transform target = pathManager.GetWaypoint(waypointIndex);
         if (target == null) return;
-        float currentSpeed = Mathf.Max(0f, speed - speedPenalty);
+        float currentSpeed = Mathf.Max(0f, speed - speedPenalty - tempSpeedPenalty);
         transform.position = Vector2.MoveTowards(transform.position, target.position, currentSpeed * Time.deltaTime);
         if (spriteRenderer != null) spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
         if (Vector2.Distance(transform.position, target.position) < 0.1f)

@@ -46,6 +46,10 @@ public class PassiveManager : MonoBehaviour
             float executeChance = 0f, executeHpThreshold = 0f, executeBossDamagePercent = 0f;
             float buffAllyChance = 0f, buffAllyAmount = 0f, buffAllyDuration = 0f;
             float aoeStunEveryN = 0f, aoeStunRange = 0f, aoeStunDuration = 0f;
+            bool bossDamageDouble = false;
+            float areaSpeedDownChance = 0f, areaSpeedDownAmount = 0f, areaSpeedDownDuration = 0f;
+            float magicMissileChance = 0f, magicMissileDamagePercent = 0f;
+            float slamChance = 0f, slamDamagePercent = 0f, slamRange = 0f;
 
             foreach (PassiveEntry entry in unit.characterData.passives)
             {
@@ -59,6 +63,10 @@ public class PassiveManager : MonoBehaviour
                     case PassiveType.ExecuteChance: executeChance = entry.passiveValue; executeHpThreshold = entry.passiveSecondValue; executeBossDamagePercent = entry.passiveDuration; break;
                     case PassiveType.BuffNearbyAllyAttackSpeed: buffAllyChance = entry.passiveValue; buffAllyAmount = entry.passiveSecondValue; buffAllyDuration = entry.passiveDuration; break;
                     case PassiveType.AoeStunEveryNHits: aoeStunEveryN = entry.passiveValue; aoeStunRange = entry.passiveSecondValue; aoeStunDuration = entry.passiveDuration; break;
+                    case PassiveType.BossDamageDouble: bossDamageDouble = true; break;
+                    case PassiveType.AreaSpeedDownChance: areaSpeedDownChance = entry.passiveValue; areaSpeedDownAmount = entry.passiveSecondValue; areaSpeedDownDuration = entry.passiveDuration; break;
+                    case PassiveType.MagicMissileChance: magicMissileChance = entry.passiveValue; magicMissileDamagePercent = entry.passiveSecondValue; break;
+                    case PassiveType.SlamChance: slamChance = entry.passiveValue; slamDamagePercent = entry.passiveSecondValue; slamRange = entry.passiveDuration; break;
                 }
             }
             unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleChance, twiceChance,
@@ -67,7 +75,11 @@ public class PassiveManager : MonoBehaviour
                 stunChance, stunDuration,
                 executeChance, executeHpThreshold, executeBossDamagePercent,
                 buffAllyChance, buffAllyAmount, buffAllyDuration,
-                aoeStunEveryN, aoeStunRange, aoeStunDuration);
+                aoeStunEveryN, aoeStunRange, aoeStunDuration,
+                bossDamageDouble,
+                areaSpeedDownChance, areaSpeedDownAmount, areaSpeedDownDuration,
+                magicMissileChance, magicMissileDamagePercent,
+                slamChance, slamDamagePercent, slamRange);
         }
 
         foreach (EnemyMove enemy in allEnemies)

@@ -30,3 +30,8 @@ Tier5_3,AllEnemyDefenseDown,15,0,0
 Tier5_3,DoubleDamageChance,14,0,0
 Tier5_4,AllAttackDamageUp,15,0,0
 Tier5_4,AllEnemySpeedDown,30,0,0
+Tier5_2,BossDamageDouble,1,0,0
+Tier4_4,AreaSpeedDownChance,15,50,2
+Tier5_4,MagicMissileChance,8,5000,0
+Tier5_1,SlamChance,16,2200,2.2
+Tier5_3,SlamChance,12,4000,2.2

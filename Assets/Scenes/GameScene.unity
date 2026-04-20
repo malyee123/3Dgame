@@ -4830,7 +4830,7 @@ GameObject:
   - component: {fileID: 1307267218}
   - component: {fileID: 1307267217}
   m_Layer: 5
-  m_Name: PassveText
+  m_Name: PassiveText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7113,7 +7113,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1878282460}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b70954fbdbe192140aa446e929897374, type: 3}
+  m_Script: {fileID: 11500000, guid: 2c136edc7fe994049b2e69cc86f9bac5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PassiveManager
   passiveStatusText: {fileID: 1307267217}

@@ -17,6 +17,10 @@ public enum PassiveType
     ExecuteChance,
     BuffNearbyAllyAttackSpeed,
     AoeStunEveryNHits,
+    BossDamageDouble,
+    AreaSpeedDownChance,
+    MagicMissileChance,
+    SlamChance,
 }
 
 [System.Serializable]

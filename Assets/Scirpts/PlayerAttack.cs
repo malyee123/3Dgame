@@ -38,6 +38,15 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float aoeStunEveryN;
     [SerializeField] private float aoeStunRange;
     [SerializeField] private float aoeStunDuration;
+    [SerializeField] private bool bossDamageDouble;
+    [SerializeField] private float areaSpeedDownChance;
+    [SerializeField] private float areaSpeedDownAmount;
+    [SerializeField] private float areaSpeedDownDuration;
+    [SerializeField] private float magicMissileChance;
+    [SerializeField] private float magicMissileDamagePercent;
+    [SerializeField] private float slamChance;
+    [SerializeField] private float slamDamagePercent;
+    [SerializeField] private float slamRange;
 
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
@@ -77,7 +86,11 @@ public class PlayerAttack : MonoBehaviour
         float stunChance, float stunDuration,
         float executeChance, float executeHpThreshold, float executeBossDamagePercent,
         float buffAllyChance, float buffAllyAmount, float buffAllyDuration,
-        float aoeStunEveryN, float aoeStunRange, float aoeStunDuration)
+        float aoeStunEveryN, float aoeStunRange, float aoeStunDuration,
+        bool bossDamageDouble,
+        float areaSpeedDownChance, float areaSpeedDownAmount, float areaSpeedDownDuration,
+        float magicMissileChance, float magicMissileDamagePercent,
+        float slamChance, float slamDamagePercent, float slamRange)
     {
         passiveDamageBonus = damageBonus;
         passiveSpeedBonus = speedBonus;
@@ -100,6 +113,15 @@ public class PlayerAttack : MonoBehaviour
         this.aoeStunEveryN = aoeStunEveryN;
         this.aoeStunRange = aoeStunRange;
         this.aoeStunDuration = aoeStunDuration;
+        this.bossDamageDouble = bossDamageDouble;
+        this.areaSpeedDownChance = areaSpeedDownChance;
+        this.areaSpeedDownAmount = areaSpeedDownAmount;
+        this.areaSpeedDownDuration = areaSpeedDownDuration;
+        this.magicMissileChance = magicMissileChance;
+        this.magicMissileDamagePercent = magicMissileDamagePercent;
+        this.slamChance = slamChance;
+        this.slamDamagePercent = slamDamagePercent;
+        this.slamRange = slamRange;
         ApplyUpgradeStats();
     }
 
@@ -148,7 +170,11 @@ public class PlayerAttack : MonoBehaviour
             stunChance = stunDuration =
             executeChance = executeHpThreshold = executeBossDamagePercent =
             buffAllyChance = buffAllyAmount = buffAllyDuration =
-            aoeStunEveryN = aoeStunRange = aoeStunDuration = 0f;
+            aoeStunEveryN = aoeStunRange = aoeStunDuration =
+            areaSpeedDownChance = areaSpeedDownAmount = areaSpeedDownDuration =
+            magicMissileChance = magicMissileDamagePercent =
+            slamChance = slamDamagePercent = slamRange = 0f;
+        bossDamageDouble = false;
         hitCounter = 0;
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
@@ -180,9 +206,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (spumPrefabs != null && spumPrefabs.OverrideController != null)
             spumPrefabs.PlayAnimation(PlayerState.ATTACK, characterData.attackAnimIndex);
-
         if (slotMatesDirty) RefreshSlotMatesCache();
-
         foreach (PlayerAttack mate in cachedSlotMates)
         {
             if (mate == null) continue;
@@ -203,11 +227,18 @@ public class PlayerAttack : MonoBehaviour
 
         PlayAttackAnimAll();
 
-        float finalDamage = appliedDamage;
-        if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
-            finalDamage *= 2f;
+        bool slamFired = slamChance > 0f && Random.Range(0f, 100f) < slamChance;
+        bool missileFired = magicMissileChance > 0f && Random.Range(0f, 100f) < magicMissileChance;
 
-        StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
+        if (!slamFired && !missileFired)
+        {
+            float finalDamage = appliedDamage;
+            if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
+                finalDamage *= 2f;
+            if (bossDamageDouble && health.isBoss)
+                finalDamage *= 2f;
+            StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
+        }
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
             StartCoroutine(SecondAttackAnimRoutine());
@@ -237,7 +268,52 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
+        if (areaSpeedDownChance > 0f && Random.Range(0f, 100f) < areaSpeedDownChance)
+            StartCoroutine(AreaSpeedDownRoutine());
+
+        if (slamFired) StartCoroutine(SlamRoutine(currentTarget));
+        if (missileFired) StartCoroutine(MagicMissileRoutine());
+
         cooldownTimer = 0f;
+    }
+
+    IEnumerator SlamRoutine(EnemyMove target)
+    {
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        if (target == null) yield break;
+        Vector3 targetPos = target.transform.position;
+        float damage = appliedDamage * (slamDamagePercent / 100f);
+        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (EnemyHealth eh in allEnemies)
+        {
+            if (eh == null) continue;
+            if (Vector2.Distance(eh.transform.position, targetPos) <= slamRange)
+                eh.TakeDamage(damage, this);
+        }
+    }
+
+    IEnumerator MagicMissileRoutine()
+    {
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        float damage = appliedDamage * (magicMissileDamagePercent / 100f);
+        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (EnemyHealth eh in allEnemies)
+        {
+            if (eh == null) continue;
+            eh.TakeDamage(damage, this);
+        }
+    }
+
+    IEnumerator AreaSpeedDownRoutine()
+    {
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
+        foreach (EnemyMove enemy in allEnemies)
+        {
+            if (enemy == null) continue;
+            if (Vector2.Distance(transform.position, enemy.transform.position) <= characterData.attackRange)
+                enemy.ApplyTempSpeedPenalty(areaSpeedDownAmount, areaSpeedDownDuration);
+        }
     }
 
     IEnumerator AoeStunRoutine(EnemyMove target)
@@ -247,13 +323,12 @@ public class PlayerAttack : MonoBehaviour
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
-            if (enemy == null) continue;
-            if (enemy == target) continue;
+            if (enemy == null || enemy == target) continue;
             if (Vector2.Distance(enemy.transform.position, targetPos) <= aoeStunRange)
             {
                 enemy.ApplyStun(aoeStunDuration);
-                EnemyHealth health = enemy.GetComponent<EnemyHealth>();
-                if (health != null) health.TakeDamage(appliedDamage, this);
+                EnemyHealth eh = enemy.GetComponent<EnemyHealth>();
+                if (eh != null) eh.TakeDamage(appliedDamage, this);
             }
         }
     }
