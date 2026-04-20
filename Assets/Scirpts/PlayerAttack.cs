@@ -216,6 +216,21 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    int GetSlotUnitCount()
+    {
+        if (slotMatesDirty) RefreshSlotMatesCache();
+        return cachedSlotMates.Count + 1;
+    }
+
+    void SpawnHitEffect(Vector3 position, Transform parent)
+    {
+        if (characterData.hitEffectPrefab == null) return;
+        Vector3 effectPos = position + Vector3.up * characterData.hitEffectOffsetY;
+        GameObject effect = Instantiate(characterData.hitEffectPrefab, effectPos, Quaternion.identity);
+        if (parent != null) effect.transform.SetParent(parent);
+        Destroy(effect, characterData.hitEffectDuration);
+    }
+
     void AttackWithLockedTarget()
     {
         if (!IsTargetInRange(currentTarget))
@@ -227,17 +242,22 @@ public class PlayerAttack : MonoBehaviour
 
         PlayAttackAnimAll();
 
+        int slotCount = GetSlotUnitCount();
+        float finalDamage = appliedDamage * slotCount;
+        if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
+            finalDamage *= 2f;
+        if (bossDamageDouble && health.isBoss)
+            finalDamage *= 2f;
+
         bool slamFired = slamChance > 0f && Random.Range(0f, 100f) < slamChance;
         bool missileFired = magicMissileChance > 0f && Random.Range(0f, 100f) < magicMissileChance;
 
         if (!slamFired && !missileFired)
         {
-            float finalDamage = appliedDamage;
-            if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
-                finalDamage *= 2f;
-            if (bossDamageDouble && health.isBoss)
-                finalDamage *= 2f;
-            StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
+            if (characterData.projectilePrefab != null)
+                StartCoroutine(FireProjectileWithDelay(currentTarget, finalDamage));
+            else
+                StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
         }
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
@@ -275,6 +295,15 @@ public class PlayerAttack : MonoBehaviour
         if (missileFired) StartCoroutine(MagicMissileRoutine());
 
         cooldownTimer = 0f;
+    }
+
+    IEnumerator FireProjectileWithDelay(EnemyMove target, float damage)
+    {
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        if (target == null) yield break;
+        GameObject proj = Instantiate(characterData.projectilePrefab, transform.position, Quaternion.identity);
+        Projectile projectile = proj.AddComponent<Projectile>();
+        projectile.Init(target.transform, characterData.projectileSpeed, damage, this, characterData.hitEffectPrefab, characterData.hitEffectDuration, characterData.hitEffectOffsetY);
     }
 
     IEnumerator SlamRoutine(EnemyMove target)
@@ -375,6 +404,7 @@ public class PlayerAttack : MonoBehaviour
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;
         health.TakeDamage(damage, this);
+        SpawnHitEffect(target.transform.position, target.transform);
         if (isTwice) yield break;
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
             StartCoroutine(DealDamageWithDelay(target, appliedDamage, true));

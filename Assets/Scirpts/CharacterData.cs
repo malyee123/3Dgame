@@ -63,6 +63,15 @@ public class CharacterData : ScriptableObject
     [Header("Animation")]
     public int attackAnimIndex = 0;
 
+    [Header("Projectile")]
+    public GameObject projectilePrefab;
+    public GameObject hitEffectPrefab;
+    public float projectileSpeed = 5f;
+    public float hitEffectDuration = 0.3f;
+    public float hitEffectOffsetY = 0.5f;
+
     [Header("Passives")]
     public List<PassiveEntry> passives = new List<PassiveEntry>();
+
+   
 }

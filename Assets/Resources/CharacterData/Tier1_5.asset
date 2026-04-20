@@ -20,9 +20,12 @@ MonoBehaviour:
   attackRange: 3
   attackDamage: 60
   attackCooldown: 1
-  attackHitDelay: 0.5
+  attackHitDelay: 0.4
   tier: 1
   upgradeCost: 100
   sellPrice: 50
   attackAnimIndex: 2
+  projectilePrefab: {fileID: 8919068066741289997, guid: 936bc71e288a82d43a0f9bf4f2fddee7, type: 3}
+  hitEffectPrefab: {fileID: 0}
+  projectileSpeed: 12
   passives: []
