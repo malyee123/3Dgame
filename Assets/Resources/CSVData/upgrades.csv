@@ -1,0 +1,10 @@
+﻿upgradeType,costPerLevel,bonusPerLevel
+AttackDamage,1,5
+AttackSpeed,1,5
+CoinPerKill,1,2
+StartingCoin,1,20
+Tier1Passive,1,5
+Tier2Passive,2,5
+Tier3Passive,3,5
+Tier4Passive,4,5
+Tier5Passive,5,5

@@ -16,20 +16,30 @@ public class BossData
     public bool forceDamageOne;
 }
 
+[System.Serializable]
+public class UpgradeData
+{
+    public string upgradeType;
+    public int costPerLevel;
+    public float bonusPerLevel;
+}
+
 public class CSVLoader : MonoBehaviour
 {
     public static CSVLoader Instance { get; private set; }
 
     [Header("CSV Files")]
-    public TextAsset characterCSV, passiveCSV, roundCSV, bossCSV;
+    public TextAsset characterCSV, passiveCSV, roundCSV, bossCSV, upgradeCSV;
 
     [Header("Character Data List")]
     public CharacterData[] characterDataList;
 
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
+    public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
 
     private Dictionary<string, CharacterData> characterDataMap = new Dictionary<string, CharacterData>();
+    private Dictionary<string, UpgradeData> upgradeDataMap = new Dictionary<string, UpgradeData>();
 
     void Awake()
     {
@@ -43,6 +53,7 @@ public class CSVLoader : MonoBehaviour
         LoadPassiveStats();
         LoadRoundStats();
         LoadBossStats();
+        LoadUpgradeStats();
     }
 
     void LoadCharacterStats()
@@ -143,6 +154,35 @@ public class CSVLoader : MonoBehaviour
                 forceDamageOne = int.Parse(col[7].Trim()) == 1
             });
         }
+    }
+
+    void LoadUpgradeStats()
+    {
+        if (upgradeCSV == null) { Debug.LogWarning("[CSVLoader] upgrades.csv not found"); return; }
+        upgradeDataList.Clear();
+        upgradeDataMap.Clear();
+        string[] lines = upgradeCSV.text.Split('\n');
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(',');
+            if (col.Length < 3) continue;
+            UpgradeData data = new UpgradeData
+            {
+                upgradeType = col[0].Trim(),
+                costPerLevel = int.Parse(col[1].Trim()),
+                bonusPerLevel = float.Parse(col[2].Trim())
+            };
+            upgradeDataList.Add(data);
+            upgradeDataMap[data.upgradeType] = data;
+        }
+    }
+
+    public UpgradeData GetUpgradeData(string upgradeType)
+    {
+        upgradeDataMap.TryGetValue(upgradeType, out UpgradeData data);
+        return data;
     }
 
     public RoundData GetRoundData(int round, int stage)

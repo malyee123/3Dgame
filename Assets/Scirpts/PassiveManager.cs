@@ -24,14 +24,18 @@ public class PassiveManager : MonoBehaviour
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
+            int tier = unit.characterData.tier;
+            float tierBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetTierPassiveBonus(tier) : 0f;
+
             foreach (PassiveEntry entry in unit.characterData.passives)
             {
+                float value = entry.passiveValue + (entry.passiveValue * tierBonus / 100f);
                 switch (entry.passiveType)
                 {
-                    case PassiveType.AllAttackDamageUp: totalDamageBonus += entry.passiveValue; break;
-                    case PassiveType.AllAttackSpeedUp: totalSpeedBonus += entry.passiveValue; break;
-                    case PassiveType.AllEnemySpeedDown: totalEnemySpeedDown += entry.passiveValue; break;
-                    case PassiveType.AllEnemyDefenseDown: totalEnemyDefenseDown += entry.passiveValue; break;
+                    case PassiveType.AllAttackDamageUp: totalDamageBonus += value; break;
+                    case PassiveType.AllAttackSpeedUp: totalSpeedBonus += value; break;
+                    case PassiveType.AllEnemySpeedDown: totalEnemySpeedDown += value; break;
+                    case PassiveType.AllEnemyDefenseDown: totalEnemyDefenseDown += value; break;
                 }
             }
         }
@@ -39,6 +43,9 @@ public class PassiveManager : MonoBehaviour
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
+            int tier = unit.characterData.tier;
+            float tierBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetTierPassiveBonus(tier) : 0f;
+
             float doubleChance = 0f, twiceChance = 0f;
             float selfSpeedChance = 0f, selfSpeedAmount = 0f, selfSpeedDuration = 0f;
             float selfDamageChance = 0f, selfDamageAmount = 0f, selfDamageDuration = 0f;
@@ -53,20 +60,22 @@ public class PassiveManager : MonoBehaviour
 
             foreach (PassiveEntry entry in unit.characterData.passives)
             {
+                float val = entry.passiveValue + (entry.passiveValue * tierBonus / 100f);
+                float val2 = entry.passiveSecondValue + (entry.passiveSecondValue * tierBonus / 100f);
                 switch (entry.passiveType)
                 {
-                    case PassiveType.DoubleDamageChance: doubleChance = entry.passiveValue; break;
-                    case PassiveType.AttackTwiceChance: twiceChance = entry.passiveValue; break;
-                    case PassiveType.SelfAttackSpeedUpChance: selfSpeedChance = entry.passiveValue; selfSpeedAmount = entry.passiveSecondValue; selfSpeedDuration = entry.passiveDuration; break;
-                    case PassiveType.SelfAttackDamageUpChance: selfDamageChance = entry.passiveValue; selfDamageAmount = entry.passiveSecondValue; selfDamageDuration = entry.passiveDuration; break;
-                    case PassiveType.StunChance: stunChance = entry.passiveValue; stunDuration = entry.passiveDuration; break;
-                    case PassiveType.ExecuteChance: executeChance = entry.passiveValue; executeHpThreshold = entry.passiveSecondValue; executeBossDamagePercent = entry.passiveDuration; break;
-                    case PassiveType.BuffNearbyAllyAttackSpeed: buffAllyChance = entry.passiveValue; buffAllyAmount = entry.passiveSecondValue; buffAllyDuration = entry.passiveDuration; break;
+                    case PassiveType.DoubleDamageChance: doubleChance = val; break;
+                    case PassiveType.AttackTwiceChance: twiceChance = val; break;
+                    case PassiveType.SelfAttackSpeedUpChance: selfSpeedChance = val; selfSpeedAmount = val2; selfSpeedDuration = entry.passiveDuration; break;
+                    case PassiveType.SelfAttackDamageUpChance: selfDamageChance = val; selfDamageAmount = val2; selfDamageDuration = entry.passiveDuration; break;
+                    case PassiveType.StunChance: stunChance = val; stunDuration = entry.passiveDuration; break;
+                    case PassiveType.ExecuteChance: executeChance = val; executeHpThreshold = entry.passiveSecondValue; executeBossDamagePercent = entry.passiveDuration; break;
+                    case PassiveType.BuffNearbyAllyAttackSpeed: buffAllyChance = val; buffAllyAmount = val2; buffAllyDuration = entry.passiveDuration; break;
                     case PassiveType.AoeStunEveryNHits: aoeStunEveryN = entry.passiveValue; aoeStunRange = entry.passiveSecondValue; aoeStunDuration = entry.passiveDuration; break;
                     case PassiveType.BossDamageDouble: bossDamageDouble = true; break;
-                    case PassiveType.AreaSpeedDownChance: areaSpeedDownChance = entry.passiveValue; areaSpeedDownAmount = entry.passiveSecondValue; areaSpeedDownDuration = entry.passiveDuration; break;
-                    case PassiveType.MagicMissileChance: magicMissileChance = entry.passiveValue; magicMissileDamagePercent = entry.passiveSecondValue; break;
-                    case PassiveType.SlamChance: slamChance = entry.passiveValue; slamDamagePercent = entry.passiveSecondValue; slamRange = entry.passiveDuration; break;
+                    case PassiveType.AreaSpeedDownChance: areaSpeedDownChance = val; areaSpeedDownAmount = val2; areaSpeedDownDuration = entry.passiveDuration; break;
+                    case PassiveType.MagicMissileChance: magicMissileChance = val; magicMissileDamagePercent = val2; break;
+                    case PassiveType.SlamChance: slamChance = val; slamDamagePercent = val2; slamRange = entry.passiveDuration; break;
                 }
             }
             unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleChance, twiceChance,
