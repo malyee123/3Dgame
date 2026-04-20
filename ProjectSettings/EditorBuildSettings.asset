@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/LobbyScene.unity
     guid: 04d7ba038f20d3e4eaad47ebe00630e3
   - enabled: 1
+    path: Assets/Scenes/PassiveUpgradeScene.unity
+    guid: 1df98d5d875aa6148ae462acd88d98f4
+  - enabled: 1
+    path: Assets/Scenes/UpgradeScene.unity
+    guid: 993ccbf0549422a42a31061ca5a5d6c6
+  - enabled: 1
     path: Assets/Scenes/StageSelectScene.unity
     guid: a8fd4270ba4b3f441b887167bc92b6b0
   - enabled: 1

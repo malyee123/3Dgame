@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -77,9 +79,9 @@ public class PlayerSpawner : MonoBehaviour
 
     public void TrySpawnPlayer()
     {
-        if (slotOccupancy == null || slotOccupancy.Length == 0) { Debug.LogError("[PlayerSpawner] Slots are not initialized."); return; }
-        if (IsFieldFull()) return;
+        if (slotOccupancy == null || slotOccupancy.Length == 0) return;
         SyncSlotStateFromScene();
+        if (!HasAvailableSlot()) return;
         CharacterData selectedData = GetRandomCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -91,10 +93,10 @@ public class PlayerSpawner : MonoBehaviour
 
     public void TrySpecialSpawn()
     {
-        if (IsFieldFull()) return;
+        SyncSlotStateFromScene();
+        if (!HasAvailableSlot()) return;
         if (SpecialCoinManager.Instance == null) return;
         if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) return;
-        SyncSlotStateFromScene();
         CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -106,9 +108,21 @@ public class PlayerSpawner : MonoBehaviour
     public void SpawnSpecificCharacter(CharacterData characterData)
     {
         if (characterData == null) return;
+        SyncSlotStateFromScene();
         string unitTag = GetUnitTag(characterData);
         if (!TryGetSpawnSlot(unitTag, characterData.tier, out int spawnIndex)) return;
         SpawnPlayer(spawnIndex, characterData, unitTag);
+    }
+
+    // 실제로 유닛을 더 넣을 수 있는 슬롯이 있는지 확인
+    bool HasAvailableSlot()
+    {
+        for (int i = 0; i < slotOccupancy.Length; i++)
+        {
+            if (slotOccupancy[i] == 0) return true;
+            if (slotOccupancy[i] < maxUnitsPerSlot) return true;
+        }
+        return false;
     }
 
     CharacterData GetRandomSpecialCharacterData()
@@ -152,7 +166,6 @@ public class PlayerSpawner : MonoBehaviour
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
     {
         int stackIndex = slotOccupancy[spawnIndex];
-        // 5티어는 오프셋 없이 스폰포인트 정중앙에 배치
         Vector3 offset = characterData.tier >= 5 ? Vector3.zero : GetTriangleOffset(stackIndex);
         GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position + offset, Quaternion.identity);
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
@@ -170,6 +183,8 @@ public class PlayerSpawner : MonoBehaviour
         }
         slotOccupancy[spawnIndex]++;
         slotTagOwners[spawnIndex] = unitTag;
+        if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
+        if (!slots.Contains(spawnIndex)) slots.Add(spawnIndex);
         slotDirty = true;
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
@@ -191,11 +206,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (auraPrefabs == null || auraPrefabs.Length == 0) return;
         int prefabIndex = Mathf.Clamp(tier - 1, 0, auraPrefabs.Length - 1);
-        if (slotAuras[slotIndex] != null)
-        {
-            if (slotAuraTiers[slotIndex] == tier) return;
-            Destroy(slotAuras[slotIndex]);
-        }
+        if (slotAuras[slotIndex] != null) Destroy(slotAuras[slotIndex]);
         if (auraPrefabs[prefabIndex] == null) return;
         slotAuras[slotIndex] = Instantiate(auraPrefabs[prefabIndex], spawnPoints[slotIndex].position, Quaternion.identity);
         slotAuraTiers[slotIndex] = tier;
@@ -207,6 +218,7 @@ public class PlayerSpawner : MonoBehaviour
         if (slotAuras[slotIndex] != null) { Destroy(slotAuras[slotIndex]); slotAuras[slotIndex] = null; }
         slotAuraTiers[slotIndex] = 0;
     }
+
     public GameObject GetSlotAura(int slotIndex)
     {
         if (slotAuras == null || slotIndex < 0 || slotIndex >= slotAuras.Length) return null;
@@ -244,14 +256,20 @@ public class PlayerSpawner : MonoBehaviour
         CharacterData nextData = nextTierList[Random.Range(0, nextTierList.Count)];
         string newTag = GetUnitTag(nextData);
 
+        SyncSlotStateFromScene();
+
         int finalSlot = spawnIndex;
-        if (slotOccupancy[spawnIndex] == 0)
+        if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
         {
-            bool found = false;
-            if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
-                foreach (int s in existingSlots)
-                    if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnitsPerSlot) { finalSlot = s; found = true; break; }
-            if (!found) finalSlot = spawnIndex;
+            foreach (int s in existingSlots)
+            {
+                int maxUnits = nextData.tier >= 5 ? 1 : maxUnitsPerSlot;
+                if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits)
+                {
+                    finalSlot = s;
+                    break;
+                }
+            }
         }
 
         SpawnPlayer(finalSlot, nextData, newTag);
@@ -363,19 +381,27 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
 
-        // 5티어는 슬롯당 1마리 제한
         int maxUnits = tier >= 5 ? 1 : maxUnitsPerSlot;
 
+        // 1순위: 같은 태그 슬롯 중 자리 있는 곳
         List<int> availableTaggedSlots = new List<int>();
         foreach (int existingSlot in slots)
         {
             if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
-            if (slotOccupancy[existingSlot] >= maxUnits || slotOccupancy[existingSlot] == 0) continue;
+            if (slotOccupancy[existingSlot] <= 0 || slotOccupancy[existingSlot] >= maxUnits) continue;
             availableTaggedSlots.Add(existingSlot);
         }
-        if (availableTaggedSlots.Count > 0) { slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)]; return true; }
+        if (availableTaggedSlots.Count > 0)
+        {
+            slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
+            return true;
+        }
+
+        // 2순위: 빈 슬롯 랜덤
         List<int> emptySlots = new List<int>();
-        for (int i = 0; i < slotOccupancy.Length; i++) { if (slotOccupancy[i] == 0) emptySlots.Add(i); }
+        for (int i = 0; i < slotOccupancy.Length; i++)
+            if (slotOccupancy[i] == 0) emptySlots.Add(i);
+
         if (emptySlots.Count > 0)
         {
             int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
@@ -384,6 +410,7 @@ public class PlayerSpawner : MonoBehaviour
             slotIndex = randomEmptySlot;
             return true;
         }
+
         slotIndex = -1;
         return false;
     }
@@ -391,8 +418,7 @@ public class PlayerSpawner : MonoBehaviour
     public bool IsFieldFull()
     {
         if (slotOccupancy == null) return false;
-        foreach (int o in slotOccupancy) { if (o == 0) return false; }
-        return true;
+        return !HasAvailableSlot();
     }
 
     public bool IsSlotEmpty(int slotIndex)
@@ -421,6 +447,8 @@ public class PlayerSpawner : MonoBehaviour
         if (slotIndex < 0 || slotIndex >= slotOccupancy.Length) return;
         slotOccupancy[slotIndex]++;
         slotTagOwners[slotIndex] = GetUnitTag(unit.characterData);
+        if (!tagToSlots.TryGetValue(slotTagOwners[slotIndex], out List<int> slots)) { slots = new List<int>(); tagToSlots[slotTagOwners[slotIndex]] = slots; }
+        if (!slots.Contains(slotIndex)) slots.Add(slotIndex);
         slotDirty = true;
         if (unit.characterData != null) UpdateSlotAura(slotIndex, unit.characterData.tier);
     }

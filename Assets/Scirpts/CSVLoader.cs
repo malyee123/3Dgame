@@ -45,6 +45,7 @@ public class CSVLoader : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
         CharacterData[] loaded = Resources.LoadAll<CharacterData>("CharacterData");
         if (loaded != null && loaded.Length > 0) characterDataList = loaded;
         foreach (CharacterData data in characterDataList)
@@ -55,7 +56,6 @@ public class CSVLoader : MonoBehaviour
         LoadBossStats();
         LoadUpgradeStats();
     }
-
     void LoadCharacterStats()
     {
         if (characterCSV == null) { Debug.LogWarning("[CSVLoader] characters.csv not found"); return; }
