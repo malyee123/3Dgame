@@ -83,7 +83,7 @@ public class PlayerSpawner : MonoBehaviour
         CharacterData selectedData = GetRandomCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
+        if (!TryGetSpawnSlot(unitTag, selectedData.tier, out int spawnIndex)) return;
         if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return;
         MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
@@ -98,9 +98,17 @@ public class PlayerSpawner : MonoBehaviour
         CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
+        if (!TryGetSpawnSlot(unitTag, selectedData.tier, out int spawnIndex)) return;
         MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
+    }
+
+    public void SpawnSpecificCharacter(CharacterData characterData)
+    {
+        if (characterData == null) return;
+        string unitTag = GetUnitTag(characterData);
+        if (!TryGetSpawnSlot(unitTag, characterData.tier, out int spawnIndex)) return;
+        SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
     CharacterData GetRandomSpecialCharacterData()
@@ -144,7 +152,9 @@ public class PlayerSpawner : MonoBehaviour
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
     {
         int stackIndex = slotOccupancy[spawnIndex];
-        GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position + GetTriangleOffset(stackIndex), Quaternion.identity);
+        // 5티어는 오프셋 없이 스폰포인트 정중앙에 배치
+        Vector3 offset = characterData.tier >= 5 ? Vector3.zero : GetTriangleOffset(stackIndex);
+        GameObject obj = Instantiate(playerPrefab, spawnPoints[spawnIndex].position + offset, Quaternion.identity);
         PlayerAttack playerAttack = obj.GetComponent<PlayerAttack>();
         if (playerAttack != null)
         {
@@ -181,125 +191,70 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (auraPrefabs == null || auraPrefabs.Length == 0) return;
         int prefabIndex = Mathf.Clamp(tier - 1, 0, auraPrefabs.Length - 1);
-        GameObject auraPrefab = auraPrefabs[prefabIndex];
-        if (auraPrefab == null) return;
-
-        if (slotAuras[slotIndex] != null && slotAuraTiers[slotIndex] == tier)
+        if (slotAuras[slotIndex] != null)
         {
-            slotAuras[slotIndex].transform.position = spawnPoints[slotIndex].position;
-            return;
+            if (slotAuraTiers[slotIndex] == tier) return;
+            Destroy(slotAuras[slotIndex]);
         }
-
-        if (slotAuras[slotIndex] != null) Destroy(slotAuras[slotIndex]);
-        GameObject aura = Instantiate(auraPrefab, spawnPoints[slotIndex].position, Quaternion.identity);
-        slotAuras[slotIndex] = aura;
+        if (auraPrefabs[prefabIndex] == null) return;
+        slotAuras[slotIndex] = Instantiate(auraPrefabs[prefabIndex], spawnPoints[slotIndex].position, Quaternion.identity);
         slotAuraTiers[slotIndex] = tier;
     }
 
     public void RemoveSlotAura(int slotIndex)
     {
         if (slotAuras == null || slotIndex < 0 || slotIndex >= slotAuras.Length) return;
-        if (slotAuras[slotIndex] != null)
-        {
-            Destroy(slotAuras[slotIndex]);
-            slotAuras[slotIndex] = null;
-            slotAuraTiers[slotIndex] = 0;
-        }
+        if (slotAuras[slotIndex] != null) { Destroy(slotAuras[slotIndex]); slotAuras[slotIndex] = null; }
+        slotAuraTiers[slotIndex] = 0;
     }
-
     public GameObject GetSlotAura(int slotIndex)
     {
         if (slotAuras == null || slotIndex < 0 || slotIndex >= slotAuras.Length) return null;
         return slotAuras[slotIndex];
     }
 
-    public void SpawnSpecificCharacter(CharacterData characterData)
+    public bool CanManualMerge(int spawnIndex, string unitTag, CharacterData characterData)
     {
-        if (characterData == null) return;
-        string unitTag = GetUnitTag(characterData);
-        if (!TryGetSpawnSlot(unitTag, out int spawnIndex)) return;
-        SpawnPlayer(spawnIndex, characterData, unitTag);
+        if (characterData == null) return false;
+        int tier = Mathf.Max(1, characterData.tier);
+        int cost = characterData.upgradeCost;
+        bool tierAllowed = UpgradeManager.Instance == null || (tier + 1) <= UpgradeManager.Instance.UnlockedTier;
+        bool hasCoins = CoinManager.Instance != null && CoinManager.Instance.GetCoins() >= cost;
+        List<PlayerAttack> slotUnits = GetUnitsInSlot(spawnIndex, unitTag, tier);
+        bool hasEnough = slotUnits.Count >= 3;
+        return tierAllowed && hasCoins && hasEnough;
     }
 
-    CharacterData GetRandomNextLevelCharacterData(List<PlayerAttack> unitsInSlot)
+    public bool TryManualMerge(int spawnIndex, string unitTag, CharacterData characterData)
     {
-        if (unitsInSlot == null || unitsInSlot.Count == 0) return null;
-        int currentTier = -1;
-        foreach (PlayerAttack unit in unitsInSlot)
-        {
-            if (unit.characterData == null) continue;
-            currentTier = Mathf.Max(1, unit.characterData.tier);
-            break;
-        }
-        if (currentTier < 0) return null;
-        int targetTier = currentTier + 1;
-        List<CharacterData> candidates = new List<CharacterData>();
+        if (characterData == null) return false;
+        int tier = Mathf.Max(1, characterData.tier);
+        List<PlayerAttack> slotUnits = GetUnitsInSlot(spawnIndex, unitTag, tier);
+        if (slotUnits.Count < 3) return false;
+
+        List<PlayerAttack> toRemove = slotUnits.GetRange(0, 3);
+        foreach (PlayerAttack unit in toRemove) { UnregisterUnit(unit, spawnIndex); Destroy(unit.gameObject); }
+
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+        List<CharacterData> nextTierList = new List<CharacterData>();
         foreach (CharacterData data in characterDataList)
+            if (data != null && data.tier == tier + 1 && data.tier <= unlockedTier) nextTierList.Add(data);
+
+        if (nextTierList.Count == 0) return false;
+        CharacterData nextData = nextTierList[Random.Range(0, nextTierList.Count)];
+        string newTag = GetUnitTag(nextData);
+
+        int finalSlot = spawnIndex;
+        if (slotOccupancy[spawnIndex] == 0)
         {
-            if (data == null) continue;
-            if (Mathf.Max(1, data.tier) == targetTier) candidates.Add(data);
-        }
-        if (candidates.Count == 0) return null;
-        return candidates[Random.Range(0, candidates.Count)];
-    }
-
-    public bool CanManualMerge(int spawnIndex, string unitTag, CharacterData selectedData)
-    {
-        SyncSlotStateFromScene();
-        int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
-        return GetUnitsInSlot(spawnIndex, unitTag, selectedTier).Count >= maxUnitsPerSlot;
-    }
-
-    public bool TryManualMerge(int spawnIndex, string unitTag, CharacterData selectedData)
-    {
-        SyncSlotStateFromScene();
-        int selectedTier = selectedData != null ? Mathf.Max(1, selectedData.tier) : -1;
-        List<PlayerAttack> sameTagUnits = GetUnitsInSlot(spawnIndex, unitTag, selectedTier);
-        if (sameTagUnits.Count < maxUnitsPerSlot) return false;
-
-        PlayerAttack survivor = sameTagUnits[0];
-        CharacterData mergedData = GetRandomNextLevelCharacterData(sameTagUnits);
-        if (mergedData == null) return false;
-
-        for (int i = 1; i < maxUnitsPerSlot; i++) { sameTagUnits[i].gameObject.SetActive(false); Destroy(sameTagUnits[i].gameObject); }
-
-        survivor.ApplyCharacterData(mergedData);
-        survivor.isLeader = true;
-        string newUnitTag = GetUnitTag(mergedData);
-        survivor.unitTag = newUnitTag;
-        survivor.spawnIndex = -1;
-        SyncSlotStateFromScene();
-
-        if (!tagToSlots.TryGetValue(newUnitTag, out List<int> existingSlots)) existingSlots = new List<int>();
-        List<int> availableTaggedSlots = new List<int>();
-        foreach (int s in existingSlots)
-        {
-            if (s < 0 || s >= slotOccupancy.Length) continue;
-            if (slotOccupancy[s] < maxUnitsPerSlot) availableTaggedSlots.Add(s);
+            bool found = false;
+            if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
+                foreach (int s in existingSlots)
+                    if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnitsPerSlot) { finalSlot = s; found = true; break; }
+            if (!found) finalSlot = spawnIndex;
         }
 
-        int finalSlot = -1;
-        if (availableTaggedSlots.Count > 0)
-        {
-            finalSlot = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
-            survivor.spawnIndex = finalSlot;
-            survivor.transform.position = spawnPoints[finalSlot].position + GetTriangleOffset(slotOccupancy[finalSlot]);
-        }
-        else
-        {
-            List<int> emptySlots = new List<int>();
-            for (int i = 0; i < slotOccupancy.Length; i++) { if (slotOccupancy[i] == 0) emptySlots.Add(i); }
-            if (emptySlots.Count > 0)
-            {
-                finalSlot = emptySlots[Random.Range(0, emptySlots.Count)];
-                survivor.spawnIndex = finalSlot;
-                survivor.transform.position = spawnPoints[finalSlot].position + GetTriangleOffset(0);
-            }
-        }
-
-        SyncSlotStateFromScene();
-        if (finalSlot >= 0) UpdateSlotAura(finalSlot, mergedData.tier);
-        if (slotOccupancy[spawnIndex] == 0) RemoveSlotAura(spawnIndex);
+        SpawnPlayer(finalSlot, nextData, newTag);
         if (finalSlot >= 0) StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
 
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
@@ -404,14 +359,18 @@ public class PlayerSpawner : MonoBehaviour
         return characterDataList[Random.Range(0, characterDataList.Length)];
     }
 
-    bool TryGetSpawnSlot(string unitTag, out int slotIndex)
+    bool TryGetSpawnSlot(string unitTag, int tier, out int slotIndex)
     {
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
+
+        // 5티어는 슬롯당 1마리 제한
+        int maxUnits = tier >= 5 ? 1 : maxUnitsPerSlot;
+
         List<int> availableTaggedSlots = new List<int>();
         foreach (int existingSlot in slots)
         {
             if (existingSlot < 0 || existingSlot >= slotOccupancy.Length) continue;
-            if (slotOccupancy[existingSlot] >= maxUnitsPerSlot || slotOccupancy[existingSlot] == 0) continue;
+            if (slotOccupancy[existingSlot] >= maxUnits || slotOccupancy[existingSlot] == 0) continue;
             availableTaggedSlots.Add(existingSlot);
         }
         if (availableTaggedSlots.Count > 0) { slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)]; return true; }
@@ -429,8 +388,18 @@ public class PlayerSpawner : MonoBehaviour
         return false;
     }
 
-    public bool IsFieldFull() { if (slotOccupancy == null) return false; foreach (int o in slotOccupancy) { if (o == 0) return false; } return true; }
-    public bool IsSlotEmpty(int slotIndex) { if (slotOccupancy == null || slotIndex < 0 || slotIndex >= slotOccupancy.Length) return false; return slotOccupancy[slotIndex] == 0; }
+    public bool IsFieldFull()
+    {
+        if (slotOccupancy == null) return false;
+        foreach (int o in slotOccupancy) { if (o == 0) return false; }
+        return true;
+    }
+
+    public bool IsSlotEmpty(int slotIndex)
+    {
+        if (slotOccupancy == null || slotIndex < 0 || slotIndex >= slotOccupancy.Length) return false;
+        return slotOccupancy[slotIndex] == 0;
+    }
 
     public void UnregisterUnit(PlayerAttack unit, int slotIndex)
     {
