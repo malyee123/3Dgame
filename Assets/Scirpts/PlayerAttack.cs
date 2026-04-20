@@ -4,10 +4,7 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("Character Data")]
     public CharacterData characterData;
-
-    [Header("Player Info")]
     public int spawnIndex = -1;
     public string unitTag = "";
     public bool isLeader = false;
@@ -435,6 +432,29 @@ public class PlayerAttack : MonoBehaviour
         appliedDamage = original;
         isSelfDamageBoosted = false;
     }
+
+    public void ActivateManaSkill()
+    {
+        if (characterData == null) return;
+        StartCoroutine(ManaSkillRoutine());
+    }
+
+    IEnumerator ManaSkillRoutine()
+    {
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        switch (characterData.characterName)
+        {
+            case "Tier5_1": StartCoroutine(ManaSkill_Tier5_1()); break;
+            case "Tier5_2": StartCoroutine(ManaSkill_Tier5_2()); break;
+            case "Tier5_3": StartCoroutine(ManaSkill_Tier5_3()); break;
+            case "Tier5_4": StartCoroutine(ManaSkill_Tier5_4()); break;
+        }
+    }
+
+    IEnumerator ManaSkill_Tier5_1() { yield break; }
+    IEnumerator ManaSkill_Tier5_2() { yield break; }
+    IEnumerator ManaSkill_Tier5_3() { yield break; }
+    IEnumerator ManaSkill_Tier5_4() { yield break; }
 
     EnemyMove FindBackmostEnemyInRange()
     {

@@ -28,4 +28,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 8919068066741289997, guid: ab44eedd44195ce479d4c8f44e8e211f, type: 3}
   hitEffectPrefab: {fileID: 4425129568585013132, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
   projectileSpeed: 12
+  hitEffectDuration: 0.3
+  hitEffectOffsetY: 0.3
   passives: []
+  maxMana: 30
