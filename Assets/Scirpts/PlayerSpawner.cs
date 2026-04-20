@@ -116,10 +116,7 @@ public class PlayerSpawner : MonoBehaviour
     bool HasAvailableSlot()
     {
         for (int i = 0; i < slotOccupancy.Length; i++)
-        {
             if (slotOccupancy[i] == 0) return true;
-            if (slotOccupancy[i] < maxUnitsPerSlot) return true;
-        }
         return false;
     }
 
