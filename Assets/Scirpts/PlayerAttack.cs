@@ -44,6 +44,9 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float slamChance;
     [SerializeField] private float slamDamagePercent;
     [SerializeField] private float slamRange;
+    [SerializeField] private float manaSkillDamage;
+    [SerializeField] private float manaSkillDuration;
+    [SerializeField] private float manaSkillInterval;
 
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
@@ -87,7 +90,8 @@ public class PlayerAttack : MonoBehaviour
         bool bossDamageDouble,
         float areaSpeedDownChance, float areaSpeedDownAmount, float areaSpeedDownDuration,
         float magicMissileChance, float magicMissileDamagePercent,
-        float slamChance, float slamDamagePercent, float slamRange)
+        float slamChance, float slamDamagePercent, float slamRange,
+        float manaSkillDamage, float manaSkillDuration, float manaSkillInterval)
     {
         passiveDamageBonus = damageBonus;
         passiveSpeedBonus = speedBonus;
@@ -119,6 +123,9 @@ public class PlayerAttack : MonoBehaviour
         this.slamChance = slamChance;
         this.slamDamagePercent = slamDamagePercent;
         this.slamRange = slamRange;
+        this.manaSkillDamage = manaSkillDamage;
+        this.manaSkillDuration = manaSkillDuration;
+        this.manaSkillInterval = manaSkillInterval;
         ApplyUpgradeStats();
     }
 
@@ -170,7 +177,8 @@ public class PlayerAttack : MonoBehaviour
             aoeStunEveryN = aoeStunRange = aoeStunDuration =
             areaSpeedDownChance = areaSpeedDownAmount = areaSpeedDownDuration =
             magicMissileChance = magicMissileDamagePercent =
-            slamChance = slamDamagePercent = slamRange = 0f;
+            slamChance = slamDamagePercent = slamRange =
+            manaSkillDamage = manaSkillDuration = manaSkillInterval = 0f;
         bossDamageDouble = false;
         hitCounter = 0;
         ApplyUpgradeStats();
@@ -451,10 +459,54 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    IEnumerator ManaSkill_Tier5_1() { yield break; }
-    IEnumerator ManaSkill_Tier5_2() { yield break; }
-    IEnumerator ManaSkill_Tier5_3() { yield break; }
-    IEnumerator ManaSkill_Tier5_4() { yield break; }
+    IEnumerator ManaSkill_Tier5_1()
+    {
+        float elapsed = 0f;
+        float damage = appliedDamage * (manaSkillDamage / 100f);
+        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f;
+        while (elapsed < manaSkillDuration)
+        {
+            EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+            foreach (EnemyHealth eh in allEnemies)
+                if (eh != null) eh.TakeDamage(damage, this);
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
+        }
+    }
+
+    IEnumerator ManaSkill_Tier5_2()
+    {
+        float originalDamage = appliedDamage;
+        float originalCooldown = appliedCooldown;
+        appliedDamage = appliedDamage * (manaSkillDamage / 100f);
+        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * (200f / 100f));
+        yield return new WaitForSeconds(manaSkillDuration);
+        appliedDamage = originalDamage;
+        appliedCooldown = originalCooldown;
+    }
+
+    IEnumerator ManaSkill_Tier5_3()
+    {
+        float damage = appliedDamage * (manaSkillDamage / 100f);
+        EnemyHealth bossTarget = null;
+        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (EnemyHealth eh in allEnemies)
+            if (eh != null && eh.isBoss) { bossTarget = eh; break; }
+        if (bossTarget == null)
+            foreach (EnemyHealth eh in allEnemies)
+                if (eh != null) { bossTarget = eh; break; }
+        if (bossTarget != null) bossTarget.TakeDamage(damage, this);
+        yield break;
+    }
+
+    IEnumerator ManaSkill_Tier5_4()
+    {
+        float damage = appliedDamage * (manaSkillDamage / 100f);
+        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        foreach (EnemyHealth eh in allEnemies)
+            if (eh != null) eh.TakeDamage(damage, this);
+        yield break;
+    }
 
     EnemyMove FindBackmostEnemyInRange()
     {

@@ -56,6 +56,7 @@ public class CSVLoader : MonoBehaviour
         LoadBossStats();
         LoadUpgradeStats();
     }
+
     void LoadCharacterStats()
     {
         if (characterCSV == null) { Debug.LogWarning("[CSVLoader] characters.csv not found"); return; }

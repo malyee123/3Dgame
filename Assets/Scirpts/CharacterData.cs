@@ -21,6 +21,7 @@ public enum PassiveType
     AreaSpeedDownChance,
     MagicMissileChance,
     SlamChance,
+    ManaSkill,
 }
 
 [System.Serializable]
@@ -70,9 +71,9 @@ public class CharacterData : ScriptableObject
     public float hitEffectDuration = 0.3f;
     public float hitEffectOffsetY = 0.5f;
 
-    [Header("Passives")]
-    public List<PassiveEntry> passives = new List<PassiveEntry>();
-
     [Header("Mana")]
     public float maxMana = 30f;
+
+    [Header("Passives")]
+    public List<PassiveEntry> passives = new List<PassiveEntry>();
 }

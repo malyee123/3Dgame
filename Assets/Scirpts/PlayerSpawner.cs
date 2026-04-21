@@ -112,7 +112,6 @@ public class PlayerSpawner : MonoBehaviour
         SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
-    // 실제로 유닛을 더 넣을 수 있는 슬롯이 있는지 확인
     bool HasAvailableSlot()
     {
         for (int i = 0; i < slotOccupancy.Length; i++)
@@ -251,27 +250,34 @@ public class PlayerSpawner : MonoBehaviour
         CharacterData nextData = nextTierList[Random.Range(0, nextTierList.Count)];
         string newTag = GetUnitTag(nextData);
 
+        StartCoroutine(MergeSpawnNextFrame(spawnIndex, nextData, newTag));
+        return true;
+    }
+
+    IEnumerator MergeSpawnNextFrame(int originalSlot, CharacterData nextData, string newTag)
+    {
+        yield return null;
         SyncSlotStateFromScene();
 
-        int finalSlot = spawnIndex;
+        int finalSlot = -1;
+        int maxUnits = nextData.tier >= 5 ? 1 : maxUnitsPerSlot;
+
         if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
-        {
             foreach (int s in existingSlots)
-            {
-                int maxUnits = nextData.tier >= 5 ? 1 : maxUnitsPerSlot;
-                if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits)
-                {
-                    finalSlot = s;
-                    break;
-                }
-            }
-        }
+                if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits) { finalSlot = s; break; }
+
+        if (finalSlot < 0 && slotOccupancy[originalSlot] < maxUnits)
+            finalSlot = originalSlot;
+
+        if (finalSlot < 0)
+            for (int i = 0; i < slotOccupancy.Length; i++)
+                if (slotOccupancy[i] == 0) { finalSlot = i; break; }
+
+        if (finalSlot < 0) yield break;
 
         SpawnPlayer(finalSlot, nextData, newTag);
-        if (finalSlot >= 0) StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
-
+        StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
-        return true;
     }
 
     List<PlayerAttack> GetUnitsInSlot(int spawnIndex, string unitTag, int requiredTier = -1)
@@ -378,7 +384,6 @@ public class PlayerSpawner : MonoBehaviour
 
         int maxUnits = tier >= 5 ? 1 : maxUnitsPerSlot;
 
-        // 1순위: 같은 태그 슬롯 중 자리 있는 곳
         List<int> availableTaggedSlots = new List<int>();
         foreach (int existingSlot in slots)
         {
@@ -392,7 +397,6 @@ public class PlayerSpawner : MonoBehaviour
             return true;
         }
 
-        // 2순위: 빈 슬롯 랜덤
         List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
             if (slotOccupancy[i] == 0) emptySlots.Add(i);

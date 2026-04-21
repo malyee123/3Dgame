@@ -13,15 +13,6 @@ MonoBehaviour:
   m_Name: Tier5_2 Recipe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeData
   ingredients:
-  - {fileID: 11400000, guid: 4fec343f4204db2428836d17b0322623, type: 2}
-  - {fileID: 11400000, guid: 0a23643b8ef87f2488149bb1930316a7, type: 2}
-  - {fileID: 11400000, guid: 0a23643b8ef87f2488149bb1930316a7, type: 2}
-  - {fileID: 11400000, guid: 0a23643b8ef87f2488149bb1930316a7, type: 2}
-  - {fileID: 11400000, guid: 8769bf838438d3444b04123478bd4496, type: 2}
-  - {fileID: 11400000, guid: 8769bf838438d3444b04123478bd4496, type: 2}
-  - {fileID: 11400000, guid: 8769bf838438d3444b04123478bd4496, type: 2}
-  - {fileID: 11400000, guid: 0e4b04a75c3545742b801fd208e7de02, type: 2}
-  - {fileID: 11400000, guid: 0e4b04a75c3545742b801fd208e7de02, type: 2}
-  - {fileID: 11400000, guid: 0e4b04a75c3545742b801fd208e7de02, type: 2}
+  - {fileID: 11400000, guid: d67325d01127f3c4cac4dbf19d4fde4b, type: 2}
   result: {fileID: 11400000, guid: 68af2e38786aba64e8fec0dc095a1dbf, type: 2}
   recipeName: Tier5Resipe
