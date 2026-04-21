@@ -266,12 +266,14 @@ public class PlayerSpawner : MonoBehaviour
             foreach (int s in existingSlots)
                 if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits) { finalSlot = s; break; }
 
-        if (finalSlot < 0 && slotOccupancy[originalSlot] < maxUnits)
-            finalSlot = originalSlot;
-
         if (finalSlot < 0)
+        {
+            List<int> emptySlots = new List<int>();
             for (int i = 0; i < slotOccupancy.Length; i++)
-                if (slotOccupancy[i] == 0) { finalSlot = i; break; }
+                if (slotOccupancy[i] == 0) emptySlots.Add(i);
+            if (emptySlots.Count > 0)
+                finalSlot = emptySlots[Random.Range(0, emptySlots.Count)];
+        }
 
         if (finalSlot < 0) yield break;
 

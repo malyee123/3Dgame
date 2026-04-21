@@ -17,7 +17,9 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float passiveDamageBonus;
     [SerializeField] private float passiveSpeedBonus;
     [SerializeField] private float doubleDamageChance;
+    [SerializeField] private float doubleDamageMultiplier;
     [SerializeField] private float attackTwiceChance;
+    [SerializeField] private float attackTwiceCount;
     [SerializeField] private float selfSpeedUpChance;
     [SerializeField] private float selfSpeedUpAmount;
     [SerializeField] private float selfSpeedUpDuration;
@@ -80,7 +82,9 @@ public class PlayerAttack : MonoBehaviour
         appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f));
     }
 
-    public void ApplyPassiveBonus(float damageBonus, float speedBonus, float doubleChance, float twiceChance,
+    public void ApplyPassiveBonus(float damageBonus, float speedBonus,
+        float doubleChance, float doubleMultiplier,
+        float twiceChance, float twiceCount,
         float selfSpeedChance, float selfSpeedAmount, float selfSpeedDuration,
         float selfDamageChance, float selfDamageAmount, float selfDamageDuration,
         float stunChance, float stunDuration,
@@ -96,7 +100,9 @@ public class PlayerAttack : MonoBehaviour
         passiveDamageBonus = damageBonus;
         passiveSpeedBonus = speedBonus;
         doubleDamageChance = doubleChance;
+        doubleDamageMultiplier = doubleMultiplier > 0f ? doubleMultiplier : 2f;
         attackTwiceChance = twiceChance;
+        attackTwiceCount = twiceCount > 0f ? twiceCount : 2f;
         selfSpeedUpChance = selfSpeedChance;
         selfSpeedUpAmount = selfSpeedAmount;
         selfSpeedUpDuration = selfSpeedDuration;
@@ -168,7 +174,8 @@ public class PlayerAttack : MonoBehaviour
             GameObject visual = Instantiate(characterData.characterPrefab, transform);
             visual.transform.localPosition = Vector3.zero;
         }
-        passiveDamageBonus = passiveSpeedBonus = doubleDamageChance = attackTwiceChance =
+        passiveDamageBonus = passiveSpeedBonus = doubleDamageChance = doubleDamageMultiplier =
+            attackTwiceChance = attackTwiceCount =
             selfSpeedUpChance = selfSpeedUpAmount = selfSpeedUpDuration =
             selfDamageUpChance = selfDamageUpAmount = selfDamageUpDuration =
             stunChance = stunDuration =
@@ -250,7 +257,7 @@ public class PlayerAttack : MonoBehaviour
         int slotCount = GetSlotUnitCount();
         float finalDamage = appliedDamage * slotCount;
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
-            finalDamage *= 2f;
+            finalDamage *= doubleDamageMultiplier;
         if (bossDamageDouble && health.isBoss)
             finalDamage *= 2f;
 
@@ -262,11 +269,11 @@ public class PlayerAttack : MonoBehaviour
             if (characterData.projectilePrefab != null)
                 StartCoroutine(FireProjectileWithDelay(currentTarget, finalDamage));
             else
-                StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, false));
+                StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, 0));
         }
 
         if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
-            StartCoroutine(SecondAttackAnimRoutine());
+            StartCoroutine(MultiAttackRoutine((int)attackTwiceCount - 1));
 
         if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
             StartCoroutine(SelfSpeedBoostRoutine());
@@ -311,17 +318,31 @@ public class PlayerAttack : MonoBehaviour
         projectile.Init(target.transform, characterData.projectileSpeed, damage, this, characterData.hitEffectPrefab, characterData.hitEffectDuration, characterData.hitEffectOffsetY);
     }
 
+    IEnumerator MultiAttackRoutine(int remainCount)
+    {
+        if (remainCount <= 0) yield break;
+        yield return new WaitForSeconds(appliedCooldown * 0.3f);
+        PlayAttackAnimAll();
+        if (currentTarget != null)
+        {
+            float damage = appliedDamage * GetSlotUnitCount();
+            StartCoroutine(DealDamageWithDelay(currentTarget, damage, remainCount - 1));
+        }
+    }
+
     IEnumerator SlamRoutine(EnemyMove target)
     {
         yield return new WaitForSeconds(characterData.attackHitDelay);
         if (target == null) yield break;
         Vector3 targetPos = target.transform.position;
-        float damage = appliedDamage * (slamDamagePercent / 100f);
+        float damage = appliedDamage * GetSlotUnitCount() * (slamDamagePercent / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
         {
             if (eh == null) continue;
-            if (Vector2.Distance(eh.transform.position, targetPos) <= slamRange)
+            float dx = Mathf.Abs(eh.transform.position.x - targetPos.x);
+            float dy = Mathf.Abs(eh.transform.position.y - targetPos.y);
+            if (dx <= slamRange && dy <= slamRange)
                 eh.TakeDamage(damage, this);
         }
     }
@@ -329,13 +350,10 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator MagicMissileRoutine()
     {
         yield return new WaitForSeconds(characterData.attackHitDelay);
-        float damage = appliedDamage * (magicMissileDamagePercent / 100f);
+        float damage = appliedDamage * GetSlotUnitCount() * (magicMissileDamagePercent / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
-        {
-            if (eh == null) continue;
-            eh.TakeDamage(damage, this);
-        }
+            if (eh != null) eh.TakeDamage(damage, this);
     }
 
     IEnumerator AreaSpeedDownRoutine()
@@ -370,12 +388,11 @@ public class PlayerAttack : MonoBehaviour
     void BuffNearbyAllies()
     {
         if (spawnIndex < 0) return;
-        int idx = spawnIndex;
         List<int> adjacentSlots = new List<int>();
-        if (idx % gridWidth != 0) adjacentSlots.Add(idx - 1);
-        if (idx % gridWidth != gridWidth - 1) adjacentSlots.Add(idx + 1);
-        if (idx - gridWidth >= 0) adjacentSlots.Add(idx - gridWidth);
-        if (idx + gridWidth < 25) adjacentSlots.Add(idx + gridWidth);
+        if (spawnIndex % gridWidth != 0) adjacentSlots.Add(spawnIndex - 1);
+        if (spawnIndex % gridWidth != gridWidth - 1) adjacentSlots.Add(spawnIndex + 1);
+        if (spawnIndex - gridWidth >= 0) adjacentSlots.Add(spawnIndex - gridWidth);
+        if (spawnIndex + gridWidth < 25) adjacentSlots.Add(spawnIndex + gridWidth);
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (int slot in adjacentSlots)
             foreach (PlayerAttack unit in allUnits)
@@ -402,7 +419,7 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    IEnumerator DealDamageWithDelay(EnemyMove target, float damage, bool isTwice)
+    IEnumerator DealDamageWithDelay(EnemyMove target, float damage, int remainMultiAttack)
     {
         yield return new WaitForSeconds(characterData.attackHitDelay);
         if (target == null) yield break;
@@ -410,15 +427,8 @@ public class PlayerAttack : MonoBehaviour
         if (health == null) yield break;
         health.TakeDamage(damage, this);
         SpawnHitEffect(target.transform.position, target.transform);
-        if (isTwice) yield break;
-        if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
-            StartCoroutine(DealDamageWithDelay(target, appliedDamage, true));
-    }
-
-    IEnumerator SecondAttackAnimRoutine()
-    {
-        yield return new WaitForSeconds(appliedCooldown * 0.5f);
-        PlayAttackAnimAll();
+        if (remainMultiAttack > 0)
+            StartCoroutine(MultiAttackRoutine(remainMultiAttack));
     }
 
     IEnumerator SelfSpeedBoostRoutine()
@@ -461,17 +471,32 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_1()
     {
+        if (currentTarget == null) yield break;
+        Vector3 pitPosition = currentTarget.transform.position;
         float elapsed = 0f;
         float damage = appliedDamage * (manaSkillDamage / 100f);
         float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f;
+        float range = characterData.attackRange;
+
+        GameObject pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        pit.transform.position = new Vector3(pitPosition.x, pitPosition.y, 0f);
+        pit.transform.localScale = new Vector3(range * 2f, 0.05f, range * 2f);
+        pit.GetComponent<Renderer>().material.color = new Color(0.5f, 0f, 0f, 0.5f);
+        Destroy(pit.GetComponent<Collider>());
+
         while (elapsed < manaSkillDuration)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth eh in allEnemies)
-                if (eh != null) eh.TakeDamage(damage, this);
+            {
+                if (eh == null) continue;
+                if (Vector2.Distance(eh.transform.position, pitPosition) <= range)
+                    eh.TakeDamage(damage, this);
+            }
             yield return new WaitForSeconds(interval);
             elapsed += interval;
         }
+        Destroy(pit);
     }
 
     IEnumerator ManaSkill_Tier5_2()
@@ -479,10 +504,17 @@ public class PlayerAttack : MonoBehaviour
         float originalDamage = appliedDamage;
         float originalCooldown = appliedCooldown;
         appliedDamage = appliedDamage * (manaSkillDamage / 100f);
-        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * (200f / 100f));
+        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f);
+
+        SPUM_Prefabs spum = GetComponentInChildren<SPUM_Prefabs>();
+        Animator anim = spum != null ? spum.GetComponent<Animator>() : null;
+        if (anim != null) anim.speed = 2f;
+
         yield return new WaitForSeconds(manaSkillDuration);
+
         appliedDamage = originalDamage;
         appliedCooldown = originalCooldown;
+        if (anim != null) anim.speed = 1f;
     }
 
     IEnumerator ManaSkill_Tier5_3()

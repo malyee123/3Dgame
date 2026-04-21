@@ -46,7 +46,8 @@ public class PassiveManager : MonoBehaviour
             int tier = unit.characterData.tier;
             float tierBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetTierPassiveBonus(tier) : 0f;
 
-            float doubleChance = 0f, twiceChance = 0f;
+            float doubleChance = 0f, doubleMultiplier = 2f;
+            float twiceChance = 0f, twiceCount = 2f;
             float selfSpeedChance = 0f, selfSpeedAmount = 0f, selfSpeedDuration = 0f;
             float selfDamageChance = 0f, selfDamageAmount = 0f, selfDamageDuration = 0f;
             float stunChance = 0f, stunDuration = 0f;
@@ -64,8 +65,8 @@ public class PassiveManager : MonoBehaviour
                 float val = entry.passiveValue + tierBonus;
                 switch (entry.passiveType)
                 {
-                    case PassiveType.DoubleDamageChance: doubleChance = val; break;
-                    case PassiveType.AttackTwiceChance: twiceChance = val; break;
+                    case PassiveType.DoubleDamageChance: doubleChance = val; doubleMultiplier = entry.passiveSecondValue > 0f ? entry.passiveSecondValue : 2f; break;
+                    case PassiveType.AttackTwiceChance: twiceChance = val; twiceCount = entry.passiveSecondValue > 0f ? entry.passiveSecondValue : 2f; break;
                     case PassiveType.SelfAttackSpeedUpChance: selfSpeedChance = val; selfSpeedAmount = entry.passiveSecondValue; selfSpeedDuration = entry.passiveDuration; break;
                     case PassiveType.SelfAttackDamageUpChance: selfDamageChance = val; selfDamageAmount = entry.passiveSecondValue; selfDamageDuration = entry.passiveDuration; break;
                     case PassiveType.StunChance: stunChance = val; stunDuration = entry.passiveDuration; break;
@@ -79,7 +80,10 @@ public class PassiveManager : MonoBehaviour
                     case PassiveType.ManaSkill: manaSkillDamage = entry.passiveValue; manaSkillDuration = entry.passiveSecondValue; manaSkillInterval = entry.passiveDuration; break;
                 }
             }
-            unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus, doubleChance, twiceChance,
+
+            unit.ApplyPassiveBonus(totalDamageBonus, totalSpeedBonus,
+                doubleChance, doubleMultiplier,
+                twiceChance, twiceCount,
                 selfSpeedChance, selfSpeedAmount, selfSpeedDuration,
                 selfDamageChance, selfDamageAmount, selfDamageDuration,
                 stunChance, stunDuration,
