@@ -469,21 +469,25 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    
     IEnumerator ManaSkill_Tier5_1()
     {
         if (currentTarget == null) yield break;
-        Vector3 pitPosition = currentTarget.transform.position;
-        float elapsed = 0f;
-        float damage = appliedDamage * (manaSkillDamage / 100f);
-        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f;
-        float range = characterData.attackRange;
 
+        Vector3 pitPosition = currentTarget.transform.position; 
+        float elapsed = 0f;
+        float damage = appliedDamage * (manaSkillDamage / 100f); 
+        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f; 
+        float range = characterData.attackRange; 
+
+        
         GameObject pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         pit.transform.position = new Vector3(pitPosition.x, pitPosition.y, 0f);
         pit.transform.localScale = new Vector3(range * 2f, 0.05f, range * 2f);
         pit.GetComponent<Renderer>().material.color = new Color(0.5f, 0f, 0f, 0.5f);
         Destroy(pit.GetComponent<Collider>());
 
+     
         while (elapsed < manaSkillDuration)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
@@ -496,40 +500,50 @@ public class PlayerAttack : MonoBehaviour
             yield return new WaitForSeconds(interval);
             elapsed += interval;
         }
-        Destroy(pit);
+
+        Destroy(pit); 
     }
 
     IEnumerator ManaSkill_Tier5_2()
     {
         float originalDamage = appliedDamage;
         float originalCooldown = appliedCooldown;
-        appliedDamage = appliedDamage * (manaSkillDamage / 100f);
-        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f);
 
+        appliedDamage = appliedDamage * (manaSkillDamage / 100f); 
+        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f); 
+
+       
         SPUM_Prefabs spum = GetComponentInChildren<SPUM_Prefabs>();
         Animator anim = spum != null ? spum.GetComponent<Animator>() : null;
         if (anim != null) anim.speed = 2f;
 
-        yield return new WaitForSeconds(manaSkillDuration);
+        yield return new WaitForSeconds(manaSkillDuration); 
 
+     
         appliedDamage = originalDamage;
         appliedCooldown = originalCooldown;
         if (anim != null) anim.speed = 1f;
     }
 
+    
     IEnumerator ManaSkill_Tier5_3()
     {
-        float damage = appliedDamage * (manaSkillDamage / 100f);
+        float damage = appliedDamage * (manaSkillDamage / 100f); 
+
         EnemyHealth bossTarget = null;
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+
         foreach (EnemyHealth eh in allEnemies)
             if (eh != null && eh.isBoss) { bossTarget = eh; break; }
+
         if (bossTarget == null)
             foreach (EnemyHealth eh in allEnemies)
                 if (eh != null) { bossTarget = eh; break; }
+
         if (bossTarget != null) bossTarget.TakeDamage(damage, this);
         yield break;
     }
+
 
     IEnumerator ManaSkill_Tier5_4()
     {

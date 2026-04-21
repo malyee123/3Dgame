@@ -15,7 +15,7 @@ MonoBehaviour:
   characterName: Tier5_1
   characterPrefab: {fileID: 2671750967421498512, guid: 8429de574bd4d4301b9b1e370a08950f, type: 3}
   characterSprite: {fileID: -1675273491431618826, guid: f17a36a30a6241e4c870877f5c8432ff, type: 3}
-  unitTag: Tier5
+  unitTag: Tier5_1
   characterColor: {r: 1, g: 1, b: 1, a: 1}
   attackRange: 1.5
   attackDamage: 26000
@@ -25,12 +25,18 @@ MonoBehaviour:
   upgradeCost: 500
   sellPrice: 1000
   attackAnimIndex: 1
+  projectilePrefab: {fileID: 0}
+  hitEffectPrefab: {fileID: 4425129568585013132, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
+  projectileSpeed: 5
+  hitEffectDuration: 0.3
+  hitEffectOffsetY: 0.5
+  maxMana: 30
   passives:
-  - passiveType: 1
-    passiveValue: 15
-    passiveSecondValue: 0
-    passiveDuration: 0
-  - passiveType: 6
-    passiveValue: 14
-    passiveSecondValue: 0
-    passiveDuration: 0
+  - passiveType: 17
+    passiveValue: 16
+    passiveSecondValue: 2200
+    passiveDuration: 1
+  - passiveType: 18
+    passiveValue: 300
+    passiveSecondValue: 3
+    passiveDuration: 0.1

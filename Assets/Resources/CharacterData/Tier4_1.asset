@@ -25,14 +25,16 @@ MonoBehaviour:
   upgradeCost: 400
   sellPrice: 500
   attackAnimIndex: 0
+  projectilePrefab: {fileID: 0}
+  hitEffectPrefab: {fileID: 4425129568585013132, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
+  projectileSpeed: 5
+  hitEffectDuration: 0.3
+  hitEffectOffsetY: 0.5
+  maxMana: 30
   passives:
   - passiveType: 6
-    passiveValue: 12
-    passiveSecondValue: 0
-    passiveDuration: 0
-  - passiveType: 2
-    passiveValue: 5
-    passiveSecondValue: 0
+    passiveValue: 16
+    passiveSecondValue: 5
     passiveDuration: 0
   - passiveType: 12
     passiveValue: 8
