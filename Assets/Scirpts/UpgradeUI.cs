@@ -1,12 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 public class UpgradeUI : MonoBehaviour
 {
+    [Header("Panel")]
+    public GameObject upgradePanel;
+    public GameObject tierPassivePanel;
+
+    [Header("Lobby Buttons")]
+    public GameObject upgradeButton;
+    public GameObject startButton;
+    public GameObject leftBuilding;
+    public GameObject rightBuilding;
+
     [Header("Skill Point UI")]
     public TextMeshProUGUI skillPointText;
+    public TextMeshProUGUI skillPointText2;
 
     [Header("Attack Damage UI")]
     public TextMeshProUGUI attackDamageLevelText;
@@ -33,7 +43,52 @@ public class UpgradeUI : MonoBehaviour
     public TextMeshProUGUI tierCostText;
     public Button tierUnlockButton;
 
-    void Start() => RefreshUI();
+    [Header("Tier Passive UI")]
+    public TextMeshProUGUI[] tierPassiveLevelTexts = new TextMeshProUGUI[5];
+    public TextMeshProUGUI[] tierPassiveCostTexts = new TextMeshProUGUI[5];
+    public Button[] tierPassiveButtons = new Button[5];
+
+    void Start()
+    {
+        if (upgradePanel != null) upgradePanel.SetActive(false);
+        if (tierPassivePanel != null) tierPassivePanel.SetActive(false);
+    }
+
+    void SetBuildingsActive(bool active)
+    {
+        if (leftBuilding != null) leftBuilding.SetActive(active);
+        if (rightBuilding != null) rightBuilding.SetActive(active);
+        if (upgradeButton != null) upgradeButton.SetActive(active);
+        if (startButton != null) startButton.SetActive(active);
+    }
+
+    public void OpenUpgradePanel()
+    {
+        if (upgradePanel != null) upgradePanel.SetActive(true);
+        if (tierPassivePanel != null) tierPassivePanel.SetActive(false);
+        SetBuildingsActive(false);
+        RefreshUI();
+    }
+
+    public void CloseUpgradePanel()
+    {
+        if (upgradePanel != null) upgradePanel.SetActive(false);
+        SetBuildingsActive(true);
+    }
+
+    public void OpenTierPassivePanel()
+    {
+        if (tierPassivePanel != null) tierPassivePanel.SetActive(true);
+        if (upgradePanel != null) upgradePanel.SetActive(false);
+        SetBuildingsActive(false);
+        RefreshUI();
+    }
+
+    public void CloseTierPassivePanel()
+    {
+        if (tierPassivePanel != null) tierPassivePanel.SetActive(false);
+        SetBuildingsActive(true);
+    }
 
     void RefreshUI()
     {
@@ -41,38 +96,53 @@ public class UpgradeUI : MonoBehaviour
         int sp = UpgradeManager.Instance.GetSkillPoints();
 
         if (skillPointText != null) skillPointText.text = $"Skill Points: {sp}";
+        if (skillPointText2 != null) skillPointText2.text = $"Skill Points: {sp}";
 
         UpdateSlot(attackDamageLevelText, attackDamageCostText, attackDamageButton,
             UpgradeManager.Instance.AttackDamageLevel,
             UpgradeManager.Instance.GetUpgradeCost("AttackDamage", UpgradeManager.Instance.AttackDamageLevel),
-            sp, $"+{UpgradeManager.Instance.GetAttackDamageMultiplier() * 100 - 100:F0}%");
+            sp, UpgradeManager.Instance.GetAttackDamageMultiplier());
 
         UpdateSlot(attackSpeedLevelText, attackSpeedCostText, attackSpeedButton,
             UpgradeManager.Instance.AttackSpeedLevel,
             UpgradeManager.Instance.GetUpgradeCost("AttackSpeed", UpgradeManager.Instance.AttackSpeedLevel),
-            sp, $"+{100 - UpgradeManager.Instance.GetAttackSpeedMultiplier() * 100:F0}%");
+            sp, UpgradeManager.Instance.GetAttackSpeedMultiplier());
 
         UpdateSlot(coinPerKillLevelText, coinPerKillCostText, coinPerKillButton,
             UpgradeManager.Instance.CoinPerKillLevel,
             UpgradeManager.Instance.GetUpgradeCost("CoinPerKill", UpgradeManager.Instance.CoinPerKillLevel),
-            sp, $"+{UpgradeManager.Instance.GetCoinPerKillBonus()}");
+            sp, UpgradeManager.Instance.GetCoinPerKillBonus());
 
         UpdateSlot(startingCoinLevelText, startingCoinCostText, startingCoinButton,
             UpgradeManager.Instance.StartingCoinLevel,
             UpgradeManager.Instance.GetUpgradeCost("StartingCoin", UpgradeManager.Instance.StartingCoinLevel),
-            sp, $"+{UpgradeManager.Instance.GetStartingCoinBonus()}");
+            sp, UpgradeManager.Instance.GetStartingCoinBonus());
 
         int currentTier = UpgradeManager.Instance.UnlockedTier;
         int[] tierCosts = UpgradeManager.Instance.tierUnlockCosts;
         bool tierMaxed = tierCosts == null || currentTier >= tierCosts.Length;
-        if (tierLevelText != null) tierLevelText.text = $"티어 해금  Lv.{currentTier}";
+        if (tierLevelText != null) tierLevelText.text = $"Tier Unlocked: {currentTier}";
         if (tierCostText != null) tierCostText.text = tierMaxed ? "MAX" : $"Cost: {tierCosts[currentTier - 1]}";
         if (tierUnlockButton != null) tierUnlockButton.interactable = !tierMaxed && sp >= (tierMaxed ? 0 : tierCosts[currentTier - 1]);
+
+        for (int i = 0; i < 5; i++)
+        {
+            int tier = i + 1;
+            int level = UpgradeManager.Instance.GetTierPassiveLevel(tier);
+            int cost = UpgradeManager.Instance.GetTierPassiveCost(tier);
+            float bonus = UpgradeManager.Instance.GetTierPassiveBonus(tier);
+            if (tierPassiveLevelTexts[i] != null)
+                tierPassiveLevelTexts[i].text = $"Tier{tier} Lv.{level} (+{bonus}%)";
+            if (tierPassiveCostTexts[i] != null)
+                tierPassiveCostTexts[i].text = $"Cost: {cost}";
+            if (tierPassiveButtons[i] != null)
+                tierPassiveButtons[i].interactable = sp >= cost;
+        }
     }
 
-    void UpdateSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int cost, int sp, string bonusText)
+    void UpdateSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int cost, int sp, float currentValue)
     {
-        if (levelText != null) levelText.text = $"Lv.{level}  ({bonusText})";
+        if (levelText != null) levelText.text = $"Lv.{level} ({currentValue})";
         if (costText != null) costText.text = $"Cost: {cost}";
         if (button != null) button.interactable = sp >= cost;
     }
@@ -82,5 +152,5 @@ public class UpgradeUI : MonoBehaviour
     public void OnClickCoinPerKill() { UpgradeManager.Instance.UpgradeCoinPerKill(); RefreshUI(); }
     public void OnClickStartingCoin() { UpgradeManager.Instance.UpgradeStartingCoin(); RefreshUI(); }
     public void OnClickTierUnlock() { UpgradeManager.Instance.UnlockNextTier(); RefreshUI(); }
-    public void OnClickClose() => SceneManager.LoadScene("LobbyScene");
+    public void OnClickTierPassive(int tier) { UpgradeManager.Instance.UpgradeTierPassive(tier); RefreshUI(); }
 }
