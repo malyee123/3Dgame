@@ -26,9 +26,10 @@ MonoBehaviour:
   sellPrice: 50
   attackAnimIndex: 0
   projectilePrefab: {fileID: 0}
-  hitEffectPrefab: {fileID: 4425129568585013132, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
-  projectileSpeed: 5
+  hitEffectPrefab: {fileID: 0}
+  projectileSpeed: 12
   hitEffectDuration: 0.3
-  hitEffectOffsetY: 0.5
+  hitEffectOffsetY: 0.3
   maxMana: 30
   passives: []
+  manaSkillEffectPrefab: {fileID: 0}

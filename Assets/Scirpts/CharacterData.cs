@@ -76,4 +76,8 @@ public class CharacterData : ScriptableObject
 
     [Header("Passives")]
     public List<PassiveEntry> passives = new List<PassiveEntry>();
+
+    [Header("Mana Skill Effect")]
+    public GameObject manaSkillEffectPrefab;
+
 }

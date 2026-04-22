@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: bbeeb0ddc21369746aaaae5c5c1c09cf
+guid: 7de97151f1fa2bd48bb3bb8d475a8263
 PrefabImporter:
   externalObjects: {}
   userData: 
@@ -10,5 +10,6 @@ AssetOrigin:
   productId: 109565
   packageName: Cartoon FX Remaster Free
   packageVersion: R 1.5.0
-  assetPath: Assets/Prefabs/CFXR2 Poison Cloud.prefab
+  assetPath: Assets/JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Explosions/CFXR Explosion
+    1.prefab
   uploadId: 836238
