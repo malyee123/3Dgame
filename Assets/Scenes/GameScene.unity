@@ -4114,12 +4114,13 @@ MonoBehaviour:
   recipePanel: {fileID: 2026453284}
   recipeListParent: {fileID: 922378102}
   recipeItemPrefab: {fileID: 2842714020043398457, guid: 32b1b402a6536834c9c5ae8c4225a3f2, type: 3}
+  recipeScrollRect: {fileID: 1649775877}
   notificationBadge: {fileID: 982415365}
   spawnButton: {fileID: 1300881647}
   mergeButton: {fileID: 1131088678}
   recipeBookButton: {fileID: 407315896}
-  notificationDisplayTime: 3
   specialSpawnButton: {fileID: 1865814871}
+  notificationDisplayTime: 3
 --- !u!4 &1047692171
 Transform:
   m_ObjectHideFlags: 0

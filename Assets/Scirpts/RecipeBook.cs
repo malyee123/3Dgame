@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 public class RecipeBook : MonoBehaviour
 {
@@ -14,6 +13,7 @@ public class RecipeBook : MonoBehaviour
     public GameObject recipePanel;
     public Transform recipeListParent;
     public GameObject recipeItemPrefab;
+    public ScrollRect recipeScrollRect;
 
     [Header("UI - Notification")]
     public GameObject notificationBadge;
@@ -22,6 +22,7 @@ public class RecipeBook : MonoBehaviour
     public GameObject spawnButton;
     public GameObject mergeButton;
     public GameObject recipeBookButton;
+    public GameObject specialSpawnButton;
 
     [Header("Notification Settings")]
     public float notificationDisplayTime = 3f;
@@ -36,16 +37,14 @@ public class RecipeBook : MonoBehaviour
     private bool isNotificationShowing = false;
     private bool wasCraftable = false;
     private bool notificationShownThisCycle = false;
-    public GameObject specialSpawnButton;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-
         RecipeData[] loaded = Resources.LoadAll<RecipeData>("RecipeData");
-        if (loaded != null && loaded.Length > 0)
-            recipes = loaded;
-    }   
+        if (loaded != null && loaded.Length > 0) recipes = loaded;
+    }
 
     void Start()
     {
@@ -219,27 +218,12 @@ public class RecipeBook : MonoBehaviour
         int targetSlot = -1;
         int minCount = int.MaxValue;
         foreach (var kv in slotGroups)
-        {
             if (kv.Value.Count < minCount) { minCount = kv.Value.Count; targetSlot = kv.Key; }
-        }
         if (targetSlot < 0) return;
         PlayerAttack target = slotGroups[targetSlot][slotGroups[targetSlot].Count - 1];
         excludeList.Add(target);
         if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.UnregisterUnit(target, targetSlot);
         RebuildSlotLeader(targetSlot, excludeList);
-    }
-
-    int GetSlotCount(int spawnIndex, List<PlayerAttack> excludeList = null)
-    {
-        int count = 0;
-        PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        foreach (PlayerAttack p in players)
-        {
-            if (p == null) continue;
-            if (excludeList != null && excludeList.Contains(p)) continue;
-            if (p.spawnIndex == spawnIndex) count++;
-        }
-        return count;
     }
 
     void RebuildSlotLeader(int slotIndex, List<PlayerAttack> excludeList)
@@ -283,6 +267,7 @@ public class RecipeBook : MonoBehaviour
             notificationShownThisCycle = true;
             if (notificationBadge != null) notificationBadge.SetActive(false);
             RefreshRecipeStates();
+            if (recipeScrollRect != null) recipeScrollRect.verticalNormalizedPosition = 1f;
         }
     }
 
