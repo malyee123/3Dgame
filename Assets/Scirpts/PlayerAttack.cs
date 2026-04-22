@@ -469,27 +469,25 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-
+    
     IEnumerator ManaSkill_Tier5_1()
     {
         if (currentTarget == null) yield break;
 
-        Vector3 pitPosition = currentTarget.transform.position;
+        Vector3 pitPosition = currentTarget.transform.position; 
         float elapsed = 0f;
-        float damage = appliedDamage * (manaSkillDamage / 100f);
-        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f;
-        float range = characterData.attackRange;
+        float damage = appliedDamage * (manaSkillDamage / 100f); 
+        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f; 
+        float range = characterData.attackRange; 
 
-        GameObject pit = characterData.manaSkillEffectPrefab != null
-            ? Instantiate(characterData.manaSkillEffectPrefab, new Vector3(pitPosition.x, pitPosition.y, 0f), Quaternion.identity)
-            : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        
+        GameObject pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        pit.transform.position = new Vector3(pitPosition.x, pitPosition.y, 0f);
+        pit.transform.localScale = new Vector3(range * 2f, 0.05f, range * 2f);
+        pit.GetComponent<Renderer>().material.color = new Color(0.5f, 0f, 0f, 0.5f);
+        Destroy(pit.GetComponent<Collider>());
 
-        if (pit != null)
-        {
-            pit.transform.position = new Vector3(pitPosition.x, pitPosition.y, 0f);
-            pit.transform.localScale = new Vector3(range * 2f, range * 2f, 1f);
-        }
-
+     
         while (elapsed < manaSkillDuration)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
@@ -503,7 +501,7 @@ public class PlayerAttack : MonoBehaviour
             elapsed += interval;
         }
 
-        if (pit != null) Destroy(pit);
+        Destroy(pit); 
     }
 
     IEnumerator ManaSkill_Tier5_2()
