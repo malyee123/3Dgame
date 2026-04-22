@@ -35,9 +35,9 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        Vector3 moveTarget = target != null ? target.position : lastTargetPos;
         if (target != null) lastTargetPos = target.position;
 
+        Vector3 moveTarget = lastTargetPos;
         Vector3 dir = (moveTarget - transform.position).normalized;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
@@ -52,11 +52,10 @@ public class Projectile : MonoBehaviour
             }
             if (hitEffectPrefab != null)
             {
-                Vector3 effectPos = moveTarget + Vector3.up * hitEffectOffsetY;
-                GameObject effect = Instantiate(hitEffectPrefab, effectPos, Quaternion.identity);
-                if (target != null) effect.transform.SetParent(target);
-                Destroy(effect, hitEffectDuration);
+                Vector3 effectPos = lastTargetPos + Vector3.up * hitEffectOffsetY;
+                Instantiate(hitEffectPrefab, effectPos, Quaternion.identity);
             }
+
             Destroy(gameObject);
         }
     }

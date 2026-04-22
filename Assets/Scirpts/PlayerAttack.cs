@@ -423,10 +423,10 @@ public class PlayerAttack : MonoBehaviour
     {
         yield return new WaitForSeconds(characterData.attackHitDelay);
         if (target == null) yield break;
+        Vector3 targetPos = target.transform.position;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
-        if (health == null) yield break;
-        health.TakeDamage(damage, this);
-        SpawnHitEffect(target.transform.position, target.transform);
+        if (health != null) health.TakeDamage(damage, this);
+        SpawnHitEffect(targetPos, null);
         if (remainMultiAttack > 0)
             StartCoroutine(MultiAttackRoutine(remainMultiAttack));
     }
