@@ -73,6 +73,8 @@ public class CharacterData : ScriptableObject
 
     [Header("Mana")]
     public float maxMana = 30f;
+    [Header("Mana Skill Effect")]
+    public GameObject manaSkillEffectPrefab;
 
     [Header("Passives")]
     public List<PassiveEntry> passives = new List<PassiveEntry>();

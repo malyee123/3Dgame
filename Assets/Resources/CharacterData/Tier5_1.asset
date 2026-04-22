@@ -31,6 +31,7 @@ MonoBehaviour:
   hitEffectDuration: 0.3
   hitEffectOffsetY: 0.3
   maxMana: 30
+  manaSkillEffectPrefab: {fileID: 8172849020266659018, guid: 2af5562ce69fc2d448481a1587a352a5, type: 3}
   passives:
   - passiveType: 17
     passiveValue: 16
