@@ -55,14 +55,13 @@ public class PlayerAttack : MonoBehaviour
     private bool isAllySpeedBoosted = false;
     private bool isDragging = false;
     private SPUM_Prefabs spumPrefabs;
-
     private int hitCounter = 0;
     private const int gridWidth = 5;
-
     private List<PlayerAttack> cachedSlotMates = new List<PlayerAttack>();
     private bool slotMatesDirty = true;
 
     public string UnitType => characterData != null ? characterData.characterName : "";
+    public EnemyMove GetCurrentTarget() => currentTarget;
 
     void Start()
     {
@@ -469,39 +468,54 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-
     IEnumerator ManaSkill_Tier5_1()
     {
-        EnemyMove target = currentTarget;
-        if (target == null) yield break;
+        // 슬롯에 있는 모든 Tier5_1 리더 유닛 수집
+        List<PlayerAttack> tier5Leaders = new List<PlayerAttack>();
+        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        foreach (PlayerAttack unit in allUnits)
+            if (unit != null && unit.characterData != null &&
+                unit.characterData.characterName == "Tier5_1" && unit.isLeader)
+                tier5Leaders.Add(unit);
 
-        Vector3 pitPosition = target.transform.position;
+        foreach (PlayerAttack leader in tier5Leaders)
+            StartCoroutine(SpawnPitForUnit(leader));
+
+        yield break;
+    }
+
+    IEnumerator SpawnPitForUnit(PlayerAttack unit)
+    {
+        // 타겟 없으면 사거리 내 적 탐색
+        EnemyMove target = unit.GetCurrentTarget();
+        if (target == null) target = unit.FindBackmostEnemyInRange();
+
+        // 타겟 위치 미리 저장 (죽어도 그 위치에 생성)
+        Vector3 pitPosition = target != null ? target.transform.position : unit.transform.position;
+
         float elapsed = 0f;
-        float damage = appliedDamage * (manaSkillDamage / 100f);
-        float interval = manaSkillInterval > 0f ? manaSkillInterval : 0.1f;
-        float range = characterData.attackRange;
+        float damage = unit.appliedDamage * (unit.manaSkillDamage / 100f);
+        float interval = unit.manaSkillInterval > 0f ? unit.manaSkillInterval : 0.1f;
+        float range = unit.characterData.attackRange;
 
         GameObject pit = null;
-        if (characterData.manaSkillEffectPrefab != null)
-            pit = Instantiate(characterData.manaSkillEffectPrefab, new Vector3(pitPosition.x, 1.9f, 0f), Quaternion.identity);
+        if (unit.characterData.manaSkillEffectPrefab != null)
+            pit = Instantiate(unit.characterData.manaSkillEffectPrefab, pitPosition, Quaternion.identity);
         else
         {
             pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            pit.transform.position = new Vector3(pitPosition.x, pitPosition.y, 0f);
+            pit.transform.position = pitPosition;
             pit.transform.localScale = new Vector3(range * 2f, 0.05f, range * 2f);
             pit.GetComponent<Renderer>().material.color = new Color(0.5f, 0f, 0f, 0.5f);
             Destroy(pit.GetComponent<Collider>());
         }
 
-        while (elapsed < manaSkillDuration)
+        while (elapsed < unit.manaSkillDuration)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth eh in allEnemies)
-            {
-                if (eh == null) continue;
-                if (Vector2.Distance(eh.transform.position, pitPosition) <= range)
-                    eh.TakeDamage(damage, this);
-            }
+                if (eh != null && Vector2.Distance(eh.transform.position, pitPosition) <= range)
+                    eh.TakeDamage(damage, unit);
             yield return new WaitForSeconds(interval);
             elapsed += interval;
         }
@@ -513,42 +527,33 @@ public class PlayerAttack : MonoBehaviour
     {
         float originalDamage = appliedDamage;
         float originalCooldown = appliedCooldown;
+        appliedDamage = appliedDamage * (manaSkillDamage / 100f);
+        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f);
 
-        appliedDamage = appliedDamage * (manaSkillDamage / 100f); 
-        appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f); 
-
-       
         SPUM_Prefabs spum = GetComponentInChildren<SPUM_Prefabs>();
         Animator anim = spum != null ? spum.GetComponent<Animator>() : null;
         if (anim != null) anim.speed = 2f;
 
-        yield return new WaitForSeconds(manaSkillDuration); 
+        yield return new WaitForSeconds(manaSkillDuration);
 
-     
         appliedDamage = originalDamage;
         appliedCooldown = originalCooldown;
         if (anim != null) anim.speed = 1f;
     }
 
-    
     IEnumerator ManaSkill_Tier5_3()
     {
-        float damage = appliedDamage * (manaSkillDamage / 100f); 
-
+        float damage = appliedDamage * (manaSkillDamage / 100f);
         EnemyHealth bossTarget = null;
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
-
         foreach (EnemyHealth eh in allEnemies)
             if (eh != null && eh.isBoss) { bossTarget = eh; break; }
-
         if (bossTarget == null)
             foreach (EnemyHealth eh in allEnemies)
                 if (eh != null) { bossTarget = eh; break; }
-
         if (bossTarget != null) bossTarget.TakeDamage(damage, this);
         yield break;
     }
-
 
     IEnumerator ManaSkill_Tier5_4()
     {
@@ -559,7 +564,7 @@ public class PlayerAttack : MonoBehaviour
         yield break;
     }
 
-    EnemyMove FindBackmostEnemyInRange()
+    public EnemyMove FindBackmostEnemyInRange()
     {
         EnemyMove[] enemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         EnemyMove backmostEnemy = null;
