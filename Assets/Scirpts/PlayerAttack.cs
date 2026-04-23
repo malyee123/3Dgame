@@ -81,6 +81,14 @@ public class PlayerAttack : MonoBehaviour
         appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f));
     }
 
+    public void ApplyAugmentBonus(float damageBonus, float speedBonus)
+    {
+        float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
+        float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
+        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + damageBonus / 100f);
+        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - speedBonus / 100f));
+    }
+
     public void ApplyPassiveBonus(float damageBonus, float speedBonus,
         float doubleChance, float doubleMultiplier,
         float twiceChance, float twiceCount,

@@ -90,12 +90,16 @@ public class GameManager : MonoBehaviour
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
 
         int stageEndRound = CSVLoader.Instance != null ? CSVLoader.Instance.GetStageEndRound(currentStage) : 50;
-        if (currentRound >= stageEndRound)
-        {
-            StageClear();
-            return;
-        }
+        if (currentRound >= stageEndRound) { StageClear(); return; }
 
+        if (AugmentUI.Instance != null)
+            AugmentUI.Instance.ShowAugments();
+        else
+            roundTimeLeft = 0f;
+    }
+
+    public void OnAugmentSelected()
+    {
         roundTimeLeft = 0f;
     }
 
@@ -103,8 +107,7 @@ public class GameManager : MonoBehaviour
     {
         isGameOver = true;
         int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
-        if (currentStage >= unlockedStage)
-            PlayerPrefs.SetInt("UnlockedStage", currentStage + 1);
+        if (currentStage >= unlockedStage) PlayerPrefs.SetInt("UnlockedStage", currentStage + 1);
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
@@ -124,11 +127,7 @@ public class GameManager : MonoBehaviour
 
     void NextRound()
     {
-        if (isBossWave && BossManager.Instance != null && BossManager.Instance.IsBossAlive())
-        {
-            GameOver();
-            return;
-        }
+        if (isBossWave && BossManager.Instance != null && BossManager.Instance.IsBossAlive()) { GameOver(); return; }
 
         isBossWave = false;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();

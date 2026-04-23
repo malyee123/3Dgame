@@ -14,6 +14,7 @@ public class CoinManager : MonoBehaviour
     public TextMeshProUGUI coinText;
 
     private int currentCoins;
+    public int augmentCoinBonus = 0;
 
     void Awake()
     {
@@ -31,9 +32,10 @@ public class CoinManager : MonoBehaviour
     public void AddCoins(int amount, bool applyKillBonus = false)
     {
         int bonus = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
-        currentCoins += amount + bonus;
+        int augBonus = applyKillBonus ? augmentCoinBonus : 0;
+        currentCoins += amount + bonus + augBonus;
         UpdateCoinUI();
-        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
+        MergeManager.Instance?.CheckMergeAvailable();
     }
 
     public bool SpendCoins(int amount)
@@ -41,7 +43,7 @@ public class CoinManager : MonoBehaviour
         if (currentCoins < amount) return false;
         currentCoins -= amount;
         UpdateCoinUI();
-        if (MergeManager.Instance != null) MergeManager.Instance.CheckMergeAvailable();
+        MergeManager.Instance?.CheckMergeAvailable();
         return true;
     }
 
