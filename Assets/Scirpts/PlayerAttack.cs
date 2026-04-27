@@ -50,6 +50,14 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float manaSkillDuration;
     [SerializeField] private float manaSkillInterval;
 
+    public float appliedDamagePublic => appliedDamage;
+    public float manaSkillDamagePublic => manaSkillDamage;
+    public float manaSkillDurationPublic => manaSkillDuration;
+    public float manaSkillIntervalPublic => manaSkillInterval;
+
+    private float augmentDamageBonus = 0f;
+    private float augmentSpeedBonus = 0f;
+
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
     private bool isAllySpeedBoosted = false;
@@ -77,17 +85,18 @@ public class PlayerAttack : MonoBehaviour
     {
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
-        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f);
-        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f));
+        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f);
+        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - augmentSpeedBonus / 100f));
     }
 
     public void ApplyAugmentBonus(float damageBonus, float speedBonus)
     {
-        float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
-        float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
-        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + damageBonus / 100f);
-        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - speedBonus / 100f));
+        augmentDamageBonus += damageBonus;
+        augmentSpeedBonus += speedBonus;
+        ApplyUpgradeStats();
     }
+
+    public void RefreshAugmentState() => ApplyUpgradeStats();
 
     public void ApplyPassiveBonus(float damageBonus, float speedBonus,
         float doubleChance, float doubleMultiplier,
@@ -192,7 +201,8 @@ public class PlayerAttack : MonoBehaviour
             areaSpeedDownChance = areaSpeedDownAmount = areaSpeedDownDuration =
             magicMissileChance = magicMissileDamagePercent =
             slamChance = slamDamagePercent = slamRange =
-            manaSkillDamage = manaSkillDuration = manaSkillInterval = 0f;
+            manaSkillDamage = manaSkillDuration = manaSkillInterval =
+            augmentDamageBonus = augmentSpeedBonus = 0f;
         bossDamageDouble = false;
         hitCounter = 0;
         ApplyUpgradeStats();
@@ -252,8 +262,7 @@ public class PlayerAttack : MonoBehaviour
 
     void AttackWithLockedTarget()
     {
-        if (!IsTargetInRange(currentTarget))
-            currentTarget = FindBackmostEnemyInRange();
+        if (!IsTargetInRange(currentTarget)) currentTarget = FindBackmostEnemyInRange();
         if (currentTarget == null) return;
 
         EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
@@ -263,13 +272,28 @@ public class PlayerAttack : MonoBehaviour
 
         int slotCount = GetSlotUnitCount();
         float finalDamage = appliedDamage * slotCount;
+
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
             finalDamage *= doubleDamageMultiplier;
-        if (bossDamageDouble && health.isBoss)
+        if (bossDamageDouble && health.isBoss) finalDamage *= 2f;
+        if (health.isSpecial && AugmentManager.Instance != null && AugmentManager.Instance.HasGiantSlayer)
             finalDamage *= 2f;
+        if (characterData.tier >= 5 && AugmentManager.Instance != null && AugmentManager.Instance.HasTheBigOne)
+            if (Random.Range(0f, 100f) < 10f) finalDamage *= 5f;
 
-        bool slamFired = slamChance > 0f && Random.Range(0f, 100f) < slamChance;
-        bool missileFired = magicMissileChance > 0f && Random.Range(0f, 100f) < magicMissileChance;
+        float twinsChaosMultiplier = 1f;
+        if (characterData.tier >= 5 && AugmentManager.Instance != null && AugmentManager.Instance.HasTwinsOfChaos)
+        {
+            int sameCount = 0;
+            PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+            foreach (PlayerAttack unit in allUnits)
+                if (unit != null && unit.characterData != null && unit.characterData.characterName == characterData.characterName)
+                    sameCount++;
+            if (sameCount >= 2) twinsChaosMultiplier = 2f;
+        }
+
+        bool slamFired = slamChance > 0f && Random.Range(0f, 100f) < slamChance * twinsChaosMultiplier;
+        bool missileFired = magicMissileChance > 0f && Random.Range(0f, 100f) < magicMissileChance * twinsChaosMultiplier;
 
         if (!slamFired && !missileFired)
         {
@@ -279,37 +303,25 @@ public class PlayerAttack : MonoBehaviour
                 StartCoroutine(DealDamageWithDelay(currentTarget, finalDamage, 0));
         }
 
-        if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance)
+        if (attackTwiceChance > 0f && Random.Range(0f, 100f) < attackTwiceChance * twinsChaosMultiplier)
             StartCoroutine(MultiAttackRoutine((int)attackTwiceCount - 1));
-
-        if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance)
+        if (selfSpeedUpChance > 0f && !isSelfSpeedBoosted && Random.Range(0f, 100f) < selfSpeedUpChance * twinsChaosMultiplier)
             StartCoroutine(SelfSpeedBoostRoutine());
-
-        if (selfDamageUpChance > 0f && !isSelfDamageBoosted && Random.Range(0f, 100f) < selfDamageUpChance)
+        if (selfDamageUpChance > 0f && !isSelfDamageBoosted && Random.Range(0f, 100f) < selfDamageUpChance * twinsChaosMultiplier)
             StartCoroutine(SelfDamageBoostRoutine());
-
-        if (stunChance > 0f && Random.Range(0f, 100f) < stunChance)
+        if (stunChance > 0f && Random.Range(0f, 100f) < stunChance * twinsChaosMultiplier)
             currentTarget.ApplyStun(stunDuration);
-
-        if (executeChance > 0f && Random.Range(0f, 100f) < executeChance)
+        if (executeChance > 0f && Random.Range(0f, 100f) < executeChance * twinsChaosMultiplier)
             StartCoroutine(ExecuteCheckRoutine(currentTarget));
-
-        if (buffAllyChance > 0f && Random.Range(0f, 100f) < buffAllyChance)
+        if (buffAllyChance > 0f && Random.Range(0f, 100f) < buffAllyChance * twinsChaosMultiplier)
             BuffNearbyAllies();
-
         if (aoeStunEveryN > 0f)
         {
             hitCounter++;
-            if (hitCounter >= (int)aoeStunEveryN)
-            {
-                hitCounter = 0;
-                StartCoroutine(AoeStunRoutine(currentTarget));
-            }
+            if (hitCounter >= (int)aoeStunEveryN) { hitCounter = 0; StartCoroutine(AoeStunRoutine(currentTarget)); }
         }
-
-        if (areaSpeedDownChance > 0f && Random.Range(0f, 100f) < areaSpeedDownChance)
+        if (areaSpeedDownChance > 0f && Random.Range(0f, 100f) < areaSpeedDownChance * twinsChaosMultiplier)
             StartCoroutine(AreaSpeedDownRoutine());
-
         if (slamFired) StartCoroutine(SlamRoutine(currentTarget));
         if (missileFired) StartCoroutine(MagicMissileRoutine());
 
@@ -349,8 +361,7 @@ public class PlayerAttack : MonoBehaviour
             if (eh == null) continue;
             float dx = Mathf.Abs(eh.transform.position.x - targetPos.x);
             float dy = Mathf.Abs(eh.transform.position.y - targetPos.y);
-            if (dx <= slamRange && dy <= slamRange)
-                eh.TakeDamage(damage, this);
+            if (dx <= slamRange && dy <= slamRange) eh.TakeDamage(damage, this);
         }
     }
 
@@ -413,17 +424,8 @@ public class PlayerAttack : MonoBehaviour
         if (target == null) yield break;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;
-        if (health.isSpecial)
-        {
-            if (executeBossDamagePercent > 0f)
-                health.TakePercentDamage(executeBossDamagePercent, this);
-        }
-        else
-        {
-            float hpPercent = health.CurrentHp / health.MaxHp * 100f;
-            if (hpPercent < executeHpThreshold)
-                health.ExecuteKill();
-        }
+        if (health.isSpecial) { if (executeBossDamagePercent > 0f) health.TakePercentDamage(executeBossDamagePercent, this); }
+        else { if (health.CurrentHp / health.MaxHp * 100f < executeHpThreshold) health.ExecuteKill(); }
     }
 
     IEnumerator DealDamageWithDelay(EnemyMove target, float damage, int remainMultiAttack)
@@ -434,8 +436,7 @@ public class PlayerAttack : MonoBehaviour
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health != null) health.TakeDamage(damage, this);
         SpawnHitEffect(targetPos, null);
-        if (remainMultiAttack > 0)
-            StartCoroutine(MultiAttackRoutine(remainMultiAttack));
+        if (remainMultiAttack > 0) StartCoroutine(MultiAttackRoutine(remainMultiAttack));
     }
 
     IEnumerator SelfSpeedBoostRoutine()
@@ -452,7 +453,7 @@ public class PlayerAttack : MonoBehaviour
     {
         isSelfDamageBoosted = true;
         float original = appliedDamage;
-        appliedDamage = appliedDamage * (1f + selfDamageUpAmount / 100f);
+        appliedDamage *= (1f + selfDamageUpAmount / 100f);
         yield return new WaitForSeconds(selfDamageUpDuration);
         appliedDamage = original;
         isSelfDamageBoosted = false;
@@ -478,7 +479,6 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_1()
     {
-        // 슬롯에 있는 모든 Tier5_1 리더 유닛 수집
         List<PlayerAttack> tier5Leaders = new List<PlayerAttack>();
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
@@ -487,28 +487,31 @@ public class PlayerAttack : MonoBehaviour
                 tier5Leaders.Add(unit);
 
         foreach (PlayerAttack leader in tier5Leaders)
-            StartCoroutine(SpawnPitForUnit(leader));
-
+        {
+            EnemyMove target = leader.GetCurrentTarget();
+            if (target == null) target = leader.FindBackmostEnemyInRange();
+            if (target == null) continue;
+            Vector3 pitPosition = new Vector3(target.transform.position.x, target.transform.position.y - 0.3f, 0f);
+            StartCoroutine(SpawnPitForUnit(leader, pitPosition));
+        }
         yield break;
     }
 
-    IEnumerator SpawnPitForUnit(PlayerAttack unit)
+    IEnumerator SpawnPitForUnit(PlayerAttack unit, Vector3 pitPosition)
     {
-        // 타겟 없으면 사거리 내 적 탐색
-        EnemyMove target = unit.GetCurrentTarget();
-        if (target == null) target = unit.FindBackmostEnemyInRange();
-
-        // 타겟 위치 미리 저장 (죽어도 그 위치에 생성)
-        Vector3 pitPosition = target != null ? target.transform.position : unit.transform.position;
-
         float elapsed = 0f;
-        float damage = unit.appliedDamage * (unit.manaSkillDamage / 100f);
-        float interval = unit.manaSkillInterval > 0f ? unit.manaSkillInterval : 0.1f;
+        float damage = unit.appliedDamagePublic * (unit.manaSkillDamagePublic / 100f);
+        float interval = unit.manaSkillIntervalPublic > 0f ? unit.manaSkillIntervalPublic : 0.1f;
         float range = unit.characterData.attackRange;
+
+        float borderThreshold = 4.5f;
+        Quaternion rotation = Mathf.Abs(pitPosition.x) >= borderThreshold
+            ? Quaternion.Euler(0f, 0f, 270f)
+            : Quaternion.identity;
 
         GameObject pit = null;
         if (unit.characterData.manaSkillEffectPrefab != null)
-            pit = Instantiate(unit.characterData.manaSkillEffectPrefab, pitPosition, Quaternion.identity);
+            pit = Instantiate(unit.characterData.manaSkillEffectPrefab, pitPosition, rotation);
         else
         {
             pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -518,7 +521,7 @@ public class PlayerAttack : MonoBehaviour
             Destroy(pit.GetComponent<Collider>());
         }
 
-        while (elapsed < unit.manaSkillDuration)
+        while (elapsed < unit.manaSkillDurationPublic)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth eh in allEnemies)
@@ -537,13 +540,10 @@ public class PlayerAttack : MonoBehaviour
         float originalCooldown = appliedCooldown;
         appliedDamage = appliedDamage * (manaSkillDamage / 100f);
         appliedCooldown = Mathf.Max(0.1f, appliedCooldown * 0.5f);
-
         SPUM_Prefabs spum = GetComponentInChildren<SPUM_Prefabs>();
         Animator anim = spum != null ? spum.GetComponent<Animator>() : null;
         if (anim != null) anim.speed = 2f;
-
         yield return new WaitForSeconds(manaSkillDuration);
-
         appliedDamage = originalDamage;
         appliedCooldown = originalCooldown;
         if (anim != null) anim.speed = 1f;

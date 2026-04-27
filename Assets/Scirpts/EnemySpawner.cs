@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
+    public static EnemySpawner Instance { get; private set; }
+
     [Header("Enemy Settings")]
     public GameObject enemyPrefab;
 
@@ -18,6 +20,14 @@ public class EnemySpawner : MonoBehaviour
     private float currentEnemyDefense = 0f;
     private Coroutine spawnCoroutine;
     private bool isPaused = false;
+
+    [HideInInspector] public float armorBreakerMultiplier = 1f;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+    }
 
     void Start()
     {
@@ -70,7 +80,11 @@ public class EnemySpawner : MonoBehaviour
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = currentEnemySpeed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null) enemyHealth.Init(currentEnemyHp, currentEnemyDefense);
-        if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
+        if (enemyHealth != null)
+        {
+            float defense = currentEnemyDefense * armorBreakerMultiplier;
+            enemyHealth.Init(currentEnemyHp, defense);
+        }
+        GameManager.Instance?.OnEnemySpawned();
     }
 }

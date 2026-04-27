@@ -37,6 +37,10 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Aura Settings")]
     public GameObject[] auraPrefabs;
 
+    // 증강 관련 배율
+    [HideInInspector] public float sellPriceMultiplier = 1f;
+    [HideInInspector] public float luckyDayMultiplier = 1f;
+
     private GameObject[] slotAuras;
     private int[] slotAuraTiers;
     private int[] slotOccupancy;
@@ -112,6 +116,25 @@ public class PlayerSpawner : MonoBehaviour
         SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
+    // 증강: 희귀 유닛 N명 소환 (Teamwork)
+    public void SpawnRareUnits(int count)
+    {
+        List<CharacterData> rareList = new List<CharacterData>();
+        foreach (CharacterData data in characterDataList)
+            if (data != null && data.tier == 3) rareList.Add(data);
+        if (rareList.Count == 0) return;
+
+        for (int i = 0; i < count; i++)
+        {
+            SyncSlotStateFromScene();
+            if (!HasAvailableSlot()) break;
+            CharacterData selected = rareList[Random.Range(0, rareList.Count)];
+            string unitTag = GetUnitTag(selected);
+            if (!TryGetSpawnSlot(unitTag, selected.tier, out int spawnIndex)) break;
+            SpawnPlayer(spawnIndex, selected, unitTag);
+        }
+    }
+
     bool HasAvailableSlot()
     {
         for (int i = 0; i < slotOccupancy.Length; i++)
@@ -136,21 +159,29 @@ public class PlayerSpawner : MonoBehaviour
             tierMap[tier].Add(data);
         }
 
+        // 운빨 좋은 날 증강 적용
+        float[] weights = (float[])specialTierSpawnWeights.Clone();
+        if (AugmentManager.Instance != null && AugmentManager.Instance.HasLuckyDay)
+        {
+            for (int i = 1; i < weights.Length; i++)
+                weights[i] *= luckyDayMultiplier;
+        }
+
         float totalWeight = 0f;
-        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
+        for (int i = 0; i < weights.Length; i++)
         {
             int tier = specialSpawnMinTier + i;
-            if (tierMap.ContainsKey(tier)) totalWeight += specialTierSpawnWeights[i];
+            if (tierMap.ContainsKey(tier)) totalWeight += weights[i];
         }
         if (totalWeight <= 0f) return null;
 
         float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
-        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
+        for (int i = 0; i < weights.Length; i++)
         {
             int tier = specialSpawnMinTier + i;
             if (!tierMap.ContainsKey(tier)) continue;
-            cumulative += specialTierSpawnWeights[i];
+            cumulative += weights[i];
             if (rand <= cumulative)
                 return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
         }

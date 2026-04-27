@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static System.Net.Mime.MediaTypeNames;
@@ -49,11 +48,7 @@ public class ManaManager : MonoBehaviour
     {
         if (GameManager.Instance != null && GameManager.Instance.IsWarning) return;
         manaTimer += Time.deltaTime;
-        if (manaTimer >= 1f)
-        {
-            manaTimer = 0f;
-            ChargeMana();
-        }
+        if (manaTimer >= 1f) { manaTimer = 0f; ChargeMana(); }
         UpdateAllUI();
     }
 
@@ -82,13 +77,28 @@ public class ManaManager : MonoBehaviour
 
     void UpdateAllUI()
     {
+        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+
         for (int i = 0; i < manaSlots.Length; i++)
         {
             ManaSlot slot = manaSlots[i];
             bool isFull = slot.currentMana >= slot.maxMana;
+
+            bool hasTargetInRange = false;
+            foreach (PlayerAttack unit in allUnits)
+            {
+                if (unit == null || unit.characterData == null) continue;
+                if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+                {
+                    if (unit.GetCurrentTarget() != null || unit.FindBackmostEnemyInRange() != null)
+                        hasTargetInRange = true;
+                    break;
+                }
+            }
+
             if (slot.skillButton != null)
             {
-                slot.skillButton.interactable = isFull;
+                slot.skillButton.interactable = isFull && hasTargetInRange;
                 slot.skillButton.gameObject.SetActive(slot.isCharging);
             }
             if (slot.fillImage != null)
@@ -101,26 +111,26 @@ public class ManaManager : MonoBehaviour
         ManaSlot slot = manaSlots[index];
         if (slot.currentMana < slot.maxMana) return;
 
-        // 스킬 발동
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        PlayerAttack leader = null;
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
-            if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+            if (unit.characterData.characterName == slot.characterName)
             {
-                unit.ActivateManaSkill();
-                break;
+                if (leader == null) leader = unit;
+                if (unit.isLeader) { leader = unit; break; }
             }
         }
 
+        if (leader != null) leader.ActivateManaSkill();
         slot.currentMana = 0f;
         UpdateAllUI();
     }
 
     public void ResetAllMana()
     {
-        for (int i = 0; i < manaSlots.Length; i++)
-            manaSlots[i].currentMana = 0f;
+        for (int i = 0; i < manaSlots.Length; i++) manaSlots[i].currentMana = 0f;
         UpdateAllUI();
     }
 }

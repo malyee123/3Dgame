@@ -15,6 +15,7 @@ public class CoinManager : MonoBehaviour
 
     private int currentCoins;
     public int augmentCoinBonus = 0;
+    public float spawnCostMultiplier = 1f;
 
     void Awake()
     {
@@ -28,6 +29,8 @@ public class CoinManager : MonoBehaviour
         currentCoins = startingCoins + bonus;
         UpdateCoinUI();
     }
+
+    public int GetActualSpawnCost() => Mathf.Max(1, Mathf.RoundToInt(spawnCost * spawnCostMultiplier));
 
     public void AddCoins(int amount, bool applyKillBonus = false)
     {

@@ -22,7 +22,7 @@ public class SpecialCoinManager : MonoBehaviour
     {
         specialCoins += amount;
         UpdateUI();
-        if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.ForceUpdateSpawnButton();
+        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
     }
 
     public bool SpendSpecialCoins(int amount)
@@ -30,7 +30,7 @@ public class SpecialCoinManager : MonoBehaviour
         if (specialCoins < amount) return false;
         specialCoins -= amount;
         UpdateUI();
-        if (PlayerSpawner.Instance != null) PlayerSpawner.Instance.ForceUpdateSpawnButton();
+        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
         return true;
     }
 

@@ -22,6 +22,7 @@ public class EnemyHealth : MonoBehaviour
 
     private float currentHp;
     private float defenseDown = 0f;
+    private float armorBreakerReduction = 0f;
     private bool isDead = false;
     private PlayerAttack lastAttacker = null;
 
@@ -30,7 +31,7 @@ public class EnemyHealth : MonoBehaviour
 
     public void Init(float hp, float def = 0f)
     {
-        maxHp = hp; currentHp = hp; defense = def; defenseDown = 0f; isDead = false; lastAttacker = null;
+        maxHp = hp; currentHp = hp; defense = def; defenseDown = 0f; armorBreakerReduction = 0f; isDead = false; lastAttacker = null;
         if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
@@ -38,6 +39,7 @@ public class EnemyHealth : MonoBehaviour
     void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
     public void ApplyDefenseDown(float amount) => defenseDown = amount;
+    public void ApplyArmorBreaker(float reduction) => armorBreakerReduction = reduction;
 
     public void TakeDamage(float damage, PlayerAttack attacker = null)
     {
@@ -49,7 +51,7 @@ public class EnemyHealth : MonoBehaviour
             actualDamage = 1f;
         else
         {
-            float effectiveDefense = Mathf.Max(0f, defense - defenseDown);
+            float effectiveDefense = Mathf.Max(0f, defense * (1f - armorBreakerReduction) - defenseDown);
             actualDamage = Mathf.Max(1f, damage - effectiveDefense);
         }
 
@@ -57,6 +59,11 @@ public class EnemyHealth : MonoBehaviour
         if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
         ShowDamageText(actualDamage);
+
+        // 사형 집행인 증강 - 보스 체력 10% 미만 처형
+        if (isBoss && AugmentManager.Instance != null && AugmentManager.Instance.HasExecutioner)
+            if (currentHp / maxHp < 0.1f) { ExecuteKill(); return; }
+
         if (currentHp <= 0f) Die();
     }
 
@@ -68,11 +75,7 @@ public class EnemyHealth : MonoBehaviour
         Die();
     }
 
-    public void TakePercentDamage(float percent, PlayerAttack attacker = null)
-    {
-        if (isDead) return;
-        TakeDamage(maxHp * (percent / 100f), attacker);
-    }
+    public void TakePercentDamage(float percent, PlayerAttack attacker = null) => TakeDamage(maxHp * (percent / 100f), attacker);
 
     public void ShowDamageText(float damage)
     {
@@ -87,29 +90,32 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        if (GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
+        GameManager.Instance?.OnEnemyDied();
 
         if (isSpecial)
         {
             if (SpecialCoinManager.Instance != null)
-                SpecialCoinManager.Instance.AddSpecialCoins(specialCoinReward);
-            if (isBoss && GameManager.Instance != null)
-                GameManager.Instance.OnBossKilled();
+            {
+                int reward = specialCoinReward;
+                // 투자 전문가 증강 - 보스/특수 처치 시 특수 코인 2배
+                if (AugmentManager.Instance != null && AugmentManager.Instance.HasBossSpecialCoinDouble)
+                    reward *= 2;
+                SpecialCoinManager.Instance.AddSpecialCoins(reward);
+            }
+            if (isBoss) GameManager.Instance?.OnBossKilled();
         }
         else
         {
-            if (CoinManager.Instance != null)
-                CoinManager.Instance.AddCoins(CoinManager.Instance.coinsPerKill, true);
+            CoinManager.Instance?.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
 
-        if (lastAttacker != null && lastAttacker.characterData != null)
+        if (lastAttacker?.characterData != null)
         {
             foreach (PassiveEntry entry in lastAttacker.characterData.passives)
             {
                 if (entry.passiveType != PassiveType.SpecialCoinOnKillChance) continue;
                 if (Random.Range(0f, 100f) < entry.passiveValue)
-                    if (SpecialCoinManager.Instance != null)
-                        SpecialCoinManager.Instance.AddSpecialCoins((int)entry.passiveSecondValue);
+                    SpecialCoinManager.Instance?.AddSpecialCoins((int)entry.passiveSecondValue);
             }
         }
 

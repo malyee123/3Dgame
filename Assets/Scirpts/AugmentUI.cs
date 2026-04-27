@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class AugmentUI : MonoBehaviour
 {
@@ -10,6 +11,9 @@ public class AugmentUI : MonoBehaviour
     [Header("Cards")]
     public AugmentCard[] cards = new AugmentCard[3];
 
+    [Header("Active Augments")]
+    public TextMeshProUGUI activeAugmentText;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -19,14 +23,33 @@ public class AugmentUI : MonoBehaviour
     void Start()
     {
         if (augmentPanel != null) augmentPanel.SetActive(false);
+        UpdateActiveAugmentText();
     }
 
     public void ShowAugments()
     {
         if (AugmentManager.Instance == null) return;
         AugmentData[] augments = AugmentManager.Instance.GetRandomAugments();
-        for (int i = 0; i < 3; i++)
-            if (cards[i] != null) cards[i].Setup(augments[i], this);
+
+        if (augments.Length == 0)
+        {
+            GameManager.Instance?.OnAugmentSelected();
+            return;
+        }
+
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (cards[i] == null) continue;
+            if (i < augments.Length)
+            {
+                cards[i].gameObject.SetActive(true);
+                cards[i].Setup(augments[i], this);
+            }
+            else
+            {
+                cards[i].gameObject.SetActive(false);
+            }
+        }
 
         if (augmentPanel != null) augmentPanel.SetActive(true);
         Time.timeScale = 0f;
@@ -39,5 +62,14 @@ public class AugmentUI : MonoBehaviour
         Time.timeScale = 1f;
         PassiveManager.Instance?.RecalculatePassives();
         GameManager.Instance?.OnAugmentSelected();
+        UpdateActiveAugmentText();
+    }
+
+    void UpdateActiveAugmentText()
+    {
+        if (activeAugmentText == null) return;
+        activeAugmentText.text = AugmentManager.Instance != null
+            ? AugmentManager.Instance.GetActiveAugmentText()
+            : "";
     }
 }
