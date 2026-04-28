@@ -37,7 +37,6 @@ public class PlayerSpawner : MonoBehaviour
     [Header("Aura Settings")]
     public GameObject[] auraPrefabs;
 
-    // 증강 관련 배율
     [HideInInspector] public float sellPriceMultiplier = 1f;
     [HideInInspector] public float luckyDayMultiplier = 1f;
 
@@ -84,6 +83,7 @@ public class PlayerSpawner : MonoBehaviour
         if (slotOccupancy == null || slotOccupancy.Length == 0) return;
         SyncSlotStateFromScene();
         if (!HasAvailableSlot()) return;
+        // 일반 소환 - 운빨 좋은 날 적용된 확률로 캐릭터 선택
         CharacterData selectedData = GetRandomCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -99,6 +99,7 @@ public class PlayerSpawner : MonoBehaviour
         if (!HasAvailableSlot()) return;
         if (SpecialCoinManager.Instance == null) return;
         if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) return;
+        // 특수 소환 - 운빨 좋은 날 미적용
         CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -116,14 +117,12 @@ public class PlayerSpawner : MonoBehaviour
         SpawnPlayer(spawnIndex, characterData, unitTag);
     }
 
-    // 증강: 희귀 유닛 N명 소환 (Teamwork)
     public void SpawnRareUnits(int count)
     {
         List<CharacterData> rareList = new List<CharacterData>();
         foreach (CharacterData data in characterDataList)
             if (data != null && data.tier == 3) rareList.Add(data);
         if (rareList.Count == 0) return;
-
         for (int i = 0; i < count; i++)
         {
             SyncSlotStateFromScene();
@@ -159,33 +158,62 @@ public class PlayerSpawner : MonoBehaviour
             tierMap[tier].Add(data);
         }
 
-        // 운빨 좋은 날 증강 적용
-        float[] weights = (float[])specialTierSpawnWeights.Clone();
-        if (AugmentManager.Instance != null && AugmentManager.Instance.HasLuckyDay)
-        {
-            for (int i = 1; i < weights.Length; i++)
-                weights[i] *= luckyDayMultiplier;
-        }
-
         float totalWeight = 0f;
-        for (int i = 0; i < weights.Length; i++)
+        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
         {
             int tier = specialSpawnMinTier + i;
-            if (tierMap.ContainsKey(tier)) totalWeight += weights[i];
+            if (tierMap.ContainsKey(tier)) totalWeight += specialTierSpawnWeights[i];
         }
         if (totalWeight <= 0f) return null;
 
         float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
-        for (int i = 0; i < weights.Length; i++)
+        for (int i = 0; i < specialTierSpawnWeights.Length; i++)
         {
             int tier = specialSpawnMinTier + i;
             if (!tierMap.ContainsKey(tier)) continue;
-            cumulative += weights[i];
+            cumulative += specialTierSpawnWeights[i];
             if (rand <= cumulative)
                 return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
         }
         return null;
+    }
+
+    // 일반 소환 캐릭터 선택 - 운빨 좋은 날 적용 시 2티어 가중치 1.5배
+    CharacterData GetRandomCharacterData()
+    {
+        if (characterDataList == null || characterDataList.Length == 0) return null;
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+        Dictionary<int, List<CharacterData>> tierMap = new Dictionary<int, List<CharacterData>>();
+        foreach (CharacterData data in characterDataList)
+        {
+            if (data == null) continue;
+            int tier = Mathf.Max(1, data.tier);
+            if (tier > unlockedTier) continue;
+            if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
+            tierMap[tier].Add(data);
+        }
+
+        // 운빨 좋은 날 - 일반 소환 2티어 가중치에만 적용
+        float[] weights = (float[])tierSpawnWeights.Clone();
+        if (AugmentManager.Instance != null && AugmentManager.Instance.HasLuckyDay && weights.Length >= 2)
+            weights[1] *= luckyDayMultiplier;
+
+        float totalWeight = 0f;
+        for (int i = 0; i < weights.Length; i++)
+            if (tierMap.ContainsKey(i + 1)) totalWeight += weights[i];
+        if (totalWeight <= 0f) return characterDataList[Random.Range(0, characterDataList.Length)];
+
+        float rand = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            int tier = i + 1;
+            if (!tierMap.ContainsKey(tier)) continue;
+            cumulative += weights[i];
+            if (rand <= cumulative) return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
+        }
+        return characterDataList[Random.Range(0, characterDataList.Length)];
     }
 
     void SpawnPlayer(int spawnIndex, CharacterData characterData, string unitTag)
@@ -211,7 +239,6 @@ public class PlayerSpawner : MonoBehaviour
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
         if (!slots.Contains(spawnIndex)) slots.Add(spawnIndex);
         slotDirty = true;
-
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
         UpdateSpawnButton();
         UpdateSlotAura(spawnIndex, characterData.tier);
@@ -383,38 +410,9 @@ public class PlayerSpawner : MonoBehaviour
         }
     }
 
-    CharacterData GetRandomCharacterData()
-    {
-        if (characterDataList == null || characterDataList.Length == 0) return null;
-        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
-        Dictionary<int, List<CharacterData>> tierMap = new Dictionary<int, List<CharacterData>>();
-        foreach (CharacterData data in characterDataList)
-        {
-            if (data == null) continue;
-            int tier = Mathf.Max(1, data.tier);
-            if (tier > unlockedTier) continue;
-            if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
-            tierMap[tier].Add(data);
-        }
-        float totalWeight = 0f;
-        for (int i = 0; i < tierSpawnWeights.Length; i++) { if (tierMap.ContainsKey(i + 1)) totalWeight += tierSpawnWeights[i]; }
-        if (totalWeight <= 0f) return characterDataList[Random.Range(0, characterDataList.Length)];
-        float rand = Random.Range(0f, totalWeight);
-        float cumulative = 0f;
-        for (int i = 0; i < tierSpawnWeights.Length; i++)
-        {
-            int tier = i + 1;
-            if (!tierMap.ContainsKey(tier)) continue;
-            cumulative += tierSpawnWeights[i];
-            if (rand <= cumulative) return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
-        }
-        return characterDataList[Random.Range(0, characterDataList.Length)];
-    }
-
     bool TryGetSpawnSlot(string unitTag, int tier, out int slotIndex)
     {
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
-
         int maxUnits = tier >= 5 ? 1 : maxUnitsPerSlot;
 
         List<int> availableTaggedSlots = new List<int>();

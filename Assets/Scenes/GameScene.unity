@@ -9175,15 +9175,15 @@ MonoBehaviour:
   triangleOffsetX: 0.28
   triangleOffsetY: 0.22
   tierSpawnWeights:
-  - 100
-  - 0
+  - 98
+  - 2
   specialSpawnCost: 3
   specialSpawnMinTier: 2
   specialSpawnMaxTier: 4
   specialTierSpawnWeights:
-  - 0
-  - 0
-  - 100
+  - 90
+  - 8
+  - 2
   spawnButton: {fileID: 1300881649}
   specialSpawnButton: {fileID: 1865814873}
   auraPrefabs:

@@ -8,6 +8,12 @@ public class PassiveManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI passiveStatusText;
 
+    private float totalEnemySpeedDown = 0f;
+    private float totalEnemyDefenseDown = 0f;
+
+    public float GetTotalEnemySpeedDown() => totalEnemySpeedDown;
+    public float GetTotalEnemyDefenseDown() => totalEnemyDefenseDown;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -19,7 +25,9 @@ public class PassiveManager : MonoBehaviour
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
 
-        float totalDamageBonus = 0f, totalSpeedBonus = 0f, totalEnemySpeedDown = 0f, totalEnemyDefenseDown = 0f;
+        float totalDamageBonus = 0f, totalSpeedBonus = 0f;
+        totalEnemySpeedDown = 0f;
+        totalEnemyDefenseDown = 0f;
 
         foreach (PlayerAttack unit in allUnits)
         {
@@ -97,6 +105,7 @@ public class PassiveManager : MonoBehaviour
                 manaSkillDamage, manaSkillDuration, manaSkillInterval);
         }
 
+        // 현재 필드의 모든 적에게 즉시 적용
         foreach (EnemyMove enemy in allEnemies)
             if (enemy != null) enemy.ApplySpeedPenalty(totalEnemySpeedDown);
 

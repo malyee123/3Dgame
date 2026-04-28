@@ -77,14 +77,27 @@ public class EnemySpawner : MonoBehaviour
         Vector2 offsetPos = spawnPosition;
         offsetPos.x += Random.Range(-0.3f, 0.3f);
         GameObject obj = Instantiate(enemyPrefab, offsetPos, Quaternion.identity);
+
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = currentEnemySpeed; }
+        if (enemyMove != null)
+        {
+            enemyMove.SetPathManager(pathManager);
+            enemyMove.speed = currentEnemySpeed;
+            // 새로 스폰되는 적에도 AllEnemySpeedDown 즉시 적용
+            if (PassiveManager.Instance != null)
+                enemyMove.ApplySpeedPenalty(PassiveManager.Instance.GetTotalEnemySpeedDown());
+        }
+
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
         {
             float defense = currentEnemyDefense * armorBreakerMultiplier;
             enemyHealth.Init(currentEnemyHp, defense);
+            // 새로 스폰되는 적에도 AllEnemyDefenseDown 즉시 적용
+            if (PassiveManager.Instance != null)
+                enemyHealth.ApplyDefenseDown(PassiveManager.Instance.GetTotalEnemyDefenseDown());
         }
+
         GameManager.Instance?.OnEnemySpawned();
     }
 }
