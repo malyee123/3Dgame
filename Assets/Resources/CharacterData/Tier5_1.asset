@@ -26,7 +26,7 @@ MonoBehaviour:
   sellPrice: 1000
   attackAnimIndex: 1
   projectilePrefab: {fileID: 0}
-  hitEffectPrefab: {fileID: 0}
+  hitEffectPrefab: {fileID: 100000, guid: f06e78284f831ae469c74624ab5d513b, type: 3}
   projectileSpeed: 12
   hitEffectDuration: 0.3
   hitEffectOffsetY: 0.3
@@ -36,7 +36,7 @@ MonoBehaviour:
   - passiveType: 17
     passiveValue: 16
     passiveSecondValue: 2200
-    passiveDuration: 1
+    passiveDuration: 2
   - passiveType: 18
     passiveValue: 300
     passiveSecondValue: 3

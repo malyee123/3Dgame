@@ -43,7 +43,7 @@ public class AugmentManager : MonoBehaviour
 
     private readonly AugmentData[] allAugments = new AugmentData[]
     {
-        new AugmentData { augmentName = "기초 훈련", description = "일반, 고급 동급 유닛의 공격력이 20% 증가합니다.", summary = "공격력 +20%", type = AugmentType.BasicTraining, grade = AugmentGrade.Silver },
+        new AugmentData { augmentName = "기초 훈련", description = "일반, 고급 동급 유닛의 공격력이 20% 증가합니다.", summary = "공격력 +20% (1~2티어)", type = AugmentType.BasicTraining, grade = AugmentGrade.Silver },
         new AugmentData { augmentName = "비상금", description = "즉시 300 골드를 획득합니다.", summary = "즉시 골드 +300", type = AugmentType.EmergencyFund, grade = AugmentGrade.Silver },
         new AugmentData { augmentName = "가벼운 발걸음", description = "모든 유닛의 공격 속도가 10% 증가합니다.", summary = "공격속도 +10%", type = AugmentType.LightStep, grade = AugmentGrade.Silver },
         new AugmentData { augmentName = "사냥꾼의 감", description = "유닛 판매 시 얻는 골드가 10% 증가합니다.", summary = "판매금액 +10%", type = AugmentType.HuntersSense, grade = AugmentGrade.Silver },
@@ -63,6 +63,14 @@ public class AugmentManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+    }
+
+    AugmentGrade GetRandomGrade()
+    {
+        int rand = Random.Range(0, 3);
+        if (rand == 0) return AugmentGrade.Silver;
+        if (rand == 1) return AugmentGrade.Gold;
+        return AugmentGrade.Platinum;
     }
 
     public AugmentData[] GetRandomAugments()
@@ -88,14 +96,6 @@ public class AugmentManager : MonoBehaviour
         return result.ToArray();
     }
 
-    AugmentGrade GetRandomGrade()
-    {
-        float rand = Random.Range(0f, 100f);
-        if (rand < 10f) return AugmentGrade.Platinum;
-        if (rand < 40f) return AugmentGrade.Gold;
-        return AugmentGrade.Silver;
-    }
-
     public void ApplyAugment(AugmentData data)
     {
         selectedAugments.Add(data.type);
@@ -103,7 +103,7 @@ public class AugmentManager : MonoBehaviour
 
         switch (data.type)
         {
-            case AugmentType.BasicTraining: ApplyToAllUnits(20f, 0f); break;
+            case AugmentType.BasicTraining: ApplyBasicTraining(); break;
             case AugmentType.EmergencyFund: CoinManager.Instance?.AddCoins(300); break;
             case AugmentType.LightStep: ApplyToAllUnits(0f, 10f); break;
             case AugmentType.HuntersSense:
@@ -127,6 +127,18 @@ public class AugmentManager : MonoBehaviour
             case AugmentType.TwinsOfChaos: hasTwinsOfChaos = true; RefreshAllUnits(); break;
         }
         PassiveManager.Instance?.RecalculatePassives();
+    }
+
+    // 1~2티어(일반/고급) 유닛에만 공격력 20% 적용
+    void ApplyBasicTraining()
+    {
+        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        foreach (PlayerAttack unit in allUnits)
+        {
+            if (unit == null || unit.characterData == null) continue;
+            if (unit.characterData.tier <= 2)
+                unit.ApplyAugmentBonus(20f, 0f);
+        }
     }
 
     void ApplyToAllUnits(float damageBonus, float speedBonus)

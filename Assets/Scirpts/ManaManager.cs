@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using static System.Net.Mime.MediaTypeNames;
 using Image = UnityEngine.UI.Image;
 
 public class ManaManager : MonoBehaviour
@@ -111,19 +110,15 @@ public class ManaManager : MonoBehaviour
         ManaSlot slot = manaSlots[index];
         if (slot.currentMana < slot.maxMana) return;
 
+        // 해당 캐릭터 리더 유닛 전부 스킬 발동
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        PlayerAttack leader = null;
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
-            if (unit.characterData.characterName == slot.characterName)
-            {
-                if (leader == null) leader = unit;
-                if (unit.isLeader) { leader = unit; break; }
-            }
+            if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+                unit.ActivateManaSkill();
         }
 
-        if (leader != null) leader.ActivateManaSkill();
         slot.currentMana = 0f;
         UpdateAllUI();
     }

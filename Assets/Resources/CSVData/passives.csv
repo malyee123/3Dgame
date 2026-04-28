@@ -16,9 +16,9 @@ Tier4_1,AttackTwiceChance,16,5,0
 Tier4_1,BuffNearbyAllyAttackSpeed,8,20,2
 Tier4_2,StunChance,10,0,1.25
 Tier4_2,AoeStunEveryNHits,5,2,1
-Tier4_3,DoubleDamageChance,16,5,0
+Tier4_3,DoubleDamageChance,16,3,0
 Tier4_3,ExecuteChance,100,3,0
-Tier4_4,AreaSpeedDownChance,16,50,0
+Tier4_4,AreaSpeedDownChance,16,50,9999
 Tier4_4,SpecialCoinOnKillChance,1,0,0
 Tier5_1,SlamChance,16,2200,2
 Tier5_1,ManaSkill,300,3,0.1

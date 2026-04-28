@@ -479,21 +479,11 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_1()
     {
-        List<PlayerAttack> tier5Leaders = new List<PlayerAttack>();
-        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        foreach (PlayerAttack unit in allUnits)
-            if (unit != null && unit.characterData != null &&
-                unit.characterData.characterName == "Tier5_1" && unit.isLeader)
-                tier5Leaders.Add(unit);
-
-        foreach (PlayerAttack leader in tier5Leaders)
-        {
-            EnemyMove target = leader.GetCurrentTarget();
-            if (target == null) target = leader.FindBackmostEnemyInRange();
-            if (target == null) continue;
-            Vector3 pitPosition = new Vector3(target.transform.position.x, target.transform.position.y - 0.3f, 0f);
-            StartCoroutine(SpawnPitForUnit(leader, pitPosition));
-        }
+        EnemyMove target = GetCurrentTarget();
+        if (target == null) target = FindBackmostEnemyInRange();
+        if (target == null) yield break;
+        Vector3 pitPosition = new Vector3(target.transform.position.x, target.transform.position.y - 0.3f, 0f);
+        StartCoroutine(SpawnPitForUnit(this, pitPosition));
         yield break;
     }
 
@@ -536,6 +526,13 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_2()
     {
+        // 캐릭터 위치에 스킬 이펙트 생성
+        if (characterData.manaSkillEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, transform.position, Quaternion.identity);
+            Destroy(effect, manaSkillDuration > 0f ? manaSkillDuration : 2f);
+        }
+
         float originalDamage = appliedDamage;
         float originalCooldown = appliedCooldown;
         appliedDamage = appliedDamage * (manaSkillDamage / 100f);
@@ -552,24 +549,56 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator ManaSkill_Tier5_3()
     {
         float damage = appliedDamage * (manaSkillDamage / 100f);
+
+        // 사거리 내 보스 우선 탐색
         EnemyHealth bossTarget = null;
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
-            if (eh != null && eh.isBoss) { bossTarget = eh; break; }
-        if (bossTarget == null)
-            foreach (EnemyHealth eh in allEnemies)
-                if (eh != null) { bossTarget = eh; break; }
-        if (bossTarget != null) bossTarget.TakeDamage(damage, this);
+        {
+            if (eh == null) continue;
+            if (eh.isBoss && Vector2.Distance(transform.position, eh.transform.position) <= characterData.attackRange)
+            { bossTarget = eh; break; }
+        }
+
+        // 보스 없으면 현재 타겟 사용
+        EnemyHealth finalTarget = bossTarget;
+        if (finalTarget == null && currentTarget != null)
+            finalTarget = currentTarget.GetComponent<EnemyHealth>();
+
+        // 현재 타겟도 없으면 사거리 내 적 탐색
+        if (finalTarget == null)
+        {
+            EnemyMove nearest = FindBackmostEnemyInRange();
+            if (nearest != null) finalTarget = nearest.GetComponent<EnemyHealth>();
+        }
+
+        if (finalTarget != null)
+        {
+            if (characterData.manaSkillEffectPrefab != null)
+            {
+                GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, finalTarget.transform.position, Quaternion.identity);
+                Destroy(effect, 2f);
+            }
+            finalTarget.TakeDamage(damage, this);
+        }
         yield break;
     }
 
     IEnumerator ManaSkill_Tier5_4()
     {
-        float damage = appliedDamage * (manaSkillDamage / 100f);
+        // 맵 중앙에 이펙트 생성
+        if (characterData.manaSkillEffectPrefab != null)
+        {
+            Vector3 centerPos = Camera.main.transform.position;
+            centerPos.z = 0f;
+            GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, centerPos, Quaternion.identity);
+            Destroy(effect, manaSkillDuration > 0f ? manaSkillDuration : 2f);
+        }
+        yield return new WaitForSeconds(characterData.attackHitDelay);
+        float damage = appliedDamage * GetSlotUnitCount() * (manaSkillDamage / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
             if (eh != null) eh.TakeDamage(damage, this);
-        yield break;
     }
 
     public EnemyMove FindBackmostEnemyInRange()
