@@ -9187,11 +9187,11 @@ MonoBehaviour:
   spawnButton: {fileID: 1300881649}
   specialSpawnButton: {fileID: 1865814873}
   auraPrefabs:
-  - {fileID: 5712427001683537798, guid: c80300f951dc00148881ad70a0a6263f, type: 3}
-  - {fileID: 5712427001683537798, guid: 57a6010299daa5c4cbf9fa3b2aa1ab66, type: 3}
-  - {fileID: 5712427001683537798, guid: 2e6ada37f857da04f9dc073df452b8ae, type: 3}
-  - {fileID: 5712427001683537798, guid: 0546ac0bb727f3a44b23aca0d41ed09b, type: 3}
-  - {fileID: 5712427001683537798, guid: ff8b6b50072494a4d9ad335d9f6e41cb, type: 3}
+  - {fileID: 6684715508543283070, guid: 6a4276dc74b1eb14aa6b1261b0f5f640, type: 3}
+  - {fileID: 6746996599636787706, guid: b7a1488d45b618d46baa21511ca092e7, type: 3}
+  - {fileID: 8769592487975326789, guid: 62472d7c470abac41aa8d449e3315d14, type: 3}
+  - {fileID: 7912939292244196800, guid: 139de980b16fbae40aa0c09f424be8f2, type: 3}
+  - {fileID: 6194577917633931698, guid: b622a47034ff1704298821fb3d07c175, type: 3}
   sellPriceMultiplier: 1
   luckyDayMultiplier: 1
 --- !u!4 &1839764168

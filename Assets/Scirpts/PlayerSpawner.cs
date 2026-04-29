@@ -260,7 +260,7 @@ public class PlayerSpawner : MonoBehaviour
         int prefabIndex = Mathf.Clamp(tier - 1, 0, auraPrefabs.Length - 1);
         if (slotAuras[slotIndex] != null) Destroy(slotAuras[slotIndex]);
         if (auraPrefabs[prefabIndex] == null) return;
-        slotAuras[slotIndex] = Instantiate(auraPrefabs[prefabIndex], spawnPoints[slotIndex].position, Quaternion.identity);
+        slotAuras[slotIndex] = Instantiate(auraPrefabs[prefabIndex], spawnPoints[slotIndex].position, auraPrefabs[prefabIndex].transform.rotation);
         slotAuraTiers[slotIndex] = tier;
     }
 

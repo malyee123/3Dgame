@@ -22,7 +22,7 @@ public class UpgradeManager : MonoBehaviour
     public int AttackSpeedLevel => PlayerPrefs.GetInt(KEY_ATK_SPD, 0);
     public int CoinPerKillLevel => PlayerPrefs.GetInt(KEY_COIN_KILL, 0);
     public int StartingCoinLevel => PlayerPrefs.GetInt(KEY_START_COIN, 0);
-    public int UnlockedTier => PlayerPrefs.GetInt(KEY_TIER, 5);
+    public int UnlockedTier => PlayerPrefs.GetInt(KEY_TIER, 1); // 기본값 1로 변경
     public int Tier1PassiveLevel => PlayerPrefs.GetInt(KEY_TIER1_PASSIVE, 0);
     public int Tier2PassiveLevel => PlayerPrefs.GetInt(KEY_TIER2_PASSIVE, 0);
     public int Tier3PassiveLevel => PlayerPrefs.GetInt(KEY_TIER3_PASSIVE, 0);
@@ -67,59 +67,41 @@ public class UpgradeManager : MonoBehaviour
     public bool UpgradeAttackDamage()
     {
         int level = AttackDamageLevel;
-        int cost = GetCostFromCSV("AttackDamage", level);
-        if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(KEY_ATK_DMG, level + 1);
-        PlayerPrefs.Save();
-        return true;
+        if (!SpendSkillPoints(GetCostFromCSV("AttackDamage", level))) return false;
+        PlayerPrefs.SetInt(KEY_ATK_DMG, level + 1); PlayerPrefs.Save(); return true;
     }
 
     public bool UpgradeAttackSpeed()
     {
         int level = AttackSpeedLevel;
-        int cost = GetCostFromCSV("AttackSpeed", level);
-        if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(KEY_ATK_SPD, level + 1);
-        PlayerPrefs.Save();
-        return true;
+        if (!SpendSkillPoints(GetCostFromCSV("AttackSpeed", level))) return false;
+        PlayerPrefs.SetInt(KEY_ATK_SPD, level + 1); PlayerPrefs.Save(); return true;
     }
 
     public bool UpgradeCoinPerKill()
     {
         int level = CoinPerKillLevel;
-        int cost = GetCostFromCSV("CoinPerKill", level);
-        if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(KEY_COIN_KILL, level + 1);
-        PlayerPrefs.Save();
-        return true;
+        if (!SpendSkillPoints(GetCostFromCSV("CoinPerKill", level))) return false;
+        PlayerPrefs.SetInt(KEY_COIN_KILL, level + 1); PlayerPrefs.Save(); return true;
     }
 
     public bool UpgradeStartingCoin()
     {
         int level = StartingCoinLevel;
-        int cost = GetCostFromCSV("StartingCoin", level);
-        if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(KEY_START_COIN, level + 1);
-        PlayerPrefs.Save();
-        return true;
+        if (!SpendSkillPoints(GetCostFromCSV("StartingCoin", level))) return false;
+        PlayerPrefs.SetInt(KEY_START_COIN, level + 1); PlayerPrefs.Save(); return true;
     }
 
     public bool UpgradeTierPassive(int tier)
     {
         string key = GetTierPassiveKey(tier);
-        string csvType = $"Tier{tier}Passive";
         int level = PlayerPrefs.GetInt(key, 0);
-        int cost = GetCostFromCSV(csvType, level);
-        if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(key, level + 1);
-        PlayerPrefs.Save();
-        return true;
+        if (!SpendSkillPoints(GetCostFromCSV($"Tier{tier}Passive", level))) return false;
+        PlayerPrefs.SetInt(key, level + 1); PlayerPrefs.Save(); return true;
     }
 
     public int GetTierPassiveLevel(int tier) => PlayerPrefs.GetInt(GetTierPassiveKey(tier), 0);
-
     public float GetTierPassiveBonus(int tier) => GetTierPassiveLevel(tier) * GetBonusFromCSV($"Tier{tier}Passive");
-
     public int GetTierPassiveCost(int tier) => GetCostFromCSV($"Tier{tier}Passive", GetTierPassiveLevel(tier));
 
     string GetTierPassiveKey(int tier)
@@ -141,9 +123,7 @@ public class UpgradeManager : MonoBehaviour
         if (tierUnlockCosts == null || currentTier >= tierUnlockCosts.Length) return false;
         int cost = tierUnlockCosts[currentTier - 1];
         if (!SpendSkillPoints(cost)) return false;
-        PlayerPrefs.SetInt(KEY_TIER, currentTier + 1);
-        PlayerPrefs.Save();
-        return true;
+        PlayerPrefs.SetInt(KEY_TIER, currentTier + 1); PlayerPrefs.Save(); return true;
     }
 
     public float GetAttackDamageMultiplier() => 1f + (AttackDamageLevel * GetBonusFromCSV("AttackDamage") / 100f);

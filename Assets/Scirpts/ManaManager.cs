@@ -83,15 +83,35 @@ public class ManaManager : MonoBehaviour
             ManaSlot slot = manaSlots[i];
             bool isFull = slot.currentMana >= slot.maxMana;
 
+            // Tier5_2는 버프라 적 없어도 버튼 활성화
             bool hasTargetInRange = false;
-            foreach (PlayerAttack unit in allUnits)
+            if (slot.characterName == "Tier5_2")
             {
-                if (unit == null || unit.characterData == null) continue;
-                if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+                // 캐릭터가 필드에 있으면 버튼 활성화
+                foreach (PlayerAttack unit in allUnits)
                 {
-                    if (unit.GetCurrentTarget() != null || unit.FindBackmostEnemyInRange() != null)
+                    if (unit == null || unit.characterData == null) continue;
+                    if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+                    {
                         hasTargetInRange = true;
-                    break;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // 나머지는 리더 중 한 마리라도 사거리 내 적 있으면 활성화
+                foreach (PlayerAttack unit in allUnits)
+                {
+                    if (unit == null || unit.characterData == null) continue;
+                    if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+                    {
+                        if (unit.GetCurrentTarget() != null || unit.FindBackmostEnemyInRange() != null)
+                        {
+                            hasTargetInRange = true;
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -110,12 +130,21 @@ public class ManaManager : MonoBehaviour
         ManaSlot slot = manaSlots[index];
         if (slot.currentMana < slot.maxMana) return;
 
-        // 해당 캐릭터 리더 유닛 전부 스킬 발동
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
-            if (unit.characterData.characterName == slot.characterName && unit.isLeader)
+            if (unit.characterData.characterName != slot.characterName || !unit.isLeader) continue;
+
+            // Tier5_2는 버프라 적 없어도 발동
+            if (unit.characterData.characterName == "Tier5_2")
+            {
+                unit.ActivateManaSkill();
+                continue;
+            }
+
+            // 나머지는 개별 사거리 내 적 있을 때만 발동
+            if (unit.GetCurrentTarget() != null || unit.FindBackmostEnemyInRange() != null)
                 unit.ActivateManaSkill();
         }
 
