@@ -40,6 +40,10 @@ public class PlayerSpawner : MonoBehaviour
     [HideInInspector] public float sellPriceMultiplier = 1f;
     [HideInInspector] public float luckyDayMultiplier = 1f;
 
+    [Header("Character Limit")]
+    public int baseCharacterLimit = 35;
+    private int currentCharacterLimit = 35;
+
     private GameObject[] slotAuras;
     private int[] slotAuraTiers;
     private int[] slotOccupancy;
@@ -64,6 +68,9 @@ public class PlayerSpawner : MonoBehaviour
         slotTagOwners = new string[spawnPoints.Length];
         slotAuras = new GameObject[spawnPoints.Length];
         slotAuraTiers = new int[spawnPoints.Length];
+        // 로비 업그레이드 캐릭터 수 반영
+        int upgradeBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCharacterLimitBonus() : 0;
+        currentCharacterLimit = baseCharacterLimit + upgradeBonus;
         StartCoroutine(InitButtonNextFrame());
     }
 
@@ -136,10 +143,25 @@ public class PlayerSpawner : MonoBehaviour
 
     bool HasAvailableSlot()
     {
+        // 현재 필드 전체 캐릭터 수 확인
+        int totalUnits = 0;
+        for (int i = 0; i < slotOccupancy.Length; i++)
+            totalUnits += slotOccupancy[i];
+        if (totalUnits >= currentCharacterLimit) return false;
+
         for (int i = 0; i < slotOccupancy.Length; i++)
             if (slotOccupancy[i] == 0) return true;
         return false;
     }
+
+    // 모루 - 캐릭터 제한 증가
+    public void AddCharacterLimit(int amount)
+    {
+        currentCharacterLimit += amount;
+        UpdateSpawnButton();
+    }
+
+    public int GetCurrentCharacterLimit() => currentCharacterLimit;
 
     CharacterData GetRandomSpecialCharacterData()
     {

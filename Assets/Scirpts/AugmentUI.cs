@@ -59,7 +59,8 @@ public class AugmentUI : MonoBehaviour
     {
         AugmentManager.Instance?.ApplyAugment(data);
         if (augmentPanel != null) augmentPanel.SetActive(false);
-        Time.timeScale = 1f;
+        // 선택 전 배속으로 복원
+        Time.timeScale = SpeedManager.Instance != null ? SpeedManager.Instance.CurrentSpeed : 1f;
         PassiveManager.Instance?.RecalculatePassives();
         GameManager.Instance?.OnAugmentSelected();
         UpdateActiveAugmentText();

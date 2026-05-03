@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SpecialCoinManager : MonoBehaviour
 {
@@ -7,6 +8,8 @@ public class SpecialCoinManager : MonoBehaviour
 
     [Header("UI")]
     public TextMeshProUGUI specialCoinText;
+    public Button anvilButton;
+    public int anvilCost = 3;
 
     private int specialCoins;
 
@@ -16,13 +19,31 @@ public class SpecialCoinManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start() => UpdateUI();
+    void Start()
+    {
+        UpdateUI();
+        if (anvilButton != null)
+        {
+            anvilButton.onClick.RemoveAllListeners();
+            anvilButton.onClick.AddListener(TryOpenAnvil);
+        }
+    }
+
+    public void TryOpenAnvil()
+    {
+        if (specialCoins < anvilCost) return;
+        if (AnvilUI.Instance == null) return;
+        specialCoins -= anvilCost;
+        UpdateUI();
+        AnvilUI.Instance.ShowAnvils();
+        ForceUpdateButton();
+    }
 
     public void AddSpecialCoins(int amount)
     {
         specialCoins += amount;
         UpdateUI();
-        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
+        ForceUpdateButton();
     }
 
     public bool SpendSpecialCoins(int amount)
@@ -30,14 +51,23 @@ public class SpecialCoinManager : MonoBehaviour
         if (specialCoins < amount) return false;
         specialCoins -= amount;
         UpdateUI();
-        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
+        ForceUpdateButton();
         return true;
     }
 
     public int GetSpecialCoins() => specialCoins;
 
+    void ForceUpdateButton()
+    {
+        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
+        if (anvilButton != null)
+            anvilButton.interactable = specialCoins >= anvilCost;
+    }
+
     void UpdateUI()
     {
         if (specialCoinText != null) specialCoinText.text = $"Special: {specialCoins}";
+        if (anvilButton != null)
+            anvilButton.interactable = specialCoins >= anvilCost;
     }
 }

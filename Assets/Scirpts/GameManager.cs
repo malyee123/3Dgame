@@ -30,6 +30,9 @@ public class GameManager : MonoBehaviour
     private bool isWarning = false;
     private EnemySpawner enemySpawner;
 
+    // 모루로 추가된 수치 별도 저장
+    private int anvilEnemyLimitBonus = 0;
+
     private int prevEnemyCount = -1;
     private int prevRound = -1;
     private int prevRoundTimeLeft = -1;
@@ -66,6 +69,17 @@ public class GameManager : MonoBehaviour
     public void SetWarning(bool warning) => isWarning = warning;
     public void ExtendRoundTime(float time) => roundTimeLeft = time;
 
+    // 모루 - 적 인원 제한 증가 (별도 저장으로 초기화 방지)
+    public void AddEnemyLimit(int amount)
+    {
+        anvilEnemyLimitBonus += amount;
+        maxEnemyCount += amount;
+        UpdateEnemyCountUI();
+    }
+
+    // 모루 - 보스전 시간 증가
+    public void AddBossTime(float amount) => bossRoundDuration += amount;
+
     void ApplyRoundData(int round)
     {
         if (CSVLoader.Instance != null)
@@ -74,11 +88,13 @@ public class GameManager : MonoBehaviour
             if (data != null)
             {
                 roundTimeLeft = data.roundDuration;
-                maxEnemyCount = data.maxEnemyCount;
+                // 모루 보너스 유지하면서 CSV 기본값 적용
+                maxEnemyCount = data.maxEnemyCount + anvilEnemyLimitBonus;
                 return;
             }
         }
         roundTimeLeft = 60f;
+        maxEnemyCount = 200 + anvilEnemyLimitBonus;
     }
 
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
@@ -98,10 +114,7 @@ public class GameManager : MonoBehaviour
             roundTimeLeft = 0f;
     }
 
-    public void OnAugmentSelected()
-    {
-        roundTimeLeft = 0f;
-    }
+    public void OnAugmentSelected() => roundTimeLeft = 0f;
 
     void StageClear()
     {
@@ -141,6 +154,7 @@ public class GameManager : MonoBehaviour
         {
             isBossWave = true;
             if (enemySpawner != null) enemySpawner.SetPaused(true);
+            roundTimeLeft = bossRoundDuration;
             BossManager.Instance?.TrySpawnBoss();
         }
     }

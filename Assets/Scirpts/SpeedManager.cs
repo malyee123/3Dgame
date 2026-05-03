@@ -9,6 +9,8 @@ public class SpeedManager : MonoBehaviour
     public Button speed1xButton;
     public Button speed2xButton;
 
+    public float CurrentSpeed { get; private set; } = 1f;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -24,6 +26,7 @@ public class SpeedManager : MonoBehaviour
 
     void SetSpeed(float speed)
     {
+        CurrentSpeed = speed;
         Time.timeScale = speed;
     }
 }

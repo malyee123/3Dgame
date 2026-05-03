@@ -1,5 +1,4 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,12 +15,10 @@ public class SpecialMonsterManager : MonoBehaviour
 
     [Header("Notice Settings")]
     public float spawnInterval = 20f;
-    public float buttonDisplayTime = 3f;
 
     [Header("UI")]
     public GameObject spawnButtonObject;
     public Button spawnButton;
-    public TextMeshProUGUI buttonTimerText;
 
     [Header("Spawn Position")]
     public Vector2 spawnPosition = new Vector2(-6f, 3f);
@@ -43,14 +40,22 @@ public class SpecialMonsterManager : MonoBehaviour
     {
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
-        if (spawnButton != null) { spawnButton.onClick.RemoveAllListeners(); spawnButton.onClick.AddListener(OnSpawnButtonClicked); }
+        if (spawnButton != null)
+        {
+            spawnButton.onClick.RemoveAllListeners();
+            spawnButton.onClick.AddListener(OnSpawnButtonClicked);
+        }
     }
 
     void Update()
     {
         if (isButtonActive) return;
         intervalTimer += Time.deltaTime;
-        if (intervalTimer >= spawnInterval) { intervalTimer = 0f; buttonCoroutine = StartCoroutine(ShowButtonRoutine()); }
+        if (intervalTimer >= spawnInterval)
+        {
+            intervalTimer = 0f;
+            buttonCoroutine = StartCoroutine(ShowButtonRoutine());
+        }
     }
 
     IEnumerator ShowButtonRoutine()
@@ -64,11 +69,10 @@ public class SpecialMonsterManager : MonoBehaviour
     void OnSpawnButtonClicked()
     {
         if (buttonCoroutine != null) { StopCoroutine(buttonCoroutine); buttonCoroutine = null; }
-        HideButton();
+        if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
+        isButtonActive = false;
         SpawnSpecialMonster();
     }
-
-    void HideButton() { if (spawnButtonObject != null) spawnButtonObject.SetActive(false); isButtonActive = false; }
 
     void SpawnSpecialMonster()
     {
@@ -83,7 +87,7 @@ public class SpecialMonsterManager : MonoBehaviour
             enemyHealth.specialCoinReward = specialCoinReward;
             enemyHealth.Init(specialMonsterHp);
         }
-        if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
+        GameManager.Instance?.OnEnemySpawned();
         StartCoroutine(DespawnAfterTime(obj, enemyHealth, specialMonsterLifetime));
     }
 
@@ -92,8 +96,8 @@ public class SpecialMonsterManager : MonoBehaviour
         yield return new WaitForSeconds(lifetime);
         if (obj != null)
         {
-            bool alreadyDead = health == null || !health.gameObject.activeInHierarchy;
-            if (!alreadyDead && GameManager.Instance != null) GameManager.Instance.OnEnemyDied();
+            if (health != null && health.gameObject.activeInHierarchy)
+                GameManager.Instance?.OnEnemyDied();
             Destroy(obj);
         }
     }

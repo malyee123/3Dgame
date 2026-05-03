@@ -2295,7 +2295,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 990821212}
         m_TargetAssemblyTypeName: UpgradeUI, Assembly-CSharp
-        m_MethodName: OnClickAttackSpeed
+        m_MethodName: OnClickAttackDamage
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2682,7 +2682,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 990821212}
         m_TargetAssemblyTypeName: UpgradeUI, Assembly-CSharp
-        m_MethodName: OnClickAttackDamage
+        m_MethodName: OnClickAttackSpeed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

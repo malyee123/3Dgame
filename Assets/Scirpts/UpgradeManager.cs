@@ -17,17 +17,21 @@ public class UpgradeManager : MonoBehaviour
     private const string KEY_TIER3_PASSIVE = "Tier3PassiveLevel";
     private const string KEY_TIER4_PASSIVE = "Tier4PassiveLevel";
     private const string KEY_TIER5_PASSIVE = "Tier5PassiveLevel";
+    private const string KEY_CHAR_LIMIT = "UpgradeCharacterLimit";
 
     public int AttackDamageLevel => PlayerPrefs.GetInt(KEY_ATK_DMG, 0);
     public int AttackSpeedLevel => PlayerPrefs.GetInt(KEY_ATK_SPD, 0);
     public int CoinPerKillLevel => PlayerPrefs.GetInt(KEY_COIN_KILL, 0);
     public int StartingCoinLevel => PlayerPrefs.GetInt(KEY_START_COIN, 0);
-    public int UnlockedTier => PlayerPrefs.GetInt(KEY_TIER, 1); // �⺻�� 1�� ����
+    public int UnlockedTier => PlayerPrefs.GetInt(KEY_TIER, 1);
+    public int CharacterLimitLevel => PlayerPrefs.GetInt(KEY_CHAR_LIMIT, 0);
     public int Tier1PassiveLevel => PlayerPrefs.GetInt(KEY_TIER1_PASSIVE, 0);
     public int Tier2PassiveLevel => PlayerPrefs.GetInt(KEY_TIER2_PASSIVE, 0);
     public int Tier3PassiveLevel => PlayerPrefs.GetInt(KEY_TIER3_PASSIVE, 0);
     public int Tier4PassiveLevel => PlayerPrefs.GetInt(KEY_TIER4_PASSIVE, 0);
     public int Tier5PassiveLevel => PlayerPrefs.GetInt(KEY_TIER5_PASSIVE, 0);
+
+    private const int maxCharacterLimitLevel = 10;
 
     void Awake()
     {
@@ -92,6 +96,18 @@ public class UpgradeManager : MonoBehaviour
         PlayerPrefs.SetInt(KEY_START_COIN, level + 1); PlayerPrefs.Save(); return true;
     }
 
+    // 캐릭터 수 업그레이드 - 1레벨당 1마리, 최대 10레벨
+    public bool UpgradeCharacterLimit()
+    {
+        int level = CharacterLimitLevel;
+        if (level >= maxCharacterLimitLevel) return false;
+        if (!SpendSkillPoints(GetCostFromCSV("CharacterLimit", level))) return false;
+        PlayerPrefs.SetInt(KEY_CHAR_LIMIT, level + 1); PlayerPrefs.Save(); return true;
+    }
+
+    // 캐릭터 수 보너스 반환 (레벨당 1마리)
+    public int GetCharacterLimitBonus() => CharacterLimitLevel;
+
     public bool UpgradeTierPassive(int tier)
     {
         string key = GetTierPassiveKey(tier);
@@ -130,4 +146,6 @@ public class UpgradeManager : MonoBehaviour
     public float GetAttackSpeedMultiplier() => Mathf.Max(0.1f, 1f - (AttackSpeedLevel * GetBonusFromCSV("AttackSpeed") / 100f));
     public int GetCoinPerKillBonus() => (int)(CoinPerKillLevel * GetBonusFromCSV("CoinPerKill"));
     public int GetStartingCoinBonus() => (int)(StartingCoinLevel * GetBonusFromCSV("StartingCoin"));
+    public int GetCharacterLimitUpgradeCost() => GetCostFromCSV("CharacterLimit", CharacterLimitLevel);
+    public bool IsCharacterLimitMaxed() => CharacterLimitLevel >= maxCharacterLimitLevel;
 }
