@@ -19,6 +19,7 @@ public class BossManager : MonoBehaviour
 
     [Header("Infinite Scaling")]
     public float hpScalePerStage = 2f;
+    [HideInInspector] public float bossHpMultiplier = 1f;
     public float defenseScalePerStage = 1.5f;
     public float rewardScalePerStage = 1.5f;
 
@@ -116,7 +117,7 @@ public class BossManager : MonoBehaviour
             enemyHealth.isBoss = true;
             enemyHealth.forceDamageOne = data.forceDamageOne;
             enemyHealth.specialCoinReward = data.reward;
-            enemyHealth.Init(data.hp, data.defense);
+            enemyHealth.Init(data.hp * bossHpMultiplier, data.defense);
         }
 
         if (GameManager.Instance != null)

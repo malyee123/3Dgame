@@ -262,6 +262,8 @@ public class PlayerSpawner : MonoBehaviour
         if (!slots.Contains(spawnIndex)) slots.Add(spawnIndex);
         slotDirty = true;
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
+        // 새로 소환된 유닛에 증강 효과 즉시 적용
+        if (playerAttack != null) AugmentManager.Instance?.ApplyAugmentBonusToUnit(playerAttack);
         UpdateSpawnButton();
         UpdateSlotAura(spawnIndex, characterData.tier);
         StartCoroutine(MarkSlotMatesDirtyNextFrame(spawnIndex));

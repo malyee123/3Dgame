@@ -16,6 +16,7 @@ public class CoinManager : MonoBehaviour
     private int currentCoins;
     public int augmentCoinBonus = 0;
     public float spawnCostMultiplier = 1f;
+    public bool huntersSenseActive = false;
 
     void Awake()
     {
@@ -36,7 +37,9 @@ public class CoinManager : MonoBehaviour
     {
         int bonus = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
         int augBonus = applyKillBonus ? augmentCoinBonus : 0;
-        currentCoins += amount + bonus + augBonus;
+        // Çö»ó±Ý »ç³É²Û - Å³ ½Ã 5% È®·ü·Î 10°ñµå Ãß°¡
+        int huntersBonus = (applyKillBonus && huntersSenseActive && UnityEngine.Random.Range(0f, 100f) < 5f) ? 10 : 0;
+        currentCoins += amount + bonus + augBonus + huntersBonus;
         UpdateCoinUI();
         MergeManager.Instance?.CheckMergeAvailable();
     }

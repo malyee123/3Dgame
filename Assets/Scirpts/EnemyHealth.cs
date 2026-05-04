@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
+using Image = UnityEngine.UI.Image;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -39,6 +41,7 @@ public class EnemyHealth : MonoBehaviour
     void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
     public void ApplyDefenseDown(float amount) => defenseDown = amount;
+    public void BoostMaxHp(float multiplier) { maxHp *= multiplier; currentHp *= multiplier; if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = currentHp; } }
     public void ApplyArmorBreaker(float reduction) => armorBreakerReduction = reduction;
 
     public void TakeDamage(float damage, PlayerAttack attacker = null)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 public class MergeManager : MonoBehaviour
 {
@@ -15,6 +16,11 @@ public class MergeManager : MonoBehaviour
     public Button sellButton;
     public TextMeshProUGUI sellPriceText;
 
+    [Header("Skill UI (Tier5_1 ~ Tier5_4)")]
+    public Button[] skillButtons = new Button[4];
+    public Image[] skillButtonOverlays = new Image[4];
+    public Image[] manaFillImages = new Image[4];
+
     [Header("Canvas")]
     public Canvas gameCanvas;
 
@@ -23,6 +29,10 @@ public class MergeManager : MonoBehaviour
     private PlayerAttack selectedUnit;
     private bool justSelected = false;
     private GameObject currentRangeIndicator;
+    private PlayerAttack cachedLeader;
+    private int currentSkillIndex = -1;
+
+    private static readonly string[] tier5Names = { "Tier5_1", "Tier5_2", "Tier5_3", "Tier5_4" };
 
     void Awake()
     {
@@ -34,6 +44,11 @@ public class MergeManager : MonoBehaviour
     {
         if (mergeButton != null) { mergeButton.onClick.RemoveAllListeners(); mergeButton.onClick.AddListener(ExecuteMerge); }
         if (sellButton != null) { sellButton.onClick.RemoveAllListeners(); sellButton.onClick.AddListener(ExecuteSell); }
+        for (int i = 0; i < skillButtons.Length; i++)
+        {
+            int idx = i;
+            if (skillButtons[i] != null) { skillButtons[i].onClick.RemoveAllListeners(); skillButtons[i].onClick.AddListener(() => OnSkillButtonClick(idx)); }
+        }
         if (unitActionUI != null) unitActionUI.SetActive(false);
         RefreshMergeUI();
     }
@@ -41,6 +56,10 @@ public class MergeManager : MonoBehaviour
     void Update()
     {
         if (justSelected) { justSelected = false; return; }
+
+        if (unitActionUI != null && unitActionUI.activeSelf && currentSkillIndex >= 0)
+            UpdateManaUI(currentSkillIndex);
+
         if (Input.GetMouseButtonDown(0) && unitActionUI != null && unitActionUI.activeSelf)
         {
             if (RecipeBook.Instance != null && RecipeBook.Instance.IsPanelOpen) return;
@@ -53,6 +72,7 @@ public class MergeManager : MonoBehaviour
     {
         if (selectedUnit == unit) { HideUnitActionUI(); return; }
         selectedUnit = unit;
+        cachedLeader = null;
         justSelected = true;
 
         if (unitActionUI != null && unit != null)
@@ -64,6 +84,7 @@ public class MergeManager : MonoBehaviour
             screenPos.z = 0f;
             unitActionUI.GetComponent<RectTransform>().position = screenPos + new Vector3(0, 80f, 0);
             unitActionUI.SetActive(true);
+            RefreshActionButtons();
         }
 
         HideRangeIndicator();
@@ -83,6 +104,8 @@ public class MergeManager : MonoBehaviour
     public void HideUnitActionUI()
     {
         selectedUnit = null;
+        cachedLeader = null;
+        currentSkillIndex = -1;
         if (unitActionUI != null) unitActionUI.SetActive(false);
         HideRangeIndicator();
     }
@@ -92,10 +115,87 @@ public class MergeManager : MonoBehaviour
         if (currentRangeIndicator != null) { Destroy(currentRangeIndicator); currentRangeIndicator = null; }
     }
 
+    int GetTier5Index()
+    {
+        if (selectedUnit?.characterData == null) return -1;
+        for (int i = 0; i < tier5Names.Length; i++)
+            if (selectedUnit.characterData.characterName == tier5Names[i]) return i;
+        return -1;
+    }
+
+    PlayerAttack GetSelectedLeader()
+    {
+        if (selectedUnit == null) return null;
+        if (selectedUnit.isLeader) return selectedUnit;
+        PlayerAttack[] all = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
+        foreach (PlayerAttack unit in all)
+            if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex && unit.isLeader)
+                return unit;
+        return null;
+    }
+
+    void RefreshActionButtons()
+    {
+        currentSkillIndex = GetTier5Index();
+        bool isTier5 = currentSkillIndex >= 0;
+
+        if (mergeButton != null) mergeButton.gameObject.SetActive(!isTier5);
+        if (mergeButtonCanvasGroup != null) mergeButtonCanvasGroup.gameObject.SetActive(!isTier5);
+
+        for (int i = 0; i < skillButtons.Length; i++)
+        {
+            bool show = isTier5 && i == currentSkillIndex;
+            if (skillButtons[i] != null) skillButtons[i].gameObject.SetActive(show);
+            if (manaFillImages[i] != null) manaFillImages[i].gameObject.SetActive(show);
+        }
+
+        if (isTier5) { cachedLeader = GetSelectedLeader(); UpdateManaUI(currentSkillIndex); }
+    }
+
+    void UpdateManaUI(int index)
+    {
+        if (index < 0 || index >= skillButtons.Length) return;
+        if (cachedLeader == null) cachedLeader = GetSelectedLeader();
+        if (cachedLeader == null) return;
+
+        float maxMana = cachedLeader.characterData != null ? cachedLeader.characterData.maxMana : 1f;
+        if (manaFillImages[index] != null)
+            manaFillImages[index].fillAmount = maxMana > 0f ? cachedLeader.currentMana / maxMana : 0f;
+
+        bool isFull = cachedLeader.IsManaFull();
+        bool hasTarget = cachedLeader.characterData.characterName == "Tier5_2"
+            ? true
+            : (cachedLeader.GetCurrentTarget() != null || cachedLeader.FindBackmostEnemyInRange() != null);
+        bool canUse = isFull && hasTarget;
+
+        if (skillButtons[index] != null) skillButtons[index].interactable = canUse;
+        if (skillButtonOverlays[index] != null) skillButtonOverlays[index].gameObject.SetActive(!canUse);
+    }
+
+    void OnSkillButtonClick(int index)
+    {
+        if (cachedLeader == null) cachedLeader = GetSelectedLeader();
+        if (cachedLeader == null || !cachedLeader.IsManaFull()) return;
+        cachedLeader.ActivateManaSkill();
+        cachedLeader.ResetMana();
+        UpdateManaUI(index);
+    }
+
     int GetActualUpgradeCost(int baseCost) => Mathf.Max(1, Mathf.RoundToInt(baseCost * upgradeCostMultiplier));
 
     void RefreshMergeUI()
     {
+        if (sellPriceText != null && selectedUnit?.characterData != null)
+        {
+            int count = 0;
+            foreach (PlayerAttack unit in FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None))
+                if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
+            float mult = PlayerSpawner.Instance != null ? PlayerSpawner.Instance.sellPriceMultiplier : 1f;
+            sellPriceText.text = $"{Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)}G";
+        }
+
+        if (currentSkillIndex >= 0) return;
+
         bool canMerge = false;
         if (selectedUnit != null && PlayerSpawner.Instance != null)
         {
@@ -109,14 +209,6 @@ public class MergeManager : MonoBehaviour
         }
         if (mergeButton != null) mergeButton.interactable = canMerge;
         if (mergeButtonCanvasGroup != null) mergeButtonCanvasGroup.alpha = canMerge ? 1f : 0.4f;
-        if (sellPriceText != null && selectedUnit?.characterData != null)
-        {
-            int count = 0;
-            foreach (PlayerAttack unit in FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None))
-                if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
-            float mult = PlayerSpawner.Instance != null ? PlayerSpawner.Instance.sellPriceMultiplier : 1f;
-            sellPriceText.text = $"{Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)}G";
-        }
     }
 
     public void CheckMergeAvailable() => RefreshMergeUI();

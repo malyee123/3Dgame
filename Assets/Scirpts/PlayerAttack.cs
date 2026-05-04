@@ -13,6 +13,7 @@ public class PlayerAttack : MonoBehaviour
     private EnemyMove currentTarget;
 
     [SerializeField] private float appliedDamage;
+    [SerializeField] private float appliedRange;
     [SerializeField] private float appliedCooldown;
     [SerializeField] private float passiveDamageBonus;
     [SerializeField] private float passiveSpeedBonus;
@@ -57,11 +58,18 @@ public class PlayerAttack : MonoBehaviour
 
     private float augmentDamageBonus = 0f;
     private float augmentSpeedBonus = 0f;
+    private float augmentRangeBonus = 0f;
+    private float augmentNormalDamagePenalty = 1f;
+    private float augmentSpeedPenalty = 0f;
 
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
     private bool isAllySpeedBoosted = false;
     private bool isDragging = false;
+
+    public float currentMana = 0f;
+    private float manaChargeTimer = 0f;
+
     private SPUM_Prefabs spumPrefabs;
     private int hitCounter = 0;
     private const int gridWidth = 5;
@@ -71,9 +79,12 @@ public class PlayerAttack : MonoBehaviour
     public string UnitType => characterData != null ? characterData.characterName : "";
     public EnemyMove GetCurrentTarget() => currentTarget;
 
+    public bool IsManaFull() => characterData != null && characterData.maxMana > 0 && currentMana >= characterData.maxMana;
+    public void ResetMana() { currentMana = 0f; manaChargeTimer = 0f; }
+
     void Start()
     {
-        if (characterData == null) { Debug.LogError($"[PlayerAttack {spawnIndex}] CharacterData missing!"); enabled = false; return; }
+        if (characterData == null) { enabled = false; return; }
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
         spumPrefabs = GetComponentInChildren<SPUM_Prefabs>();
@@ -85,14 +96,18 @@ public class PlayerAttack : MonoBehaviour
     {
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
-        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f);
-        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - augmentSpeedBonus / 100f));
+        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty;
+        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - augmentSpeedBonus / 100f) * (1f + augmentSpeedPenalty / 100f));
+        appliedRange = characterData.attackRange + augmentRangeBonus;
     }
 
-    public void ApplyAugmentBonus(float damageBonus, float speedBonus)
+    public void ApplyAugmentBonus(float damageBonus, float speedBonus, float rangeBonus = 0f, float normalDamagePenalty = 1f, float speedPenalty = 0f)
     {
         augmentDamageBonus += damageBonus;
         augmentSpeedBonus += speedBonus;
+        augmentRangeBonus += rangeBonus;
+        augmentNormalDamagePenalty *= normalDamagePenalty;
+        augmentSpeedPenalty += speedPenalty;
         ApplyUpgradeStats();
     }
 
@@ -174,6 +189,17 @@ public class PlayerAttack : MonoBehaviour
     {
         if (isDragging || !isLeader) return;
         if (GameManager.Instance != null && GameManager.Instance.IsWarning) return;
+
+        if (characterData != null && characterData.maxMana > 0)
+        {
+            manaChargeTimer += Time.deltaTime;
+            if (manaChargeTimer >= 1f)
+            {
+                manaChargeTimer = 0f;
+                currentMana = Mathf.Min(currentMana + 1f, characterData.maxMana);
+            }
+        }
+
         cooldownTimer += Time.deltaTime;
         if (cooldownTimer < appliedCooldown) return;
         AttackWithLockedTarget();
@@ -202,9 +228,12 @@ public class PlayerAttack : MonoBehaviour
             magicMissileChance = magicMissileDamagePercent =
             slamChance = slamDamagePercent = slamRange =
             manaSkillDamage = manaSkillDuration = manaSkillInterval =
-            augmentDamageBonus = augmentSpeedBonus = 0f;
+            augmentDamageBonus = augmentSpeedBonus = augmentRangeBonus = augmentSpeedPenalty = 0f;
+        augmentNormalDamagePenalty = 1f;
         bossDamageDouble = false;
         hitCounter = 0;
+        currentMana = 0f;
+        manaChargeTimer = 0f;
         ApplyUpgradeStats();
         cooldownTimer = appliedCooldown;
         slotMatesDirty = true;
@@ -276,8 +305,11 @@ public class PlayerAttack : MonoBehaviour
         if (doubleDamageChance > 0f && Random.Range(0f, 100f) < doubleDamageChance)
             finalDamage *= doubleDamageMultiplier;
         if (bossDamageDouble && health.isBoss) finalDamage *= 2f;
-        if (health.isSpecial && AugmentManager.Instance != null && AugmentManager.Instance.HasGiantSlayer)
-            finalDamage *= 2f;
+        if (AugmentManager.Instance != null && AugmentManager.Instance.HasGiantSlayer)
+        {
+            if (health.isSpecial) finalDamage *= 2f;
+            else finalDamage *= augmentNormalDamagePenalty;
+        }
         if (characterData.tier >= 5 && AugmentManager.Instance != null && AugmentManager.Instance.HasTheBigOne)
             if (Random.Range(0f, 100f) < 10f) finalDamage *= 5f;
 
@@ -330,11 +362,28 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator FireProjectileWithDelay(EnemyMove target, float damage)
     {
+        Vector3 savedPos = target != null ? target.transform.position : transform.position;
         yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
-        if (target == null) yield break;
+        if (characterData.projectilePrefab == null) yield break;
+
+        Transform targetTransform;
+        GameObject tempObj = null;
+
+        if (target != null)
+        {
+            targetTransform = target.transform;
+        }
+        else
+        {
+            tempObj = new GameObject("TempProjectileTarget");
+            tempObj.transform.position = savedPos;
+            targetTransform = tempObj.transform;
+            Destroy(tempObj, 3f);
+        }
+
         GameObject proj = Instantiate(characterData.projectilePrefab, transform.position, Quaternion.identity);
         Projectile projectile = proj.AddComponent<Projectile>();
-        projectile.Init(target.transform, characterData.projectileSpeed, damage, this, characterData.hitEffectPrefab, characterData.hitEffectDuration, characterData.hitEffectOffsetY);
+        projectile.Init(targetTransform, characterData.projectileSpeed, damage, this, characterData.hitEffectPrefab, characterData.hitEffectDuration, characterData.hitEffectOffsetY);
     }
 
     IEnumerator MultiAttackRoutine(int remainCount)
@@ -381,7 +430,7 @@ public class PlayerAttack : MonoBehaviour
         foreach (EnemyMove enemy in allEnemies)
         {
             if (enemy == null) continue;
-            if (Vector2.Distance(transform.position, enemy.transform.position) <= characterData.attackRange)
+            if (Vector2.Distance(transform.position, enemy.transform.position) <= appliedRange)
                 enemy.ApplyTempSpeedPenalty(areaSpeedDownAmount, areaSpeedDownDuration);
         }
     }
@@ -467,7 +516,6 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkillRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         switch (characterData.characterName)
         {
             case "Tier5_1": StartCoroutine(ManaSkill_Tier5_1()); break;
@@ -475,6 +523,7 @@ public class PlayerAttack : MonoBehaviour
             case "Tier5_3": StartCoroutine(ManaSkill_Tier5_3()); break;
             case "Tier5_4": StartCoroutine(ManaSkill_Tier5_4()); break;
         }
+        yield break;
     }
 
     IEnumerator ManaSkill_Tier5_1()
@@ -526,13 +575,12 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_2()
     {
-        // ĳ���� ��ġ�� ��ų ����Ʈ ����
         if (characterData.manaSkillEffectPrefab != null)
         {
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, transform.position, Quaternion.identity);
+            effect.transform.SetParent(transform);
             Destroy(effect, manaSkillDuration > 0f ? manaSkillDuration : 2f);
         }
-
         float originalDamage = appliedDamage;
         float originalCooldown = appliedCooldown;
         appliedDamage = appliedDamage * (manaSkillDamage / 100f);
@@ -550,43 +598,36 @@ public class PlayerAttack : MonoBehaviour
     {
         float damage = appliedDamage * (manaSkillDamage / 100f);
 
-        // ��Ÿ� �� ���� �켱 Ž��
         EnemyHealth bossTarget = null;
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
         {
             if (eh == null) continue;
-            if (eh.isBoss && Vector2.Distance(transform.position, eh.transform.position) <= characterData.attackRange)
+            if (eh.isBoss && Vector2.Distance(transform.position, eh.transform.position) <= appliedRange)
             { bossTarget = eh; break; }
         }
 
-        // ���� ������ ���� Ÿ�� ���
         EnemyHealth finalTarget = bossTarget;
         if (finalTarget == null && currentTarget != null)
             finalTarget = currentTarget.GetComponent<EnemyHealth>();
-
-        // ���� Ÿ�ٵ� ������ ��Ÿ� �� �� Ž��
         if (finalTarget == null)
         {
             EnemyMove nearest = FindBackmostEnemyInRange();
             if (nearest != null) finalTarget = nearest.GetComponent<EnemyHealth>();
         }
+        if (finalTarget == null) yield break;
 
-        if (finalTarget != null)
+        if (characterData.manaSkillEffectPrefab != null)
         {
-            if (characterData.manaSkillEffectPrefab != null)
-            {
-                GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, finalTarget.transform.position, Quaternion.identity);
-                Destroy(effect, 2f);
-            }
-            finalTarget.TakeDamage(damage, this);
+            GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, finalTarget.transform.position, Quaternion.identity);
+            Destroy(effect, 2f);
         }
+        finalTarget.TakeDamage(damage, this);
         yield break;
     }
 
     IEnumerator ManaSkill_Tier5_4()
     {
-        // �� �߾ӿ� ����Ʈ ����
         if (characterData.manaSkillEffectPrefab != null)
         {
             Vector3 centerPos = Camera.main.transform.position;
@@ -594,11 +635,11 @@ public class PlayerAttack : MonoBehaviour
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, centerPos, Quaternion.identity);
             Destroy(effect, manaSkillDuration > 0f ? manaSkillDuration : 2f);
         }
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         float damage = appliedDamage * GetSlotUnitCount() * (manaSkillDamage / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
             if (eh != null) eh.TakeDamage(damage, this);
+        yield break;
     }
 
     public EnemyMove FindBackmostEnemyInRange()
@@ -611,7 +652,7 @@ public class PlayerAttack : MonoBehaviour
         {
             if (enemy == null) continue;
             float dist = Vector2.Distance(transform.position, enemy.transform.position);
-            if (dist > characterData.attackRange) continue;
+            if (dist > appliedRange) continue;
             float progress = enemy.GetPathProgress();
             if (progress < smallestProgress || (Mathf.Approximately(progress, smallestProgress) && dist < fallbackNearest))
             {
@@ -626,13 +667,13 @@ public class PlayerAttack : MonoBehaviour
     bool IsTargetInRange(EnemyMove enemy)
     {
         if (enemy == null) return false;
-        return Vector2.Distance(transform.position, enemy.transform.position) <= characterData.attackRange;
+        return Vector2.Distance(transform.position, enemy.transform.position) <= appliedRange;
     }
 
     void OnDrawGizmosSelected()
     {
         if (characterData == null) return;
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, characterData.attackRange);
+        Gizmos.DrawWireSphere(transform.position, appliedRange);
     }
 }
