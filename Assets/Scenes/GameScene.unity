@@ -3395,7 +3395,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnvilCard
   cardBackground: {fileID: 531345403}
-  nameText: {fileID: 419923721}
   descriptionText: {fileID: 1078934662}
   selectButton: {fileID: 2121762509}
 --- !u!114 &531345403
@@ -3521,7 +3520,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnvilCard
   cardBackground: {fileID: 564457953}
-  nameText: {fileID: 1577116202}
   descriptionText: {fileID: 1193222964}
   selectButton: {fileID: 1878400848}
 --- !u!114 &564457953
@@ -4541,10 +4539,8 @@ MonoBehaviour:
   specialMonsterLifetime: 15
   specialCoinReward: 3
   spawnInterval: 20
-  buttonDisplayTime: 3
   spawnButtonObject: {fileID: 298684591}
   spawnButton: {fileID: 298684595}
-  buttonTimerText: {fileID: 0}
   spawnPosition: {x: -5.5, y: 2.5}
   pathManager: {fileID: 0}
 --- !u!1 &794089658
@@ -10637,7 +10633,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -8862056116571752067, guid: 72c530ee8ba3b0745ac89e0c191c1a3d, type: 3}
+  m_Sprite: {fileID: 6444406972126655912, guid: 41a4acb0d7694be49a6b17727d5bb63e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -11514,7 +11510,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnvilCard
   cardBackground: {fileID: 2013326200}
-  nameText: {fileID: 1123774376}
   descriptionText: {fileID: 524738804}
   selectButton: {fileID: 930349747}
 --- !u!114 &2013326200
