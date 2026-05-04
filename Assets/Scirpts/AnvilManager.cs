@@ -97,11 +97,11 @@ public class AnvilManager : MonoBehaviour
         {
             case AnvilType.AttackDamage:
                 bonusAttackDamage += data.value;
-                ApplyDamageToAllUnits();
+                ApplyToAllUnits(bonusAttackDamage, 0f);
                 break;
             case AnvilType.AttackSpeed:
                 bonusAttackSpeed += data.value;
-                ApplySpeedToAllUnits();
+                ApplyToAllUnits(0f, bonusAttackSpeed);
                 break;
             case AnvilType.CharacterLimit:
                 bonusCharacterLimit += (int)data.value;
@@ -129,18 +129,11 @@ public class AnvilManager : MonoBehaviour
         PassiveManager.Instance?.RecalculatePassives();
     }
 
-    void ApplyDamageToAllUnits()
+    void ApplyToAllUnits(float dmg, float spd)
     {
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         foreach (PlayerAttack unit in allUnits)
-            if (unit != null) unit.ApplyAugmentBonus(bonusAttackDamage, 0f);
-    }
-
-    void ApplySpeedToAllUnits()
-    {
-        PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        foreach (PlayerAttack unit in allUnits)
-            if (unit != null) unit.ApplyAugmentBonus(0f, bonusAttackSpeed);
+            if (unit != null) unit.ApplyAugmentBonus(dmg, spd);
     }
 
     void ApplyArmorPenetrationToExisting()

@@ -105,7 +105,7 @@ public class PassiveManager : MonoBehaviour
                 manaSkillDamage, manaSkillDuration, manaSkillInterval);
         }
 
-        // ÇöÀç ÇÊµåÀÇ ¸ðµç Àû¿¡°Ô Áï½Ã Àû¿ë
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         foreach (EnemyMove enemy in allEnemies)
             if (enemy != null) enemy.ApplySpeedPenalty(totalEnemySpeedDown);
 

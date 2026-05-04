@@ -83,11 +83,11 @@ public class ManaManager : MonoBehaviour
             ManaSlot slot = manaSlots[i];
             bool isFull = slot.currentMana >= slot.maxMana;
 
-            // Tier5_2´Â ¹öÇÁ¶ó Àû ¾ø¾îµµ ¹öÆ° È°¼ºÈ­
+            // Tier5_2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½îµµ ï¿½ï¿½Æ° È°ï¿½ï¿½È­
             bool hasTargetInRange = false;
             if (slot.characterName == "Tier5_2")
             {
-                // Ä³¸¯ÅÍ°¡ ÇÊµå¿¡ ÀÖÀ¸¸é ¹öÆ° È°¼ºÈ­
+                // Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° È°ï¿½ï¿½È­
                 foreach (PlayerAttack unit in allUnits)
                 {
                     if (unit == null || unit.characterData == null) continue;
@@ -100,7 +100,7 @@ public class ManaManager : MonoBehaviour
             }
             else
             {
-                // ³ª¸ÓÁö´Â ¸®´õ Áß ÇÑ ¸¶¸®¶óµµ »ç°Å¸® ³» Àû ÀÖÀ¸¸é È°¼ºÈ­
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­
                 foreach (PlayerAttack unit in allUnits)
                 {
                     if (unit == null || unit.characterData == null) continue;
@@ -136,14 +136,14 @@ public class ManaManager : MonoBehaviour
             if (unit == null || unit.characterData == null) continue;
             if (unit.characterData.characterName != slot.characterName || !unit.isLeader) continue;
 
-            // Tier5_2´Â ¹öÇÁ¶ó Àû ¾ø¾îµµ ¹ßµ¿
+            // Tier5_2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½îµµ ï¿½ßµï¿½
             if (unit.characterData.characterName == "Tier5_2")
             {
                 unit.ActivateManaSkill();
                 continue;
             }
 
-            // ³ª¸ÓÁö´Â °³º° »ç°Å¸® ³» Àû ÀÖÀ» ¶§¸¸ ¹ßµ¿
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½
             if (unit.GetCurrentTarget() != null || unit.FindBackmostEnemyInRange() != null)
                 unit.ActivateManaSkill();
         }

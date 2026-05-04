@@ -59,7 +59,7 @@ public class CSVLoader : MonoBehaviour
 
     void LoadCharacterStats()
     {
-        if (characterCSV == null) { Debug.LogWarning("[CSVLoader] characters.csv not found"); return; }
+        if (characterCSV == null) { return; }
         string[] lines = characterCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
         {
@@ -82,7 +82,7 @@ public class CSVLoader : MonoBehaviour
 
     void LoadPassiveStats()
     {
-        if (passiveCSV == null) { Debug.LogWarning("[CSVLoader] passives.csv not found"); return; }
+        if (passiveCSV == null) { return; }
         foreach (CharacterData data in characterDataList)
             if (data != null) data.passives.Clear();
         string[] lines = passiveCSV.text.Split('\n');
@@ -105,7 +105,7 @@ public class CSVLoader : MonoBehaviour
 
     void LoadRoundStats()
     {
-        if (roundCSV == null) { Debug.LogWarning("[CSVLoader] rounds.csv not found"); return; }
+        if (roundCSV == null) { return; }
         roundDataList.Clear();
         string[] lines = roundCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
@@ -134,7 +134,7 @@ public class CSVLoader : MonoBehaviour
 
     void LoadBossStats()
     {
-        if (bossCSV == null) { Debug.LogWarning("[CSVLoader] boss.csv not found"); return; }
+        if (bossCSV == null) { return; }
         bossDataList.Clear();
         string[] lines = bossCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
@@ -159,7 +159,7 @@ public class CSVLoader : MonoBehaviour
 
     void LoadUpgradeStats()
     {
-        if (upgradeCSV == null) { Debug.LogWarning("[CSVLoader] upgrades.csv not found"); return; }
+        if (upgradeCSV == null) { return; }
         upgradeDataList.Clear();
         upgradeDataMap.Clear();
         string[] lines = upgradeCSV.text.Split('\n');
@@ -238,7 +238,6 @@ public class CSVLoader : MonoBehaviour
     CharacterData FindCharacterData(string name)
     {
         if (characterDataMap.TryGetValue(name, out CharacterData data)) return data;
-        Debug.LogWarning($"[CSVLoader] '{name}' CharacterData not found");
         return null;
     }
 }

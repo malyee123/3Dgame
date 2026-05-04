@@ -83,7 +83,7 @@ public class EnemySpawner : MonoBehaviour
         {
             enemyMove.SetPathManager(pathManager);
             enemyMove.speed = currentEnemySpeed;
-            // »õ·Î ½ºÆùµÇ´Â Àû¿¡µµ AllEnemySpeedDown Áï½Ã Àû¿ë
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AllEnemySpeedDown ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (PassiveManager.Instance != null)
                 enemyMove.ApplySpeedPenalty(PassiveManager.Instance.GetTotalEnemySpeedDown());
         }
@@ -93,7 +93,7 @@ public class EnemySpawner : MonoBehaviour
         {
             float defense = currentEnemyDefense * armorBreakerMultiplier;
             enemyHealth.Init(currentEnemyHp, defense);
-            // »õ·Î ½ºÆùµÇ´Â Àû¿¡µµ AllEnemyDefenseDown Áï½Ã Àû¿ë
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AllEnemyDefenseDown ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (PassiveManager.Instance != null)
                 enemyHealth.ApplyDefenseDown(PassiveManager.Instance.GetTotalEnemyDefenseDown());
         }

@@ -330,7 +330,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator FireProjectileWithDelay(EnemyMove target, float damage)
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         if (target == null) yield break;
         GameObject proj = Instantiate(characterData.projectilePrefab, transform.position, Quaternion.identity);
         Projectile projectile = proj.AddComponent<Projectile>();
@@ -351,7 +351,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator SlamRoutine(EnemyMove target)
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         if (target == null) yield break;
         Vector3 targetPos = target.transform.position;
         float damage = appliedDamage * GetSlotUnitCount() * (slamDamagePercent / 100f);
@@ -367,7 +367,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator MagicMissileRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         float damage = appliedDamage * GetSlotUnitCount() * (magicMissileDamagePercent / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
@@ -376,7 +376,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator AreaSpeedDownRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
@@ -389,7 +389,7 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator AoeStunRoutine(EnemyMove target)
     {
         Vector3 targetPos = target != null ? target.transform.position : transform.position;
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
@@ -420,7 +420,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ExecuteCheckRoutine(EnemyMove target)
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         if (target == null) yield break;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;
@@ -430,7 +430,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator DealDamageWithDelay(EnemyMove target, float damage, int remainMultiAttack)
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         if (target == null) yield break;
         Vector3 targetPos = target.transform.position;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
@@ -467,7 +467,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkillRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         switch (characterData.characterName)
         {
             case "Tier5_1": StartCoroutine(ManaSkill_Tier5_1()); break;
@@ -526,7 +526,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_2()
     {
-        // Ä³¸¯ÅÍ À§Ä¡¿¡ ½ºÅ³ ÀÌÆåÆ® »ý¼º
+        // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
         if (characterData.manaSkillEffectPrefab != null)
         {
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, transform.position, Quaternion.identity);
@@ -550,7 +550,7 @@ public class PlayerAttack : MonoBehaviour
     {
         float damage = appliedDamage * (manaSkillDamage / 100f);
 
-        // »ç°Å¸® ³» º¸½º ¿ì¼± Å½»ö
+        // ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ì¼± Å½ï¿½ï¿½
         EnemyHealth bossTarget = null;
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
@@ -560,12 +560,12 @@ public class PlayerAttack : MonoBehaviour
             { bossTarget = eh; break; }
         }
 
-        // º¸½º ¾øÀ¸¸é ÇöÀç Å¸°Ù »ç¿ë
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½
         EnemyHealth finalTarget = bossTarget;
         if (finalTarget == null && currentTarget != null)
             finalTarget = currentTarget.GetComponent<EnemyHealth>();
 
-        // ÇöÀç Å¸°Ùµµ ¾øÀ¸¸é »ç°Å¸® ³» Àû Å½»ö
+        // ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ùµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ Å½ï¿½ï¿½
         if (finalTarget == null)
         {
             EnemyMove nearest = FindBackmostEnemyInRange();
@@ -586,7 +586,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ManaSkill_Tier5_4()
     {
-        // ¸Ê Áß¾Ó¿¡ ÀÌÆåÆ® »ý¼º
+        // ï¿½ï¿½ ï¿½ß¾Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
         if (characterData.manaSkillEffectPrefab != null)
         {
             Vector3 centerPos = Camera.main.transform.position;
@@ -594,7 +594,7 @@ public class PlayerAttack : MonoBehaviour
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, centerPos, Quaternion.identity);
             Destroy(effect, manaSkillDuration > 0f ? manaSkillDuration : 2f);
         }
-        yield return new WaitForSeconds(characterData.attackHitDelay);
+        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
         float damage = appliedDamage * GetSlotUnitCount() * (manaSkillDamage / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)

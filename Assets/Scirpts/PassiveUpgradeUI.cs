@@ -57,7 +57,7 @@ public class PassiveUpgradeUI : MonoBehaviour
         int level = UpgradeManager.Instance.GetTierPassiveLevel(tier);
         int cost = UpgradeManager.Instance.GetTierPassiveCost(tier);
         float bonus = UpgradeManager.Instance.GetTierPassiveBonus(tier);
-        if (levelText != null) levelText.text = $"Tier{tier} �нú�  Lv.{level}  (+{bonus}%)";
+        if (levelText != null) levelText.text = $"Tier{tier} �нú�  Lv.{level}  (+{bonus}%)";
         if (costText != null) costText.text = $"Cost: {cost}";
         if (button != null) button.interactable = sp >= cost;
     }

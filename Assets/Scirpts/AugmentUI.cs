@@ -59,7 +59,7 @@ public class AugmentUI : MonoBehaviour
     {
         AugmentManager.Instance?.ApplyAugment(data);
         if (augmentPanel != null) augmentPanel.SetActive(false);
-        // ¼±ÅÃ Àü ¹è¼ÓÀ¸·Î º¹¿ø
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Time.timeScale = SpeedManager.Instance != null ? SpeedManager.Instance.CurrentSpeed : 1f;
         PassiveManager.Instance?.RecalculatePassives();
         GameManager.Instance?.OnAugmentSelected();

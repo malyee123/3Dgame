@@ -25,7 +25,7 @@ MonoBehaviour:
   upgradeCost: 300
   sellPrice: 200
   attackAnimIndex: 0
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 6710139492206580332, guid: 95b8d3d65b5d7f1409c4ed1723887826, type: 3}
   hitEffectPrefab: {fileID: 100000, guid: f06e78284f831ae469c74624ab5d513b, type: 3}
   projectileSpeed: 12
   hitEffectDuration: 0.3
