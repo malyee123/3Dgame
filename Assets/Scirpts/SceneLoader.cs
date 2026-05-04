@@ -8,6 +8,7 @@ public class SceneLoader : MonoBehaviour
     public void LoadStageSelectScene() => SceneManager.LoadScene("StageSelectScene");
     public void LoadUpgradeScene() => SceneManager.LoadScene("UpgradeScene");
     public void LoadPassiveUpgradeScene() => SceneManager.LoadScene("PassiveUpgradeScene");
+    public void LoadTitleScene() => SceneManager.LoadScene("TitleScene");
     public void LoadGameSceneWithStage(int stage)
     {
         PlayerPrefs.SetInt("SelectedStage", stage);
