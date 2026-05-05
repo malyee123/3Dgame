@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,6 +35,9 @@ public class PlayerSpawner : MonoBehaviour
     public Button spawnButton;
     public Button specialSpawnButton;
 
+    [Header("Character Count UI")]
+    public TextMeshProUGUI characterCountText;
+
     [Header("Aura Settings")]
     public GameObject[] auraPrefabs;
 
@@ -61,14 +65,13 @@ public class PlayerSpawner : MonoBehaviour
 
     void Start()
     {
-        if (spawnPoints == null || spawnPoints.Length == 0) { Debug.LogError("[PlayerSpawner] No spawn points assigned!"); return; }
-        if (playerPrefab == null) { Debug.LogError("[PlayerSpawner] playerPrefab is missing!"); return; }
-        if (characterDataList == null || characterDataList.Length == 0) { Debug.LogError("[PlayerSpawner] CharacterData list is empty!"); return; }
+        if (spawnPoints == null || spawnPoints.Length == 0) return;
+        if (playerPrefab == null) return;
+        if (characterDataList == null || characterDataList.Length == 0) return;
         slotOccupancy = new int[spawnPoints.Length];
         slotTagOwners = new string[spawnPoints.Length];
         slotAuras = new GameObject[spawnPoints.Length];
         slotAuraTiers = new int[spawnPoints.Length];
-        // 로비 업그레이드 캐릭터 수 반영
         int upgradeBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCharacterLimitBonus() : 0;
         currentCharacterLimit = baseCharacterLimit + upgradeBonus;
         StartCoroutine(InitButtonNextFrame());
@@ -90,7 +93,6 @@ public class PlayerSpawner : MonoBehaviour
         if (slotOccupancy == null || slotOccupancy.Length == 0) return;
         SyncSlotStateFromScene();
         if (!HasAvailableSlot()) return;
-        // 일반 소환 - 운빨 좋은 날 적용된 확률로 캐릭터 선택
         CharacterData selectedData = GetRandomCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -106,7 +108,6 @@ public class PlayerSpawner : MonoBehaviour
         if (!HasAvailableSlot()) return;
         if (SpecialCoinManager.Instance == null) return;
         if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) return;
-        // 특수 소환 - 운빨 좋은 날 미적용
         CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
@@ -143,18 +144,14 @@ public class PlayerSpawner : MonoBehaviour
 
     bool HasAvailableSlot()
     {
-        // 현재 필드 전체 캐릭터 수 확인
         int totalUnits = 0;
-        for (int i = 0; i < slotOccupancy.Length; i++)
-            totalUnits += slotOccupancy[i];
+        for (int i = 0; i < slotOccupancy.Length; i++) totalUnits += slotOccupancy[i];
         if (totalUnits >= currentCharacterLimit) return false;
-
         for (int i = 0; i < slotOccupancy.Length; i++)
             if (slotOccupancy[i] == 0) return true;
         return false;
     }
 
-    // 모루 - 캐릭터 제한 증가
     public void AddCharacterLimit(int amount)
     {
         currentCharacterLimit += amount;
@@ -195,13 +192,11 @@ public class PlayerSpawner : MonoBehaviour
             int tier = specialSpawnMinTier + i;
             if (!tierMap.ContainsKey(tier)) continue;
             cumulative += specialTierSpawnWeights[i];
-            if (rand <= cumulative)
-                return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
+            if (rand <= cumulative) return tierMap[tier][Random.Range(0, tierMap[tier].Count)];
         }
         return null;
     }
 
-    // 일반 소환 캐릭터 선택 - 운빨 좋은 날 적용 시 2티어 가중치 1.5배
     CharacterData GetRandomCharacterData()
     {
         if (characterDataList == null || characterDataList.Length == 0) return null;
@@ -216,7 +211,6 @@ public class PlayerSpawner : MonoBehaviour
             tierMap[tier].Add(data);
         }
 
-        // 운빨 좋은 날 - 일반 소환 2티어 가중치에만 적용
         float[] weights = (float[])tierSpawnWeights.Clone();
         if (AugmentManager.Instance != null && AugmentManager.Instance.HasLuckyDay && weights.Length >= 2)
             weights[1] *= luckyDayMultiplier;
@@ -262,7 +256,6 @@ public class PlayerSpawner : MonoBehaviour
         if (!slots.Contains(spawnIndex)) slots.Add(spawnIndex);
         slotDirty = true;
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
-        // 새로 소환된 유닛에 증강 효과 즉시 적용
         if (playerAttack != null) AugmentManager.Instance?.ApplyAugmentBonusToUnit(playerAttack);
         UpdateSpawnButton();
         UpdateSlotAura(spawnIndex, characterData.tier);
@@ -518,6 +511,13 @@ public class PlayerSpawner : MonoBehaviour
             specialSpawnButton.interactable = !fieldFull &&
                 SpecialCoinManager.Instance != null &&
                 SpecialCoinManager.Instance.GetSpecialCoins() >= specialSpawnCost;
+
+        if (characterCountText != null)
+        {
+            int total = 0;
+            for (int i = 0; i < slotOccupancy.Length; i++) total += slotOccupancy[i];
+            characterCountText.text = $"필드 캐릭터 : {total} / {currentCharacterLimit}";
+        }
     }
 
     Vector3 GetTriangleOffset(int stackIndex)
