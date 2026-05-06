@@ -107,7 +107,6 @@ public class PlayerSpawner : MonoBehaviour
         SyncSlotStateFromScene();
         if (!HasAvailableSlot()) return;
         if (SpecialCoinManager.Instance == null) return;
-        if (!SpecialCoinManager.Instance.SpendSpecialCoins(specialSpawnCost)) return;
         CharacterData selectedData = GetRandomSpecialCharacterData();
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);

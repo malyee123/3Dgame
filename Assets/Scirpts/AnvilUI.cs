@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 public class AnvilUI : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class AnvilUI : MonoBehaviour
     [Header("Active Anvils")]
     public TextMeshProUGUI activeAnvilText;
 
-    private System.Collections.Generic.List<string> activeSummaries = new System.Collections.Generic.List<string>();
+    private Dictionary<AnvilType, float> accumulatedValues = new Dictionary<AnvilType, float>();
 
     void Awake()
     {
@@ -36,15 +37,8 @@ public class AnvilUI : MonoBehaviour
         for (int i = 0; i < cards.Length; i++)
         {
             if (cards[i] == null) continue;
-            if (i < anvils.Length)
-            {
-                cards[i].gameObject.SetActive(true);
-                cards[i].Setup(anvils[i], this);
-            }
-            else
-            {
-                cards[i].gameObject.SetActive(false);
-            }
+            if (i < anvils.Length) { cards[i].gameObject.SetActive(true); cards[i].Setup(anvils[i], this); }
+            else cards[i].gameObject.SetActive(false);
         }
 
         if (anvilPanel != null) anvilPanel.SetActive(true);
@@ -54,9 +48,13 @@ public class AnvilUI : MonoBehaviour
     public void OnSelectAnvil(AnvilData data)
     {
         AnvilManager.Instance?.ApplyAnvil(data);
-        activeSummaries.Add(data.summary);
+
+        if (accumulatedValues.ContainsKey(data.type))
+            accumulatedValues[data.type] += data.value;
+        else
+            accumulatedValues[data.type] = data.value;
+
         if (anvilPanel != null) anvilPanel.SetActive(false);
-        // 선택 전 배속으로 복원
         Time.timeScale = SpeedManager.Instance != null ? SpeedManager.Instance.CurrentSpeed : 1f;
         UpdateActiveAnvilText();
     }
@@ -64,13 +62,27 @@ public class AnvilUI : MonoBehaviour
     void UpdateActiveAnvilText()
     {
         if (activeAnvilText == null) return;
-        if (activeSummaries.Count == 0) { activeAnvilText.text = ""; return; }
-        activeAnvilText.text = "[ 모루 ]\n" + string.Join("\n", activeSummaries);
+        if (accumulatedValues.Count == 0) { activeAnvilText.text = ""; return; }
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder("[ 모루 ]\n");
+        foreach (var kv in accumulatedValues)
+        {
+            switch (kv.Key)
+            {
+                case AnvilType.AttackDamage: sb.Append($"공격력 +{kv.Value}%\n"); break;
+                case AnvilType.AttackSpeed: sb.Append($"공격속도 +{kv.Value}%\n"); break;
+                case AnvilType.CharacterLimit: sb.Append($"캐릭터 제한 +{(int)kv.Value}\n"); break;
+                case AnvilType.EnemyLimit: sb.Append($"적 인원 제한 +{(int)kv.Value}\n"); break;
+                case AnvilType.BossTime: sb.Append($"보스전 시간 +{kv.Value}초\n"); break;
+                case AnvilType.ArmorPenetration: sb.Append($"방관 +{kv.Value}%\n"); break;
+            }
+        }
+        activeAnvilText.text = sb.ToString().TrimEnd();
     }
 
     public void ResetAnvilUI()
     {
-        activeSummaries.Clear();
+        accumulatedValues.Clear();
         UpdateActiveAnvilText();
     }
 }

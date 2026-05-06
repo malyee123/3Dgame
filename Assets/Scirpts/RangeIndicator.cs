@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class RangeIndicator : MonoBehaviour
@@ -29,5 +30,10 @@ public class RangeIndicator : MonoBehaviour
             float y = Mathf.Sin(angle) * radius;
             lineRenderer.SetPosition(i, transform.position + new Vector3(x, y, 0f));
         }
+    }
+
+    internal void SetRange(object appliedRange)
+    {
+        throw new NotImplementedException();
     }
 }

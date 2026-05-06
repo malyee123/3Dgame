@@ -52,6 +52,7 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float manaSkillInterval;
 
     public float appliedDamagePublic => appliedDamage;
+    public float AppliedRange => appliedRange;
     public float manaSkillDamagePublic => manaSkillDamage;
     public float manaSkillDurationPublic => manaSkillDuration;
     public float manaSkillIntervalPublic => manaSkillInterval;
@@ -97,7 +98,10 @@ public class PlayerAttack : MonoBehaviour
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
         appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty;
-        appliedCooldown = Mathf.Max(0.1f, characterData.attackCooldown * spdMult * (1f - passiveSpeedBonus / 100f) * (1f - augmentSpeedBonus / 100f) * (1f + augmentSpeedPenalty / 100f));
+        float totalSpeedBonus = (passiveSpeedBonus + augmentSpeedBonus) / 100f;
+        float totalSpeedPenalty = augmentSpeedPenalty / 100f;
+        float totalSpeed = spdMult + totalSpeedBonus;
+        appliedCooldown = Mathf.Max(0.1f, Mathf.Round(1f / characterData.attackSpeed / totalSpeed * (1f + totalSpeedPenalty) * 100f) / 100f);
         appliedRange = characterData.attackRange + augmentRangeBonus;
     }
 
@@ -363,7 +367,7 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator FireProjectileWithDelay(EnemyMove target, float damage)
     {
         Vector3 savedPos = target != null ? target.transform.position : transform.position;
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         if (characterData.projectilePrefab == null) yield break;
 
         Transform targetTransform;
@@ -400,7 +404,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator SlamRoutine(EnemyMove target)
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         if (target == null) yield break;
         Vector3 targetPos = target.transform.position;
         float damage = appliedDamage * GetSlotUnitCount() * (slamDamagePercent / 100f);
@@ -416,7 +420,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator MagicMissileRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         float damage = appliedDamage * GetSlotUnitCount() * (magicMissileDamagePercent / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
@@ -425,7 +429,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator AreaSpeedDownRoutine()
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
@@ -438,7 +442,7 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator AoeStunRoutine(EnemyMove target)
     {
         Vector3 targetPos = target != null ? target.transform.position : transform.position;
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
         {
@@ -469,7 +473,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator ExecuteCheckRoutine(EnemyMove target)
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         if (target == null) yield break;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null) yield break;
@@ -479,7 +483,7 @@ public class PlayerAttack : MonoBehaviour
 
     IEnumerator DealDamageWithDelay(EnemyMove target, float damage, int remainMultiAttack)
     {
-        yield return new WaitForSeconds(characterData.attackCooldown * 0.3f);
+        yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         if (target == null) yield break;
         Vector3 targetPos = target.transform.position;
         EnemyHealth health = target.GetComponent<EnemyHealth>();

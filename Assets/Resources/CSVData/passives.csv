@@ -11,7 +11,7 @@ Tier3_2,AllAttackDamageUp,10,0,0
 Tier3_3,StunChance,10,0,1
 Tier3_3,AllEnemyDefenseDown,5,0,0
 Tier3_4,DoubleDamageChance,14,4,0
-Tier3_4,AllEnemySpeedDown,5,0,0
+Tier3_4,AllEnemySpeedDown,0.3,0,0
 Tier4_1,AttackTwiceChance,16,5,0
 Tier4_1,BuffNearbyAllyAttackSpeed,8,20,2
 Tier4_2,StunChance,10,0,1.25

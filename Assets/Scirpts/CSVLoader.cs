@@ -72,7 +72,7 @@ public class CSVLoader : MonoBehaviour
             data.tier = int.Parse(col[1].Trim());
             data.unitTag = col[2].Trim();
             data.attackDamage = float.Parse(col[3].Trim());
-            data.attackCooldown = float.Parse(col[4].Trim());
+            data.attackSpeed = float.Parse(col[4].Trim());
             data.attackRange = float.Parse(col[5].Trim());
             data.upgradeCost = int.Parse(col[6].Trim());
             data.sellPrice = int.Parse(col[7].Trim());

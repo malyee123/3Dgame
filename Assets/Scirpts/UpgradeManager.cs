@@ -143,7 +143,7 @@ public class UpgradeManager : MonoBehaviour
     }
 
     public float GetAttackDamageMultiplier() => 1f + (AttackDamageLevel * GetBonusFromCSV("AttackDamage") / 100f);
-    public float GetAttackSpeedMultiplier() => Mathf.Max(0.1f, 1f - (AttackSpeedLevel * GetBonusFromCSV("AttackSpeed") / 100f));
+    public float GetAttackSpeedMultiplier() => 1f + (AttackSpeedLevel * GetBonusFromCSV("AttackSpeed") / 100f);
     public int GetCoinPerKillBonus() => (int)(CoinPerKillLevel * GetBonusFromCSV("CoinPerKill"));
     public int GetStartingCoinBonus() => (int)(StartingCoinLevel * GetBonusFromCSV("StartingCoin"));
     public int GetCharacterLimitUpgradeCost() => GetCostFromCSV("CharacterLimit", CharacterLimitLevel);

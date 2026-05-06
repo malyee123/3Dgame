@@ -21,12 +21,12 @@ public class SpecialCoinManager : MonoBehaviour
 
     void Start()
     {
-        UpdateUI();
         if (anvilButton != null)
         {
             anvilButton.onClick.RemoveAllListeners();
             anvilButton.onClick.AddListener(TryOpenAnvil);
         }
+        UpdateUI();
     }
 
     public void TryOpenAnvil()
@@ -36,14 +36,12 @@ public class SpecialCoinManager : MonoBehaviour
         specialCoins -= anvilCost;
         UpdateUI();
         AnvilUI.Instance.ShowAnvils();
-        ForceUpdateButton();
     }
 
     public void AddSpecialCoins(int amount)
     {
         specialCoins += amount;
         UpdateUI();
-        ForceUpdateButton();
     }
 
     public bool SpendSpecialCoins(int amount)
@@ -51,23 +49,14 @@ public class SpecialCoinManager : MonoBehaviour
         if (specialCoins < amount) return false;
         specialCoins -= amount;
         UpdateUI();
-        ForceUpdateButton();
         return true;
     }
 
     public int GetSpecialCoins() => specialCoins;
 
-    void ForceUpdateButton()
-    {
-        PlayerSpawner.Instance?.ForceUpdateSpawnButton();
-        if (anvilButton != null)
-            anvilButton.interactable = specialCoins >= anvilCost;
-    }
-
     void UpdateUI()
     {
         if (specialCoinText != null) specialCoinText.text = $"Special: {specialCoins}";
-        if (anvilButton != null)
-            anvilButton.interactable = specialCoins >= anvilCost;
+        if (anvilButton != null) anvilButton.interactable = specialCoins >= anvilCost;
     }
 }

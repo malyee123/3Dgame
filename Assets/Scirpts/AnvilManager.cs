@@ -51,7 +51,6 @@ public class AnvilManager : MonoBehaviour
         List<AnvilData> result = new List<AnvilData>();
         List<int> usedIndices = new List<int>();
         int count = Mathf.Min(3, allAnvils.Count);
-
         while (result.Count < count)
         {
             int idx = Random.Range(0, allAnvils.Count);
@@ -66,12 +65,10 @@ public class AnvilManager : MonoBehaviour
     {
         List<AnvilData> pool = new List<AnvilData>();
 
-        float dmg = Random.Range(5f, 15f);
-        dmg = Mathf.Round(dmg);
+        float dmg = Mathf.Round(Random.Range(5f, 15f));
         pool.Add(new AnvilData { anvilName = "강화된 무기", description = $"모든 유닛의 공격력이 {dmg}% 증가합니다.", summary = $"공격력 +{dmg}%", type = AnvilType.AttackDamage, value = dmg });
 
-        float spd = Random.Range(5f, 15f);
-        spd = Mathf.Round(spd);
+        float spd = Mathf.Round(Random.Range(50f, 50f));
         pool.Add(new AnvilData { anvilName = "신속의 부적", description = $"모든 유닛의 공격속도가 {spd}% 증가합니다.", summary = $"공격속도 +{spd}%", type = AnvilType.AttackSpeed, value = spd });
 
         int charLimit = Random.Range(1, 3);
@@ -80,12 +77,10 @@ public class AnvilManager : MonoBehaviour
         int enemyLimit = Random.Range(10, 31);
         pool.Add(new AnvilData { anvilName = "철벽 방어", description = $"게임오버 적 인원이 {enemyLimit} 증가합니다.", summary = $"적 인원 제한 +{enemyLimit}", type = AnvilType.EnemyLimit, value = enemyLimit });
 
-        float bossTime = Random.Range(10f, 31f);
-        bossTime = Mathf.Round(bossTime);
+        float bossTime = Mathf.Round(Random.Range(10f, 31f));
         pool.Add(new AnvilData { anvilName = "여유로운 전투", description = $"보스전 제한 시간이 {bossTime}초 증가합니다.", summary = $"보스전 시간 +{bossTime}초", type = AnvilType.BossTime, value = bossTime });
 
-        float armor = Random.Range(5f, 15f);
-        armor = Mathf.Round(armor);
+        float armor = Mathf.Round(Random.Range(5f, 15f));
         pool.Add(new AnvilData { anvilName = "방어구 파괴", description = $"적의 방어력이 {armor}% 감소합니다.", summary = $"방관 +{armor}%", type = AnvilType.ArmorPenetration, value = armor });
 
         return pool;
@@ -97,11 +92,11 @@ public class AnvilManager : MonoBehaviour
         {
             case AnvilType.AttackDamage:
                 bonusAttackDamage += data.value;
-                ApplyToAllUnits(bonusAttackDamage, 0f);
+                ApplyToAllUnits(data.value, 0f);
                 break;
             case AnvilType.AttackSpeed:
                 bonusAttackSpeed += data.value;
-                ApplyToAllUnits(0f, bonusAttackSpeed);
+                ApplyToAllUnits(0f, data.value);
                 break;
             case AnvilType.CharacterLimit:
                 bonusCharacterLimit += (int)data.value;

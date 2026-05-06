@@ -21,6 +21,10 @@ public class MergeManager : MonoBehaviour
     public Image[] skillButtonOverlays = new Image[4];
     public Image[] manaFillImages = new Image[4];
 
+    [Header("Skill Tooltip")]
+    public GameObject tooltipPanel;
+    public TextMeshProUGUI tooltipText;
+
     [Header("Canvas")]
     public Canvas gameCanvas;
 
@@ -34,10 +38,20 @@ public class MergeManager : MonoBehaviour
 
     private static readonly string[] tier5Names = { "Tier5_1", "Tier5_2", "Tier5_3", "Tier5_4" };
 
+    private static readonly string[] skillNames = { "심연의 균열", "광전사의 각성", "심판의 일격", "천벌" };
+    private static readonly string[] skillDescs =
+    {
+        "대상 위치에 장판을 생성해 범위 내 적에게 지속 피해를 입힙니다.",
+        "일정 시간 동안 공격력과 공격속도가 대폭 증가합니다.",
+        "보스를 우선으로 단일 대상에게 강력한 피해를 입힙니다.",
+        "맵 전체의 모든 적에게 동시에 피해를 입힙니다."
+    };
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        if (tooltipPanel != null) tooltipPanel.SetActive(false);
     }
 
     void Start()
@@ -47,7 +61,10 @@ public class MergeManager : MonoBehaviour
         for (int i = 0; i < skillButtons.Length; i++)
         {
             int idx = i;
-            if (skillButtons[i] != null) { skillButtons[i].onClick.RemoveAllListeners(); skillButtons[i].onClick.AddListener(() => OnSkillButtonClick(idx)); }
+            if (skillButtons[i] == null) continue;
+            skillButtons[i].onClick.RemoveAllListeners();
+            skillButtons[i].onClick.AddListener(() => OnSkillButtonClick(idx));
+            AddTooltipEvents(skillButtons[i], idx);
         }
         if (unitActionUI != null) unitActionUI.SetActive(false);
         RefreshMergeUI();
@@ -95,7 +112,7 @@ public class MergeManager : MonoBehaviour
                 : unit.transform.position;
             currentRangeIndicator = new GameObject("RangeIndicator");
             currentRangeIndicator.transform.position = slotPos;
-            currentRangeIndicator.AddComponent<RangeIndicator>().SetRange(unit.characterData.attackRange);
+            currentRangeIndicator.AddComponent<RangeIndicator>().SetRange(unit.AppliedRange);
         }
 
         RefreshMergeUI();
@@ -163,7 +180,8 @@ public class MergeManager : MonoBehaviour
             manaFillImages[index].fillAmount = maxMana > 0f ? cachedLeader.currentMana / maxMana : 0f;
 
         bool isFull = cachedLeader.IsManaFull();
-        bool hasTarget = cachedLeader.characterData.characterName == "Tier5_2"
+        string charName = cachedLeader.characterData.characterName;
+        bool hasTarget = (charName == "Tier5_2" || charName == "Tier5_4")
             ? true
             : (cachedLeader.GetCurrentTarget() != null || cachedLeader.FindBackmostEnemyInRange() != null);
         bool canUse = isFull && hasTarget;
@@ -252,6 +270,48 @@ public class MergeManager : MonoBehaviour
             PlayerSpawner.Instance.SyncSlotStateFromScene();
             PlayerSpawner.Instance.ForceUpdateSpawnButton();
         }
+    }
+
+    void AddTooltipEvents(Button btn, int index)
+    {
+        UnityEngine.EventSystems.EventTrigger trigger = btn.gameObject.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (trigger == null) trigger = btn.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        trigger.triggers.Clear();
+
+        var enterEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        enterEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+        enterEntry.callback.AddListener((data) =>
+        {
+            if (tooltipPanel == null) return;
+            if (tooltipText != null) tooltipText.text = $"{skillNames[index]}\n{skillDescs[index]}";
+            tooltipPanel.SetActive(true);
+
+            RectTransform rt = tooltipPanel.GetComponent<RectTransform>();
+            if (rt == null) return;
+
+            Canvas.ForceUpdateCanvases();
+
+            Vector3 btnPos = btn.transform.position;
+            float tooltipW = rt.rect.width;
+            float tooltipH = rt.rect.height;
+            float screenW = Screen.width;
+            float screenH = Screen.height;
+
+            float x = btnPos.x;
+            float y = btnPos.y + tooltipH + 10f;
+
+            if (x + tooltipW * 0.5f > screenW) x = screenW - tooltipW * 0.5f;
+            if (x - tooltipW * 0.5f < 0) x = tooltipW * 0.5f;
+            if (y + tooltipH > screenH) y = btnPos.y - tooltipH - 10f;
+
+            rt.position = new Vector3(x, y, 0f);
+        });
+        trigger.triggers.Add(enterEntry);
+
+        var exitEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        exitEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+        exitEntry.callback.AddListener((data) => { if (tooltipPanel != null) tooltipPanel.SetActive(false); });
+        trigger.triggers.Add(exitEntry);
     }
 
     public bool IsUnitActionUIActive() => unitActionUI != null && unitActionUI.activeSelf;

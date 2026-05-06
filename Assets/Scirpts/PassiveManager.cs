@@ -105,7 +105,6 @@ public class PassiveManager : MonoBehaviour
                 manaSkillDamage, manaSkillDuration, manaSkillInterval);
         }
 
-        // ���� �ʵ��� ��� ������ ��� ����
         foreach (EnemyMove enemy in allEnemies)
             if (enemy != null) enemy.ApplySpeedPenalty(totalEnemySpeedDown);
 
@@ -120,11 +119,11 @@ public class PassiveManager : MonoBehaviour
     {
         if (passiveStatusText == null) return;
         if (dmg == 0f && spd == 0f && enemySpd == 0f && enemyDef == 0f) { passiveStatusText.text = ""; return; }
-        System.Text.StringBuilder sb = new System.Text.StringBuilder("[ Passive Status ]\n");
-        if (dmg > 0f) sb.Append($"ATK Damage +{dmg}%\n");
-        if (spd > 0f) sb.Append($"ATK Speed +{spd}%\n");
-        if (enemySpd > 0f) sb.Append($"Enemy Speed -{enemySpd}\n");
-        if (enemyDef > 0f) sb.Append($"Enemy Defense -{enemyDef}\n");
+        System.Text.StringBuilder sb = new System.Text.StringBuilder("[ 패시브 현황 ]\n");
+        if (dmg > 0f) sb.Append($"공격력 +{dmg}%\n");
+        if (spd > 0f) sb.Append($"공격속도 +{spd}%\n");
+        if (enemySpd > 0f) sb.Append($"적 이동속도 -{enemySpd}\n");
+        if (enemyDef > 0f) sb.Append($"적 방어력 -{enemyDef}\n");
         passiveStatusText.text = sb.ToString();
     }
 }

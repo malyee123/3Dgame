@@ -35,15 +35,19 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) { Destroy(gameObject); return; }
+
         if (target != null) lastTargetPos = target.position;
 
         Vector3 moveTarget = lastTargetPos;
+        float step = speed * Time.deltaTime;
+
         Vector3 dir = (moveTarget - transform.position).normalized;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
-        transform.position += dir * speed * Time.deltaTime;
+        transform.position = Vector3.MoveTowards(transform.position, moveTarget, step);
 
-        if (Vector2.Distance(transform.position, moveTarget) < 0.1f)
+        if (Vector2.Distance(transform.position, moveTarget) < 0.05f)
         {
             if (target != null)
             {
@@ -55,7 +59,6 @@ public class Projectile : MonoBehaviour
                 Vector3 effectPos = lastTargetPos + Vector3.up * hitEffectOffsetY;
                 Instantiate(hitEffectPrefab, effectPos, Quaternion.identity);
             }
-
             Destroy(gameObject);
         }
     }

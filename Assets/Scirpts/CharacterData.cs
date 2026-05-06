@@ -49,7 +49,7 @@ public class CharacterData : ScriptableObject
     [Header("Attack Stats")]
     public float attackRange = 3f;
     public float attackDamage = 10f;
-    public float attackCooldown = 0.5f;
+    public float attackSpeed = 1f;
     public float attackHitDelay = 0.3f;
 
     [Header("Merge Settings")]
