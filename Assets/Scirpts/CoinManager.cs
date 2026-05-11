@@ -5,18 +5,17 @@ public class CoinManager : MonoBehaviour
 {
     public static CoinManager Instance { get; private set; }
 
-    [Header("Coin Settings")]
-    public int startingCoins = 100;
-    public int coinsPerKill = 10;
-    public int spawnCost = 20;
-
     [Header("UI")]
     public TextMeshProUGUI coinText;
 
+    [HideInInspector] public int spawnCost = 20;
+    [HideInInspector] public float spawnCostMultiplier = 1f;
+    [HideInInspector] public bool huntersSenseActive = false;
+    [HideInInspector] public int augmentCoinBonus = 0;
+    [HideInInspector] public int coinsPerKill = 10;
+
+    private int startingCoins = 100;
     private int currentCoins;
-    public int augmentCoinBonus = 0;
-    public float spawnCostMultiplier = 1f;
-    public bool huntersSenseActive = false;
 
     void Awake()
     {
@@ -26,6 +25,11 @@ public class CoinManager : MonoBehaviour
 
     void Start()
     {
+        if (CSVLoader.Instance?.GameSettings != null)
+        {
+            startingCoins = CSVLoader.Instance.GameSettings.startingCoins;
+            spawnCost = CSVLoader.Instance.GameSettings.spawnCost;
+        }
         int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetStartingCoinBonus() : 0;
         currentCoins = startingCoins + bonus;
         UpdateCoinUI();
@@ -37,8 +41,7 @@ public class CoinManager : MonoBehaviour
     {
         int bonus = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
         int augBonus = applyKillBonus ? augmentCoinBonus : 0;
-        // Çö»ó±Ý »ç³É²Û - Å³ ½Ã 5% È®·ü·Î 10°ñµå Ãß°¡
-        int huntersBonus = (applyKillBonus && huntersSenseActive && UnityEngine.Random.Range(0f, 100f) < 5f) ? 10 : 0;
+        int huntersBonus = (applyKillBonus && huntersSenseActive && Random.Range(0f, 100f) < 5f) ? 10 : 0;
         currentCoins += amount + bonus + augBonus + huntersBonus;
         UpdateCoinUI();
         MergeManager.Instance?.CheckMergeAvailable();

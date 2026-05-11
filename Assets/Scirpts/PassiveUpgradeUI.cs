@@ -57,9 +57,10 @@ public class PassiveUpgradeUI : MonoBehaviour
         int level = UpgradeManager.Instance.GetTierPassiveLevel(tier);
         int cost = UpgradeManager.Instance.GetTierPassiveCost(tier);
         float bonus = UpgradeManager.Instance.GetTierPassiveBonus(tier);
-        if (levelText != null) levelText.text = $"티어{tier} 패시브  Lv.{level}  (+{bonus}%)";
-        if (costText != null) costText.text = $"Cost: {cost}";
-        if (button != null) button.interactable = sp >= cost;
+        bool tierUnlocked = UpgradeManager.Instance.UnlockedTier >= tier;
+        if (levelText != null) levelText.text = tierUnlocked ? $"티어{tier} 패시브  Lv.{level}  (+{bonus}%)" : $"티어{tier} 패시브  (미해금)";
+        if (costText != null) costText.text = tierUnlocked ? $"Cost: {cost}" : "-";
+        if (button != null) button.interactable = tierUnlocked && sp >= cost;
     }
 
     void OnClickTierPassive(int tier)

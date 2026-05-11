@@ -14,16 +14,23 @@ public enum AnvilType
 [System.Serializable]
 public class AnvilData
 {
-    public string anvilName;
-    public string description;
-    public string summary;
     public AnvilType type;
     public float value;
+    public Sprite sprite;
+}
+
+[System.Serializable]
+public class AnvilSpriteSet
+{
+    public Sprite[] stageSprites;
 }
 
 public class AnvilManager : MonoBehaviour
 {
     public static AnvilManager Instance { get; private set; }
+
+    [Header("Anvil Sprites (인덱스: 0=AttackDamage, 1=AttackSpeed, 2=CharacterLimit, 3=EnemyLimit, 4=BossTime, 5=ArmorPenetration)")]
+    public AnvilSpriteSet[] anvilSpriteSets = new AnvilSpriteSet[6];
 
     private float bonusAttackDamage = 0f;
     private float bonusAttackSpeed = 0f;
@@ -39,51 +46,70 @@ public class AnvilManager : MonoBehaviour
     public float BonusBossTime => bonusBossTime;
     public float BonusArmorPenetration => bonusArmorPenetration;
 
+    private int cachedStage = 1;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
     }
 
-    public AnvilData[] GetRandomAnvils()
+    // 모루 UI 열릴 때 스테이지를 한 번 캐싱 → 풀 생성 동안 일관된 스테이지 사용
+    public void CacheCurrentStage()
     {
-        List<AnvilData> allAnvils = GenerateAnvilPool();
-        List<AnvilData> result = new List<AnvilData>();
-        List<int> usedIndices = new List<int>();
-        int count = Mathf.Min(3, allAnvils.Count);
-        while (result.Count < count)
-        {
-            int idx = Random.Range(0, allAnvils.Count);
-            if (usedIndices.Contains(idx)) continue;
-            usedIndices.Add(idx);
-            result.Add(allAnvils[idx]);
-        }
-        return result.ToArray();
+        cachedStage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
     }
 
-    List<AnvilData> GenerateAnvilPool()
+    float GetRangeValue(AnvilType type)
     {
-        List<AnvilData> pool = new List<AnvilData>();
+        if (CSVLoader.Instance != null)
+        {
+            AnvilRangeData range = CSVLoader.Instance.GetAnvilRange(type, cachedStage);
+            if (range != null)
+            {
+                if (type == AnvilType.CharacterLimit || type == AnvilType.EnemyLimit)
+                    return Mathf.Round(Random.Range(range.min, range.max + 1));
+                return Mathf.Round(Random.Range(range.min, range.max));
+            }
+        }
+        return type == AnvilType.CharacterLimit ? Random.Range(1, 3) :
+               type == AnvilType.EnemyLimit ? Random.Range(10, 31) :
+               type == AnvilType.BossTime ? Mathf.Round(Random.Range(10f, 31f)) :
+               Mathf.Round(Random.Range(5f, 15f));
+    }
 
-        float dmg = Mathf.Round(Random.Range(5f, 15f));
-        pool.Add(new AnvilData { anvilName = "강화된 무기", description = $"모든 유닛의 공격력이 {dmg}% 증가합니다.", summary = $"공격력 +{dmg}%", type = AnvilType.AttackDamage, value = dmg });
+    Sprite GetSprite(AnvilType type)
+    {
+        int typeIndex = (int)type;
+        if (anvilSpriteSets == null || typeIndex >= anvilSpriteSets.Length) return null;
+        AnvilSpriteSet set = anvilSpriteSets[typeIndex];
+        if (set == null || set.stageSprites == null || set.stageSprites.Length == 0) return null;
+        int spriteIndex = Mathf.Clamp(cachedStage - 1, 0, set.stageSprites.Length - 1);
+        return set.stageSprites[spriteIndex];
+    }
 
-        float spd = Mathf.Round(Random.Range(50f, 50f));
-        pool.Add(new AnvilData { anvilName = "신속의 부적", description = $"모든 유닛의 공격속도가 {spd}% 증가합니다.", summary = $"공격속도 +{spd}%", type = AnvilType.AttackSpeed, value = spd });
-
-        int charLimit = Random.Range(1, 3);
-        pool.Add(new AnvilData { anvilName = "지원 병력", description = $"최대 캐릭터 수가 {charLimit}마리 증가합니다.", summary = $"캐릭터 제한 +{charLimit}", type = AnvilType.CharacterLimit, value = charLimit });
-
-        int enemyLimit = Random.Range(10, 31);
-        pool.Add(new AnvilData { anvilName = "철벽 방어", description = $"게임오버 적 인원이 {enemyLimit} 증가합니다.", summary = $"적 인원 제한 +{enemyLimit}", type = AnvilType.EnemyLimit, value = enemyLimit });
-
-        float bossTime = Mathf.Round(Random.Range(10f, 31f));
-        pool.Add(new AnvilData { anvilName = "여유로운 전투", description = $"보스전 제한 시간이 {bossTime}초 증가합니다.", summary = $"보스전 시간 +{bossTime}초", type = AnvilType.BossTime, value = bossTime });
-
-        float armor = Mathf.Round(Random.Range(5f, 15f));
-        pool.Add(new AnvilData { anvilName = "방어구 파괴", description = $"적의 방어력이 {armor}% 감소합니다.", summary = $"방관 +{armor}%", type = AnvilType.ArmorPenetration, value = armor });
-
-        return pool;
+    public AnvilData[] GetRandomAnvils()
+    {
+        List<AnvilData> pool = new List<AnvilData>
+        {
+            new AnvilData { type = AnvilType.AttackDamage,     value = GetRangeValue(AnvilType.AttackDamage),     sprite = GetSprite(AnvilType.AttackDamage) },
+            new AnvilData { type = AnvilType.AttackSpeed,      value = GetRangeValue(AnvilType.AttackSpeed),      sprite = GetSprite(AnvilType.AttackSpeed) },
+            new AnvilData { type = AnvilType.CharacterLimit,   value = GetRangeValue(AnvilType.CharacterLimit),   sprite = GetSprite(AnvilType.CharacterLimit) },
+            new AnvilData { type = AnvilType.EnemyLimit,       value = GetRangeValue(AnvilType.EnemyLimit),       sprite = GetSprite(AnvilType.EnemyLimit) },
+            new AnvilData { type = AnvilType.BossTime,         value = GetRangeValue(AnvilType.BossTime),         sprite = GetSprite(AnvilType.BossTime) },
+            new AnvilData { type = AnvilType.ArmorPenetration, value = GetRangeValue(AnvilType.ArmorPenetration), sprite = GetSprite(AnvilType.ArmorPenetration) },
+        };
+        List<AnvilData> result = new List<AnvilData>();
+        List<int> usedIndices = new List<int>();
+        int count = Mathf.Min(3, pool.Count);
+        while (result.Count < count)
+        {
+            int idx = Random.Range(0, pool.Count);
+            if (usedIndices.Contains(idx)) continue;
+            usedIndices.Add(idx);
+            result.Add(pool[idx]);
+        }
+        return result.ToArray();
     }
 
     public void ApplyAnvil(AnvilData data)

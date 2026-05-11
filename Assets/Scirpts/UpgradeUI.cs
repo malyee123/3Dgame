@@ -50,42 +50,44 @@ public class UpgradeUI : MonoBehaviour
     {
         if (UpgradeManager.Instance == null) return;
         int sp = UpgradeManager.Instance.GetSkillPoints();
+        int maxLevel = UpgradeManager.Instance.GetMaxUpgradeLevel();
 
         if (skillPointText != null) skillPointText.text = $"스킬 포인트: {sp}";
 
         UpdateSlot(attackDamageLevelText, attackDamageCostText, attackDamageButton,
-            UpgradeManager.Instance.AttackDamageLevel,
+            UpgradeManager.Instance.AttackDamageLevel, maxLevel,
             UpgradeManager.Instance.GetUpgradeCost("AttackDamage", UpgradeManager.Instance.AttackDamageLevel),
             sp, $"+{UpgradeManager.Instance.GetAttackDamageMultiplier() * 100 - 100:F0}%");
 
         UpdateSlot(attackSpeedLevelText, attackSpeedCostText, attackSpeedButton,
-            UpgradeManager.Instance.AttackSpeedLevel,
+            UpgradeManager.Instance.AttackSpeedLevel, maxLevel,
             UpgradeManager.Instance.GetUpgradeCost("AttackSpeed", UpgradeManager.Instance.AttackSpeedLevel),
             sp, $"+{(UpgradeManager.Instance.GetAttackSpeedMultiplier() - 1f) * 100:F0}%");
 
         UpdateSlot(coinPerKillLevelText, coinPerKillCostText, coinPerKillButton,
-            UpgradeManager.Instance.CoinPerKillLevel,
+            UpgradeManager.Instance.CoinPerKillLevel, maxLevel,
             UpgradeManager.Instance.GetUpgradeCost("CoinPerKill", UpgradeManager.Instance.CoinPerKillLevel),
             sp, $"+{UpgradeManager.Instance.GetCoinPerKillBonus()}");
 
         UpdateSlot(startingCoinLevelText, startingCoinCostText, startingCoinButton,
-            UpgradeManager.Instance.StartingCoinLevel,
+            UpgradeManager.Instance.StartingCoinLevel, maxLevel,
             UpgradeManager.Instance.GetUpgradeCost("StartingCoin", UpgradeManager.Instance.StartingCoinLevel),
             sp, $"+{UpgradeManager.Instance.GetStartingCoinBonus()}");
 
         int currentTier = UpgradeManager.Instance.UnlockedTier;
-        int[] tierCosts = UpgradeManager.Instance.tierUnlockCosts;
+        int[] tierCosts = UpgradeManager.Instance.TierUnlockCosts;
         bool tierMaxed = tierCosts == null || currentTier >= tierCosts.Length;
         if (tierLevelText != null) tierLevelText.text = $"티어 해금  Lv.{currentTier}";
         if (tierCostText != null) tierCostText.text = tierMaxed ? "MAX" : $"Cost: {tierCosts[currentTier - 1]}";
         if (tierUnlockButton != null) tierUnlockButton.interactable = !tierMaxed && sp >= (tierMaxed ? 0 : tierCosts[currentTier - 1]);
     }
 
-    void UpdateSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int cost, int sp, string bonusText)
+    void UpdateSlot(TextMeshProUGUI levelText, TextMeshProUGUI costText, Button button, int level, int maxLevel, int cost, int sp, string bonusText)
     {
-        if (levelText != null) levelText.text = $"Lv.{level}  ({bonusText})";
-        if (costText != null) costText.text = $"Cost: {cost}";
-        if (button != null) button.interactable = sp >= cost;
+        bool isMaxed = level >= maxLevel;
+        if (levelText != null) levelText.text = isMaxed ? $"Lv.{level}  ({bonusText})  MAX" : $"Lv.{level}  ({bonusText})";
+        if (costText != null) costText.text = isMaxed ? "MAX" : $"Cost: {cost}";
+        if (button != null) button.interactable = !isMaxed && sp >= cost;
     }
 
     public void OnClickAttackDamage() { UpgradeManager.Instance.UpgradeAttackDamage(); RefreshUI(); }

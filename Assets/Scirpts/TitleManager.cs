@@ -12,10 +12,22 @@ public class TitleManager : MonoBehaviour
 
     private bool isLoading = false;
     private float blinkTimer = 0f;
+    private bool inputReady = false;
+
+    void Start()
+    {
+        StartCoroutine(EnableInputNextFrame());
+    }
+
+    System.Collections.IEnumerator EnableInputNextFrame()
+    {
+        yield return null;
+        inputReady = true;
+    }
 
     void Update()
     {
-        if (isLoading) return;
+        if (isLoading || !inputReady) return;
 
         blinkTimer += Time.deltaTime;
         if (blinkTimer >= blinkInterval)
@@ -25,10 +37,17 @@ public class TitleManager : MonoBehaviour
                 pressAnyKeyText.enabled = !pressAnyKeyText.enabled;
         }
 
-        if (Input.anyKeyDown || Input.touchCount > 0)
+        if (Input.GetMouseButtonUp(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended))
         {
             isLoading = true;
-            SceneManager.LoadScene("LobbyScene");
+            StartCoroutine(LoadSceneNextFrame());
         }
+    }
+
+    System.Collections.IEnumerator LoadSceneNextFrame()
+    {
+        yield return null;
+        yield return null;
+        SceneManager.LoadScene("LobbyScene");
     }
 }

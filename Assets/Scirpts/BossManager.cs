@@ -17,11 +17,11 @@ public class BossManager : MonoBehaviour
     public float warningDuration = 2f;
     public float blinkInterval = 0.25f;
 
-    [Header("Infinite Scaling")]
-    public float hpScalePerStage = 2f;
     [HideInInspector] public float bossHpMultiplier = 1f;
-    public float defenseScalePerStage = 1.5f;
-    public float rewardScalePerStage = 1.5f;
+
+    private float hpScalePerStage = 2f;
+    private float defenseScalePerStage = 1.5f;
+    private float rewardScalePerStage = 1.5f;
 
     private GameObject currentBoss;
     private int bossWaveCount = 0;
@@ -35,6 +35,12 @@ public class BossManager : MonoBehaviour
 
     void Start()
     {
+        if (CSVLoader.Instance?.GameSettings != null)
+        {
+            hpScalePerStage = CSVLoader.Instance.GameSettings.hpScalePerStage;
+            defenseScalePerStage = CSVLoader.Instance.GameSettings.defenseScalePerStage;
+            rewardScalePerStage = CSVLoader.Instance.GameSettings.rewardScalePerStage;
+        }
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (warningImage != null) warningImage.SetActive(false);
     }
@@ -43,17 +49,10 @@ public class BossManager : MonoBehaviour
     {
         if (CSVLoader.Instance == null) return;
         int currentStage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
-
-        if (currentStage != lastStage)
-        {
-            bossWaveCount = 0;
-            lastStage = currentStage;
-        }
-
+        if (currentStage != lastStage) { bossWaveCount = 0; lastStage = currentStage; }
         bossWaveCount++;
         int waveLevel = Mathf.Clamp(bossWaveCount, 1, 5);
         int randomType = Random.Range(0, 3);
-
         BossData data = CSVLoader.Instance.GetBossDataByTypeStageLevel(randomType, currentStage, waveLevel);
         if (data == null)
         {
@@ -61,7 +60,6 @@ public class BossManager : MonoBehaviour
             if (maxData == null) return;
             data = ScaleBossData(maxData, currentStage);
         }
-
         StartCoroutine(WarningThenSpawn(data));
     }
 
@@ -104,12 +102,9 @@ public class BossManager : MonoBehaviour
         if (data.bossType >= bossPrefabs.Length) return;
         GameObject prefab = bossPrefabs[data.bossType];
         if (prefab == null) return;
-
         currentBoss = Instantiate(prefab, spawnPosition, Quaternion.identity);
-
         EnemyMove enemyMove = currentBoss.GetComponent<EnemyMove>();
         if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = data.speed; }
-
         EnemyHealth enemyHealth = currentBoss.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
         {
@@ -119,10 +114,8 @@ public class BossManager : MonoBehaviour
             enemyHealth.specialCoinReward = data.reward;
             enemyHealth.Init(data.hp * bossHpMultiplier, data.defense);
         }
-
         if (GameManager.Instance != null)
             GameManager.Instance.ExtendRoundTime(GameManager.Instance.bossRoundDuration);
-
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
     }
 

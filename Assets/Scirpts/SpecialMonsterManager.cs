@@ -8,13 +8,6 @@ public class SpecialMonsterManager : MonoBehaviour
 
     [Header("Special Monster Settings")]
     public GameObject specialMonsterPrefab;
-    public float specialMonsterHp = 500f;
-    public float specialMonsterSpeed = 1.5f;
-    public float specialMonsterLifetime = 15f;
-    public int specialCoinReward = 3;
-
-    [Header("Notice Settings")]
-    public float spawnInterval = 20f;
 
     [Header("UI")]
     public GameObject spawnButtonObject;
@@ -25,6 +18,12 @@ public class SpecialMonsterManager : MonoBehaviour
 
     [Header("Path Settings")]
     public PathManager pathManager;
+
+    private float specialMonsterHp = 500f;
+    private float specialMonsterSpeed = 1.5f;
+    private float specialMonsterLifetime = 15f;
+    private int specialCoinReward = 3;
+    private float spawnInterval = 20f;
 
     private float intervalTimer = 0f;
     private bool isButtonActive = false;
@@ -38,6 +37,15 @@ public class SpecialMonsterManager : MonoBehaviour
 
     void Start()
     {
+        if (CSVLoader.Instance?.SpecialMonsterSettings != null)
+        {
+            SpecialMonsterSettingsData s = CSVLoader.Instance.SpecialMonsterSettings;
+            specialMonsterHp = s.hp;
+            specialMonsterSpeed = s.speed;
+            specialMonsterLifetime = s.lifetime;
+            specialCoinReward = s.coinReward;
+            spawnInterval = s.spawnInterval;
+        }
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
         if (spawnButton != null)

@@ -4,9 +4,6 @@ public class UpgradeManager : MonoBehaviour
 {
     public static UpgradeManager Instance { get; private set; }
 
-    [Header("Tier Unlock")]
-    public int[] tierUnlockCosts;
-
     private const string KEY_ATK_DMG = "UpgradeAttackDamage";
     private const string KEY_ATK_SPD = "UpgradeAttackSpeed";
     private const string KEY_COIN_KILL = "UpgradeCoinPerKill";
@@ -18,6 +15,9 @@ public class UpgradeManager : MonoBehaviour
     private const string KEY_TIER4_PASSIVE = "Tier4PassiveLevel";
     private const string KEY_TIER5_PASSIVE = "Tier5PassiveLevel";
     private const string KEY_CHAR_LIMIT = "UpgradeCharacterLimit";
+
+    private const int maxCharacterLimitLevel = 10;
+    private static readonly int[] defaultTierUnlockCosts = { 5, 10, 20, 40 };
 
     public int AttackDamageLevel => PlayerPrefs.GetInt(KEY_ATK_DMG, 0);
     public int AttackSpeedLevel => PlayerPrefs.GetInt(KEY_ATK_SPD, 0);
@@ -31,7 +31,8 @@ public class UpgradeManager : MonoBehaviour
     public int Tier4PassiveLevel => PlayerPrefs.GetInt(KEY_TIER4_PASSIVE, 0);
     public int Tier5PassiveLevel => PlayerPrefs.GetInt(KEY_TIER5_PASSIVE, 0);
 
-    private const int maxCharacterLimitLevel = 10;
+    public int[] TierUnlockCosts =>
+        CSVLoader.Instance?.GameSettings?.tierUnlockCosts ?? defaultTierUnlockCosts;
 
     void Awake()
     {
@@ -39,6 +40,8 @@ public class UpgradeManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
+
+    public int GetMaxUpgradeLevel() => PlayerPrefs.GetInt("UnlockedStage", 1) * 10;
 
     public int GetSkillPoints() => PlayerPrefs.GetInt("SkillPoints", 0);
 
@@ -71,6 +74,7 @@ public class UpgradeManager : MonoBehaviour
     public bool UpgradeAttackDamage()
     {
         int level = AttackDamageLevel;
+        if (level >= GetMaxUpgradeLevel()) return false;
         if (!SpendSkillPoints(GetCostFromCSV("AttackDamage", level))) return false;
         PlayerPrefs.SetInt(KEY_ATK_DMG, level + 1); PlayerPrefs.Save(); return true;
     }
@@ -78,6 +82,7 @@ public class UpgradeManager : MonoBehaviour
     public bool UpgradeAttackSpeed()
     {
         int level = AttackSpeedLevel;
+        if (level >= GetMaxUpgradeLevel()) return false;
         if (!SpendSkillPoints(GetCostFromCSV("AttackSpeed", level))) return false;
         PlayerPrefs.SetInt(KEY_ATK_SPD, level + 1); PlayerPrefs.Save(); return true;
     }
@@ -85,6 +90,7 @@ public class UpgradeManager : MonoBehaviour
     public bool UpgradeCoinPerKill()
     {
         int level = CoinPerKillLevel;
+        if (level >= GetMaxUpgradeLevel()) return false;
         if (!SpendSkillPoints(GetCostFromCSV("CoinPerKill", level))) return false;
         PlayerPrefs.SetInt(KEY_COIN_KILL, level + 1); PlayerPrefs.Save(); return true;
     }
@@ -92,11 +98,11 @@ public class UpgradeManager : MonoBehaviour
     public bool UpgradeStartingCoin()
     {
         int level = StartingCoinLevel;
+        if (level >= GetMaxUpgradeLevel()) return false;
         if (!SpendSkillPoints(GetCostFromCSV("StartingCoin", level))) return false;
         PlayerPrefs.SetInt(KEY_START_COIN, level + 1); PlayerPrefs.Save(); return true;
     }
 
-    // 캐릭터 수 업그레이드 - 1레벨당 1마리, 최대 10레벨
     public bool UpgradeCharacterLimit()
     {
         int level = CharacterLimitLevel;
@@ -105,11 +111,11 @@ public class UpgradeManager : MonoBehaviour
         PlayerPrefs.SetInt(KEY_CHAR_LIMIT, level + 1); PlayerPrefs.Save(); return true;
     }
 
-    // 캐릭터 수 보너스 반환 (레벨당 1마리)
     public int GetCharacterLimitBonus() => CharacterLimitLevel;
 
     public bool UpgradeTierPassive(int tier)
     {
+        if (UnlockedTier < tier) return false;
         string key = GetTierPassiveKey(tier);
         int level = PlayerPrefs.GetInt(key, 0);
         if (!SpendSkillPoints(GetCostFromCSV($"Tier{tier}Passive", level))) return false;
@@ -136,8 +142,9 @@ public class UpgradeManager : MonoBehaviour
     public bool UnlockNextTier()
     {
         int currentTier = UnlockedTier;
-        if (tierUnlockCosts == null || currentTier >= tierUnlockCosts.Length) return false;
-        int cost = tierUnlockCosts[currentTier - 1];
+        int[] costs = TierUnlockCosts;
+        if (costs == null || currentTier >= costs.Length) return false;
+        int cost = costs[currentTier - 1];
         if (!SpendSkillPoints(cost)) return false;
         PlayerPrefs.SetInt(KEY_TIER, currentTier + 1); PlayerPrefs.Save(); return true;
     }

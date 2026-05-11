@@ -24,12 +24,52 @@ public class UpgradeData
     public float bonusPerLevel;
 }
 
+[System.Serializable]
+public class GameSettingsData
+{
+    public int startingCoins = 100;
+    public int spawnCost = 20;
+    public int anvilCost = 3;
+    public int specialSpawnCost = 3;
+    public int specialSpawnMinTier = 2;
+    public int specialSpawnMaxTier = 4;
+    public int baseCharacterLimit = 35;
+    public float hpScalePerStage = 2f;
+    public float defenseScalePerStage = 1.5f;
+    public float rewardScalePerStage = 1.5f;
+    public int[] tierUnlockCosts = { 5, 10, 20, 40 };
+    public float[] tierSpawnWeights = { 70f, 30f };
+    public float[] specialTierSpawnWeights = { 70f, 25f, 5f };
+}
+
+[System.Serializable]
+public class SpecialMonsterSettingsData
+{
+    public float hp = 500f;
+    public float speed = 1.5f;
+    public float lifetime = 15f;
+    public int coinReward = 3;
+    public float spawnInterval = 20f;
+}
+
+[System.Serializable]
+public class AnvilRangeData
+{
+    public AnvilType type;
+    public int stage;
+    public float min;
+    public float max;
+}
+
 public class CSVLoader : MonoBehaviour
 {
     public static CSVLoader Instance { get; private set; }
 
     [Header("CSV Files")]
     public TextAsset characterCSV, passiveCSV, roundCSV, bossCSV, upgradeCSV;
+    public TextAsset gameSettingsCSV;
+    public TextAsset specialMonsterCSV;
+    public TextAsset anvilSettingsCSV;
 
     [Header("Character Data List")]
     public CharacterData[] characterDataList;
@@ -37,9 +77,16 @@ public class CSVLoader : MonoBehaviour
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
     public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
+    public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
+
+    public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
+    public SpecialMonsterSettingsData SpecialMonsterSettings { get; private set; } = new SpecialMonsterSettingsData();
 
     private Dictionary<string, CharacterData> characterDataMap = new Dictionary<string, CharacterData>();
     private Dictionary<string, UpgradeData> upgradeDataMap = new Dictionary<string, UpgradeData>();
+
+    static int ParseInt(string s, int fallback = 0) { return int.TryParse(s, out int v) ? v : fallback; }
+    static float ParseFloat(string s, float fallback = 0f) { return float.TryParse(s, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float v) ? v : fallback; }
 
     void Awake()
     {
@@ -55,11 +102,14 @@ public class CSVLoader : MonoBehaviour
         LoadRoundStats();
         LoadBossStats();
         LoadUpgradeStats();
+        LoadGameSettings();
+        LoadSpecialMonsterSettings();
+        LoadAnvilSettings();
     }
 
     void LoadCharacterStats()
     {
-        if (characterCSV == null) { return; }
+        if (characterCSV == null) return;
         string[] lines = characterCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
         {
@@ -69,20 +119,20 @@ public class CSVLoader : MonoBehaviour
             if (col.Length < 9) continue;
             CharacterData data = FindCharacterData(col[0].Trim());
             if (data == null) continue;
-            data.tier = int.Parse(col[1].Trim());
+            data.tier = ParseInt(col[1].Trim(), data.tier);
             data.unitTag = col[2].Trim();
-            data.attackDamage = float.Parse(col[3].Trim());
-            data.attackSpeed = float.Parse(col[4].Trim());
-            data.attackRange = float.Parse(col[5].Trim());
-            data.upgradeCost = int.Parse(col[6].Trim());
-            data.sellPrice = int.Parse(col[7].Trim());
-            data.attackHitDelay = float.Parse(col[8].Trim());
+            data.attackDamage = ParseFloat(col[3].Trim(), data.attackDamage);
+            data.attackSpeed = ParseFloat(col[4].Trim(), data.attackSpeed);
+            data.attackRange = ParseFloat(col[5].Trim(), data.attackRange);
+            data.upgradeCost = ParseInt(col[6].Trim(), data.upgradeCost);
+            data.sellPrice = ParseInt(col[7].Trim(), data.sellPrice);
+            data.attackHitDelay = ParseFloat(col[8].Trim(), data.attackHitDelay);
         }
     }
 
     void LoadPassiveStats()
     {
-        if (passiveCSV == null) { return; }
+        if (passiveCSV == null) return;
         foreach (CharacterData data in characterDataList)
             if (data != null) data.passives.Clear();
         string[] lines = passiveCSV.text.Split('\n');
@@ -96,16 +146,16 @@ public class CSVLoader : MonoBehaviour
             if (data == null) continue;
             PassiveEntry entry = new PassiveEntry();
             System.Enum.TryParse(col[1].Trim(), out entry.passiveType);
-            entry.passiveValue = float.Parse(col[2].Trim());
-            entry.passiveSecondValue = float.Parse(col[3].Trim());
-            entry.passiveDuration = float.Parse(col[4].Trim());
+            entry.passiveValue = ParseFloat(col[2].Trim());
+            entry.passiveSecondValue = ParseFloat(col[3].Trim());
+            entry.passiveDuration = ParseFloat(col[4].Trim());
             data.passives.Add(entry);
         }
     }
 
     void LoadRoundStats()
     {
-        if (roundCSV == null) { return; }
+        if (roundCSV == null) return;
         roundDataList.Clear();
         string[] lines = roundCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
@@ -116,25 +166,25 @@ public class CSVLoader : MonoBehaviour
             if (col.Length < 12) continue;
             roundDataList.Add(new RoundData
             {
-                waveStart = int.Parse(col[0].Trim()),
-                waveEnd = int.Parse(col[1].Trim()),
-                stage = int.Parse(col[2].Trim()),
-                baseHp = float.Parse(col[3].Trim()),
-                hpIncrement = float.Parse(col[4].Trim()),
-                spawnDelay = float.Parse(col[5].Trim()),
-                spawnDelayDecrement = float.Parse(col[6].Trim()),
-                enemySpeed = float.Parse(col[7].Trim()),
-                maxEnemyCount = int.Parse(col[8].Trim()),
-                roundDuration = float.Parse(col[9].Trim()),
-                coinsPerKill = int.Parse(col[10].Trim()),
-                enemyDefense = float.Parse(col[11].Trim())
+                waveStart = ParseInt(col[0].Trim()),
+                waveEnd = ParseInt(col[1].Trim()),
+                stage = ParseInt(col[2].Trim(), 1),
+                baseHp = ParseFloat(col[3].Trim(), 100f),
+                hpIncrement = ParseFloat(col[4].Trim()),
+                spawnDelay = ParseFloat(col[5].Trim(), 1f),
+                spawnDelayDecrement = ParseFloat(col[6].Trim()),
+                enemySpeed = ParseFloat(col[7].Trim(), 1f),
+                maxEnemyCount = ParseInt(col[8].Trim(), 100),
+                roundDuration = ParseFloat(col[9].Trim(), 60f),
+                coinsPerKill = ParseInt(col[10].Trim(), 10),
+                enemyDefense = ParseFloat(col[11].Trim())
             });
         }
     }
 
     void LoadBossStats()
     {
-        if (bossCSV == null) { return; }
+        if (bossCSV == null) return;
         bossDataList.Clear();
         string[] lines = bossCSV.text.Split('\n');
         for (int i = 1; i < lines.Length; i++)
@@ -145,21 +195,21 @@ public class CSVLoader : MonoBehaviour
             if (col.Length < 8) continue;
             bossDataList.Add(new BossData
             {
-                bossType = int.Parse(col[0].Trim()),
-                stage = int.Parse(col[1].Trim()),
-                bossWaveLevel = int.Parse(col[2].Trim()),
-                hp = float.Parse(col[3].Trim()),
-                speed = float.Parse(col[4].Trim()),
-                reward = int.Parse(col[5].Trim()),
-                defense = float.Parse(col[6].Trim()),
-                forceDamageOne = int.Parse(col[7].Trim()) == 1
+                bossType = ParseInt(col[0].Trim()),
+                stage = ParseInt(col[1].Trim(), 1),
+                bossWaveLevel = ParseInt(col[2].Trim(), 1),
+                hp = ParseFloat(col[3].Trim(), 1000f),
+                speed = ParseFloat(col[4].Trim(), 1f),
+                reward = ParseInt(col[5].Trim(), 3),
+                defense = ParseFloat(col[6].Trim()),
+                forceDamageOne = ParseInt(col[7].Trim()) == 1
             });
         }
     }
 
     void LoadUpgradeStats()
     {
-        if (upgradeCSV == null) { return; }
+        if (upgradeCSV == null) return;
         upgradeDataList.Clear();
         upgradeDataMap.Clear();
         string[] lines = upgradeCSV.text.Split('\n');
@@ -172,12 +222,112 @@ public class CSVLoader : MonoBehaviour
             UpgradeData data = new UpgradeData
             {
                 upgradeType = col[0].Trim(),
-                costPerLevel = int.Parse(col[1].Trim()),
-                bonusPerLevel = float.Parse(col[2].Trim())
+                costPerLevel = ParseInt(col[1].Trim(), 1),
+                bonusPerLevel = ParseFloat(col[2].Trim(), 1f)
             };
             upgradeDataList.Add(data);
             upgradeDataMap[data.upgradeType] = data;
         }
+    }
+
+    void LoadGameSettings()
+    {
+        GameSettings = new GameSettingsData();
+        if (gameSettingsCSV == null) return;
+        Dictionary<string, string> kvMap = new Dictionary<string, string>();
+        string[] lines = gameSettingsCSV.text.Split('\n');
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(',');
+            if (col.Length < 2) continue;
+            kvMap[col[0].Trim()] = col[1].Trim();
+        }
+        if (kvMap.TryGetValue("startingCoins", out string v)) GameSettings.startingCoins = ParseInt(v, GameSettings.startingCoins);
+        if (kvMap.TryGetValue("spawnCost", out v)) GameSettings.spawnCost = ParseInt(v, GameSettings.spawnCost);
+        if (kvMap.TryGetValue("anvilCost", out v)) GameSettings.anvilCost = ParseInt(v, GameSettings.anvilCost);
+        if (kvMap.TryGetValue("specialSpawnCost", out v)) GameSettings.specialSpawnCost = ParseInt(v, GameSettings.specialSpawnCost);
+        if (kvMap.TryGetValue("specialSpawnMinTier", out v)) GameSettings.specialSpawnMinTier = ParseInt(v, GameSettings.specialSpawnMinTier);
+        if (kvMap.TryGetValue("specialSpawnMaxTier", out v)) GameSettings.specialSpawnMaxTier = ParseInt(v, GameSettings.specialSpawnMaxTier);
+        if (kvMap.TryGetValue("baseCharacterLimit", out v)) GameSettings.baseCharacterLimit = ParseInt(v, GameSettings.baseCharacterLimit);
+        if (kvMap.TryGetValue("hpScalePerStage", out v)) GameSettings.hpScalePerStage = ParseFloat(v, GameSettings.hpScalePerStage);
+        if (kvMap.TryGetValue("defenseScalePerStage", out v)) GameSettings.defenseScalePerStage = ParseFloat(v, GameSettings.defenseScalePerStage);
+        if (kvMap.TryGetValue("rewardScalePerStage", out v)) GameSettings.rewardScalePerStage = ParseFloat(v, GameSettings.rewardScalePerStage);
+        List<int> tierUnlockList = new List<int>();
+        for (int i = 1; i <= 10; i++)
+        {
+            if (kvMap.TryGetValue($"tierUnlockCost_{i}", out v)) tierUnlockList.Add(ParseInt(v));
+            else break;
+        }
+        if (tierUnlockList.Count > 0) GameSettings.tierUnlockCosts = tierUnlockList.ToArray();
+        List<float> tierWeightList = new List<float>();
+        for (int i = 1; i <= 10; i++)
+        {
+            if (kvMap.TryGetValue($"tierSpawnWeight_{i}", out v)) tierWeightList.Add(ParseFloat(v));
+            else break;
+        }
+        if (tierWeightList.Count > 0) GameSettings.tierSpawnWeights = tierWeightList.ToArray();
+        List<float> specialWeightList = new List<float>();
+        for (int i = 1; i <= 10; i++)
+        {
+            if (kvMap.TryGetValue($"specialTierSpawnWeight_{i}", out v)) specialWeightList.Add(ParseFloat(v));
+            else break;
+        }
+        if (specialWeightList.Count > 0) GameSettings.specialTierSpawnWeights = specialWeightList.ToArray();
+    }
+
+    void LoadSpecialMonsterSettings()
+    {
+        SpecialMonsterSettings = new SpecialMonsterSettingsData();
+        if (specialMonsterCSV == null) return;
+        string[] lines = specialMonsterCSV.text.Split('\n');
+        if (lines.Length < 2) return;
+        string[] col = lines[1].Trim().Split(',');
+        if (col.Length < 5) return;
+        SpecialMonsterSettings.hp = ParseFloat(col[0].Trim(), 500f);
+        SpecialMonsterSettings.speed = ParseFloat(col[1].Trim(), 1.5f);
+        SpecialMonsterSettings.lifetime = ParseFloat(col[2].Trim(), 15f);
+        SpecialMonsterSettings.coinReward = ParseInt(col[3].Trim(), 3);
+        SpecialMonsterSettings.spawnInterval = ParseFloat(col[4].Trim(), 20f);
+    }
+
+    void LoadAnvilSettings()
+    {
+        anvilRangeList.Clear();
+        if (anvilSettingsCSV == null) return;
+        string[] lines = anvilSettingsCSV.text.Split('\n');
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(',');
+            if (col.Length < 4) continue;
+            if (!System.Enum.TryParse(col[0].Trim(), out AnvilType type)) continue;
+            anvilRangeList.Add(new AnvilRangeData
+            {
+                type = type,
+                stage = ParseInt(col[1].Trim(), 1),
+                min = ParseFloat(col[2].Trim()),
+                max = ParseFloat(col[3].Trim(), 10f)
+            });
+        }
+    }
+
+    public AnvilRangeData GetAnvilRange(AnvilType type, int stage)
+    {
+        AnvilRangeData best = null;
+        int bestStage = 0;
+        foreach (AnvilRangeData data in anvilRangeList)
+        {
+            if (data.type != type) continue;
+            if (data.stage <= stage && data.stage > bestStage)
+            {
+                bestStage = data.stage;
+                best = data;
+            }
+        }
+        return best;
     }
 
     public UpgradeData GetUpgradeData(string upgradeType)

@@ -9,7 +9,8 @@ public class SpecialCoinManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI specialCoinText;
     public Button anvilButton;
-    public int anvilCost = 3;
+
+    [HideInInspector] public int anvilCost = 3;
 
     private int specialCoins;
 
@@ -21,6 +22,9 @@ public class SpecialCoinManager : MonoBehaviour
 
     void Start()
     {
+        if (CSVLoader.Instance?.GameSettings != null)
+            anvilCost = CSVLoader.Instance.GameSettings.anvilCost;
+
         if (anvilButton != null)
         {
             anvilButton.onClick.RemoveAllListeners();

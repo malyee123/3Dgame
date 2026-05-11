@@ -22,15 +22,6 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private float triangleOffsetX = 0.28f;
     [SerializeField] private float triangleOffsetY = 0.22f;
 
-    [Header("Tier Spawn Weights")]
-    public float[] tierSpawnWeights = { 70f, 30f };
-
-    [Header("Special Spawn Settings")]
-    public int specialSpawnCost = 3;
-    public int specialSpawnMinTier = 2;
-    public int specialSpawnMaxTier = 4;
-    public float[] specialTierSpawnWeights = { 70f, 25f, 5f };
-
     [Header("UI")]
     public Button spawnButton;
     public Button specialSpawnButton;
@@ -44,8 +35,12 @@ public class PlayerSpawner : MonoBehaviour
     [HideInInspector] public float sellPriceMultiplier = 1f;
     [HideInInspector] public float luckyDayMultiplier = 1f;
 
-    [Header("Character Limit")]
-    public int baseCharacterLimit = 35;
+    private int specialSpawnCost = 3;
+    private int specialSpawnMinTier = 2;
+    private int specialSpawnMaxTier = 4;
+    private float[] tierSpawnWeights = { 70f, 30f };
+    private float[] specialTierSpawnWeights = { 70f, 25f, 5f };
+    private int baseCharacterLimit = 35;
     private int currentCharacterLimit = 35;
 
     private GameObject[] slotAuras;
@@ -65,13 +60,26 @@ public class PlayerSpawner : MonoBehaviour
 
     void Start()
     {
+        if (CSVLoader.Instance?.GameSettings != null)
+        {
+            GameSettingsData s = CSVLoader.Instance.GameSettings;
+            baseCharacterLimit = s.baseCharacterLimit;
+            specialSpawnCost = s.specialSpawnCost;
+            specialSpawnMinTier = s.specialSpawnMinTier;
+            specialSpawnMaxTier = s.specialSpawnMaxTier;
+            tierSpawnWeights = s.tierSpawnWeights;
+            specialTierSpawnWeights = s.specialTierSpawnWeights;
+        }
+
         if (spawnPoints == null || spawnPoints.Length == 0) return;
         if (playerPrefab == null) return;
         if (characterDataList == null || characterDataList.Length == 0) return;
+
         slotOccupancy = new int[spawnPoints.Length];
         slotTagOwners = new string[spawnPoints.Length];
         slotAuras = new GameObject[spawnPoints.Length];
         slotAuraTiers = new int[spawnPoints.Length];
+
         int upgradeBonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetCharacterLimitBonus() : 0;
         currentCharacterLimit = baseCharacterLimit + upgradeBonus;
         StartCoroutine(InitButtonNextFrame());
@@ -97,7 +105,7 @@ public class PlayerSpawner : MonoBehaviour
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, selectedData.tier, out int spawnIndex)) return;
-        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.spawnCost)) return;
+        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.GetActualSpawnCost())) return;
         MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
     }
@@ -165,7 +173,6 @@ public class PlayerSpawner : MonoBehaviour
         int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
         int maxTier = Mathf.Min(specialSpawnMaxTier, unlockedTier);
         if (unlockedTier < specialSpawnMinTier) return null;
-
         Dictionary<int, List<CharacterData>> tierMap = new Dictionary<int, List<CharacterData>>();
         foreach (CharacterData data in characterDataList)
         {
@@ -175,7 +182,6 @@ public class PlayerSpawner : MonoBehaviour
             if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
             tierMap[tier].Add(data);
         }
-
         float totalWeight = 0f;
         for (int i = 0; i < specialTierSpawnWeights.Length; i++)
         {
@@ -183,7 +189,6 @@ public class PlayerSpawner : MonoBehaviour
             if (tierMap.ContainsKey(tier)) totalWeight += specialTierSpawnWeights[i];
         }
         if (totalWeight <= 0f) return null;
-
         float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
         for (int i = 0; i < specialTierSpawnWeights.Length; i++)
@@ -209,16 +214,13 @@ public class PlayerSpawner : MonoBehaviour
             if (!tierMap.ContainsKey(tier)) tierMap[tier] = new List<CharacterData>();
             tierMap[tier].Add(data);
         }
-
         float[] weights = (float[])tierSpawnWeights.Clone();
         if (AugmentManager.Instance != null && AugmentManager.Instance.HasLuckyDay && weights.Length >= 2)
             weights[1] *= luckyDayMultiplier;
-
         float totalWeight = 0f;
         for (int i = 0; i < weights.Length; i++)
             if (tierMap.ContainsKey(i + 1)) totalWeight += weights[i];
         if (totalWeight <= 0f) return characterDataList[Random.Range(0, characterDataList.Length)];
-
         float rand = Random.Range(0f, totalWeight);
         float cumulative = 0f;
         for (int i = 0; i < weights.Length; i++)
@@ -311,19 +313,15 @@ public class PlayerSpawner : MonoBehaviour
         int tier = Mathf.Max(1, characterData.tier);
         List<PlayerAttack> slotUnits = GetUnitsInSlot(spawnIndex, unitTag, tier);
         if (slotUnits.Count < 3) return false;
-
         List<PlayerAttack> toRemove = slotUnits.GetRange(0, 3);
         foreach (PlayerAttack unit in toRemove) { UnregisterUnit(unit, spawnIndex); Destroy(unit.gameObject); }
-
         int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
         List<CharacterData> nextTierList = new List<CharacterData>();
         foreach (CharacterData data in characterDataList)
             if (data != null && data.tier == tier + 1 && data.tier <= unlockedTier) nextTierList.Add(data);
-
         if (nextTierList.Count == 0) return false;
         CharacterData nextData = nextTierList[Random.Range(0, nextTierList.Count)];
         string newTag = GetUnitTag(nextData);
-
         StartCoroutine(MergeSpawnNextFrame(spawnIndex, nextData, newTag));
         return true;
     }
@@ -332,14 +330,11 @@ public class PlayerSpawner : MonoBehaviour
     {
         yield return null;
         SyncSlotStateFromScene();
-
         int finalSlot = -1;
         int maxUnits = nextData.tier >= 5 ? 1 : maxUnitsPerSlot;
-
         if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
             foreach (int s in existingSlots)
                 if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits) { finalSlot = s; break; }
-
         if (finalSlot < 0)
         {
             List<int> emptySlots = new List<int>();
@@ -348,9 +343,7 @@ public class PlayerSpawner : MonoBehaviour
             if (emptySlots.Count > 0)
                 finalSlot = emptySlots[Random.Range(0, emptySlots.Count)];
         }
-
         if (finalSlot < 0) yield break;
-
         SpawnPlayer(finalSlot, nextData, newTag);
         StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
         if (PassiveManager.Instance != null) PassiveManager.Instance.RecalculatePassives();
@@ -395,7 +388,6 @@ public class PlayerSpawner : MonoBehaviour
     {
         for (int i = 0; i < slotOccupancy.Length; i++) { slotOccupancy[i] = 0; slotTagOwners[i] = null; }
         tagToSlots.Clear();
-
         PlayerAttack[] players = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         Dictionary<int, List<PlayerAttack>> slotGroups = new Dictionary<int, List<PlayerAttack>>();
         foreach (PlayerAttack player in players)
@@ -406,7 +398,6 @@ public class PlayerSpawner : MonoBehaviour
             if (!slotGroups.ContainsKey(index)) slotGroups[index] = new List<PlayerAttack>();
             slotGroups[index].Add(player);
         }
-
         foreach (var kv in slotGroups)
         {
             int index = kv.Key;
@@ -430,7 +421,6 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (!tagToSlots.TryGetValue(unitTag, out List<int> slots)) { slots = new List<int>(); tagToSlots[unitTag] = slots; }
         int maxUnits = tier >= 5 ? 1 : maxUnitsPerSlot;
-
         List<int> availableTaggedSlots = new List<int>();
         foreach (int existingSlot in slots)
         {
@@ -443,11 +433,9 @@ public class PlayerSpawner : MonoBehaviour
             slotIndex = availableTaggedSlots[Random.Range(0, availableTaggedSlots.Count)];
             return true;
         }
-
         List<int> emptySlots = new List<int>();
         for (int i = 0; i < slotOccupancy.Length; i++)
             if (slotOccupancy[i] == 0) emptySlots.Add(i);
-
         if (emptySlots.Count > 0)
         {
             int randomEmptySlot = emptySlots[Random.Range(0, emptySlots.Count)];
@@ -456,7 +444,6 @@ public class PlayerSpawner : MonoBehaviour
             slotIndex = randomEmptySlot;
             return true;
         }
-
         slotIndex = -1;
         return false;
     }
@@ -510,7 +497,6 @@ public class PlayerSpawner : MonoBehaviour
             specialSpawnButton.interactable = !fieldFull &&
                 SpecialCoinManager.Instance != null &&
                 SpecialCoinManager.Instance.GetSpecialCoins() >= specialSpawnCost;
-
         if (characterCountText != null)
         {
             int total = 0;

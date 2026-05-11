@@ -1,13 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using Image = UnityEngine.UI.Image;
 
 public class AnvilCard : MonoBehaviour
 {
     [Header("UI")]
-    public Image cardBackground;
-    public TextMeshProUGUI descriptionText;
+    public Image cardImage;
     public Button selectButton;
 
     private AnvilData currentData;
@@ -18,7 +15,7 @@ public class AnvilCard : MonoBehaviour
         currentData = data;
         parentUI = ui;
 
-        if (descriptionText != null) descriptionText.text = data.description;
+        if (cardImage != null && data.sprite != null) cardImage.sprite = data.sprite;
 
         if (selectButton != null)
         {

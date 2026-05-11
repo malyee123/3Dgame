@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseManager : MonoBehaviour
 {
@@ -8,6 +9,10 @@ public class PauseManager : MonoBehaviour
     [Header("UI")]
     public GameObject pausePanel;
     public GameObject blockerPanel;
+
+    [Header("Sound Settings")]
+    public Slider bgmSlider;
+    public Slider sfxSlider;
 
     private bool isPaused = false;
     public bool IsPaused => isPaused;
@@ -22,6 +27,29 @@ public class PauseManager : MonoBehaviour
     {
         if (pausePanel != null) pausePanel.SetActive(false);
         if (blockerPanel != null) blockerPanel.SetActive(false);
+
+        if (bgmSlider != null)
+        {
+            bgmSlider.value = AudioManager.Instance != null ? AudioManager.Instance.BGMVolume : 1f;
+            bgmSlider.onValueChanged.RemoveAllListeners();
+            bgmSlider.onValueChanged.AddListener(OnBGMSliderChanged);
+        }
+        if (sfxSlider != null)
+        {
+            sfxSlider.value = AudioManager.Instance != null ? AudioManager.Instance.SFXVolume : 1f;
+            sfxSlider.onValueChanged.RemoveAllListeners();
+            sfxSlider.onValueChanged.AddListener(OnSFXSliderChanged);
+        }
+    }
+
+    void OnBGMSliderChanged(float value)
+    {
+        if (AudioManager.Instance != null) AudioManager.Instance.BGMVolume = value;
+    }
+
+    void OnSFXSliderChanged(float value)
+    {
+        if (AudioManager.Instance != null) AudioManager.Instance.SFXVolume = value;
     }
 
     public void TogglePause()
