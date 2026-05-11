@@ -51,6 +51,7 @@ public class SpecialMonsterStageData
     public float lifetime;
     public int coinReward;
     public float spawnInterval;
+    public float defense;
 }
 
 [System.Serializable]
@@ -296,7 +297,8 @@ public class CSVLoader : MonoBehaviour
                 speed = ParseFloat(col[2].Trim(), 1.5f),
                 lifetime = ParseFloat(col[3].Trim(), 15f),
                 coinReward = ParseInt(col[4].Trim(), 3),
-                spawnInterval = ParseFloat(col[5].Trim(), 20f)
+                spawnInterval = ParseFloat(col[5].Trim(), 20f),
+                defense = col.Length >= 7 ? ParseFloat(col[6].Trim(), 0f) : 0f
             });
         }
     }

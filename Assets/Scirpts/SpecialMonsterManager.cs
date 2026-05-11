@@ -90,6 +90,7 @@ public class SpecialMonsterManager : MonoBehaviour
         float speed = settings?.speed ?? 1.5f;
         float lifetime = settings?.lifetime ?? 15f;
         int coinReward = settings?.coinReward ?? 3;
+        float defense = settings?.defense ?? 0f;
 
         GameObject obj = Instantiate(specialMonsterPrefab, spawnPosition, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
@@ -99,7 +100,7 @@ public class SpecialMonsterManager : MonoBehaviour
         {
             enemyHealth.isSpecial = true;
             enemyHealth.specialCoinReward = coinReward;
-            enemyHealth.Init(hp);
+            enemyHealth.Init(hp, defense);
         }
         GameManager.Instance?.OnEnemySpawned();
         StartCoroutine(DespawnAfterTime(obj, enemyHealth, lifetime));

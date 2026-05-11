@@ -1,4 +1,4 @@
-﻿,tier,unitTag,attackDamage,attackCooldown,attackRange,upgradeCost,sellPrice,attackHitDelay
+﻿,tier,unitTag,attackDamage,attackSpeed,attackRange,upgradeCost,sellPrice,attackHitDelay
 Tier1_1,1,Tier1_1,100,1,1.5,100,50,0.2
 Tier1_2,1,Tier1_2,100,1,1.5,100,50,0.2
 Tier1_3,1,Tier1_3,100,1,1.5,100,50,0.2
