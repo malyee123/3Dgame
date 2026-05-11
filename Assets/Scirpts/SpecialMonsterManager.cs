@@ -19,12 +19,7 @@ public class SpecialMonsterManager : MonoBehaviour
     [Header("Path Settings")]
     public PathManager pathManager;
 
-    private float specialMonsterHp = 500f;
-    private float specialMonsterSpeed = 1.5f;
-    private float specialMonsterLifetime = 15f;
-    private int specialCoinReward = 3;
     private float spawnInterval = 20f;
-
     private float intervalTimer = 0f;
     private bool isButtonActive = false;
     private Coroutine buttonCoroutine = null;
@@ -37,21 +32,23 @@ public class SpecialMonsterManager : MonoBehaviour
 
     void Start()
     {
-        if (CSVLoader.Instance?.SpecialMonsterSettings != null)
-        {
-            SpecialMonsterSettingsData s = CSVLoader.Instance.SpecialMonsterSettings;
-            specialMonsterHp = s.hp;
-            specialMonsterSpeed = s.speed;
-            specialMonsterLifetime = s.lifetime;
-            specialCoinReward = s.coinReward;
-            spawnInterval = s.spawnInterval;
-        }
+        RefreshSettings();
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
         if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
         if (spawnButton != null)
         {
             spawnButton.onClick.RemoveAllListeners();
             spawnButton.onClick.AddListener(OnSpawnButtonClicked);
+        }
+    }
+
+    void RefreshSettings()
+    {
+        int stage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
+        if (CSVLoader.Instance != null)
+        {
+            SpecialMonsterStageData data = CSVLoader.Instance.GetSpecialMonsterData(stage);
+            if (data != null) spawnInterval = data.spawnInterval;
         }
     }
 
@@ -85,18 +82,27 @@ public class SpecialMonsterManager : MonoBehaviour
     void SpawnSpecialMonster()
     {
         if (specialMonsterPrefab == null || pathManager == null) return;
+
+        int stage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
+        SpecialMonsterStageData settings = CSVLoader.Instance?.GetSpecialMonsterData(stage);
+
+        float hp = settings?.hp ?? 500f;
+        float speed = settings?.speed ?? 1.5f;
+        float lifetime = settings?.lifetime ?? 15f;
+        int coinReward = settings?.coinReward ?? 3;
+
         GameObject obj = Instantiate(specialMonsterPrefab, spawnPosition, Quaternion.identity);
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = specialMonsterSpeed; }
+        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = speed; }
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
         {
             enemyHealth.isSpecial = true;
-            enemyHealth.specialCoinReward = specialCoinReward;
-            enemyHealth.Init(specialMonsterHp);
+            enemyHealth.specialCoinReward = coinReward;
+            enemyHealth.Init(hp);
         }
         GameManager.Instance?.OnEnemySpawned();
-        StartCoroutine(DespawnAfterTime(obj, enemyHealth, specialMonsterLifetime));
+        StartCoroutine(DespawnAfterTime(obj, enemyHealth, lifetime));
     }
 
     IEnumerator DespawnAfterTime(GameObject obj, EnemyHealth health, float lifetime)

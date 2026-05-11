@@ -43,13 +43,14 @@ public class GameSettingsData
 }
 
 [System.Serializable]
-public class SpecialMonsterSettingsData
+public class SpecialMonsterStageData
 {
-    public float hp = 500f;
-    public float speed = 1.5f;
-    public float lifetime = 15f;
-    public int coinReward = 3;
-    public float spawnInterval = 20f;
+    public int stage;
+    public float hp;
+    public float speed;
+    public float lifetime;
+    public int coinReward;
+    public float spawnInterval;
 }
 
 [System.Serializable]
@@ -78,9 +79,9 @@ public class CSVLoader : MonoBehaviour
     public List<BossData> bossDataList = new List<BossData>();
     public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
     public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
+    public List<SpecialMonsterStageData> specialMonsterDataList = new List<SpecialMonsterStageData>();
 
     public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
-    public SpecialMonsterSettingsData SpecialMonsterSettings { get; private set; } = new SpecialMonsterSettingsData();
 
     private Dictionary<string, CharacterData> characterDataMap = new Dictionary<string, CharacterData>();
     private Dictionary<string, UpgradeData> upgradeDataMap = new Dictionary<string, UpgradeData>();
@@ -103,7 +104,7 @@ public class CSVLoader : MonoBehaviour
         LoadBossStats();
         LoadUpgradeStats();
         LoadGameSettings();
-        LoadSpecialMonsterSettings();
+        LoadSpecialMonsterStats();
         LoadAnvilSettings();
     }
 
@@ -277,19 +278,27 @@ public class CSVLoader : MonoBehaviour
         if (specialWeightList.Count > 0) GameSettings.specialTierSpawnWeights = specialWeightList.ToArray();
     }
 
-    void LoadSpecialMonsterSettings()
+    void LoadSpecialMonsterStats()
     {
-        SpecialMonsterSettings = new SpecialMonsterSettingsData();
+        specialMonsterDataList.Clear();
         if (specialMonsterCSV == null) return;
         string[] lines = specialMonsterCSV.text.Split('\n');
-        if (lines.Length < 2) return;
-        string[] col = lines[1].Trim().Split(',');
-        if (col.Length < 5) return;
-        SpecialMonsterSettings.hp = ParseFloat(col[0].Trim(), 500f);
-        SpecialMonsterSettings.speed = ParseFloat(col[1].Trim(), 1.5f);
-        SpecialMonsterSettings.lifetime = ParseFloat(col[2].Trim(), 15f);
-        SpecialMonsterSettings.coinReward = ParseInt(col[3].Trim(), 3);
-        SpecialMonsterSettings.spawnInterval = ParseFloat(col[4].Trim(), 20f);
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(',');
+            if (col.Length < 6) continue;
+            specialMonsterDataList.Add(new SpecialMonsterStageData
+            {
+                stage = ParseInt(col[0].Trim(), 1),
+                hp = ParseFloat(col[1].Trim(), 500f),
+                speed = ParseFloat(col[2].Trim(), 1.5f),
+                lifetime = ParseFloat(col[3].Trim(), 15f),
+                coinReward = ParseInt(col[4].Trim(), 3),
+                spawnInterval = ParseFloat(col[5].Trim(), 20f)
+            });
+        }
     }
 
     void LoadAnvilSettings()
@@ -312,6 +321,23 @@ public class CSVLoader : MonoBehaviour
                 max = ParseFloat(col[3].Trim(), 10f)
             });
         }
+    }
+
+    public SpecialMonsterStageData GetSpecialMonsterData(int stage)
+    {
+        SpecialMonsterStageData best = null;
+        int bestStage = 0;
+        foreach (SpecialMonsterStageData data in specialMonsterDataList)
+        {
+            if (data.stage <= stage && data.stage > bestStage)
+            {
+                bestStage = data.stage;
+                best = data;
+            }
+        }
+        if (best == null && specialMonsterDataList.Count > 0)
+            best = specialMonsterDataList[0];
+        return best;
     }
 
     public AnvilRangeData GetAnvilRange(AnvilType type, int stage)
