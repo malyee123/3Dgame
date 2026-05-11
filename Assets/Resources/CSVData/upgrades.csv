@@ -1,5 +1,5 @@
 ﻿upgradeType,costPerLevel,bonusPerLevel
-AttackDamage,1,5
+AttackDamage,1,10
 AttackSpeed,1,5
 CoinPerKill,1,2
 StartingCoin,1,20

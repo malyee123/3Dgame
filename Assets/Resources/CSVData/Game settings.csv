@@ -1,6 +1,6 @@
 ﻿key,value
-startingCoins,100
-spawnCost,20
+startingCoins,500
+spawnCost,100
 anvilCost,3
 specialSpawnCost,3
 specialSpawnMinTier,2
@@ -13,8 +13,8 @@ tierUnlockCost_1,5
 tierUnlockCost_2,10
 tierUnlockCost_3,20
 tierUnlockCost_4,40
-tierSpawnWeight_1,70
-tierSpawnWeight_2,30
+tierSpawnWeight_1,90
+tierSpawnWeight_2,10
 specialTierSpawnWeight_1,70
 specialTierSpawnWeight_2,25
 specialTierSpawnWeight_3,5
