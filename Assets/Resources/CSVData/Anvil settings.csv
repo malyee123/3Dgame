@@ -14,6 +14,6 @@ EnemyLimit,3,40,80
 BossTime,1,5,15
 BossTime,2,20,50
 BossTime,3,40,80
-ArmorPenetration,1,10,15
+ArmorPenetration,1,10,20
 ArmorPenetration,2,10,25
 ArmorPenetration,3,20,40
