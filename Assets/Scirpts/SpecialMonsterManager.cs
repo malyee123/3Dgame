@@ -1,119 +1,119 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SpecialMonsterManager : MonoBehaviour
 {
-    public static SpecialMonsterManager Instance { get; private set; }
+    public static SpecialMonsterManager Instance;
 
-    [Header("Special Monster Settings")]
-    public GameObject specialMonsterPrefab;
+    [SerializeField] private GameObject specialMonsterPrefab;
+    [SerializeField] private Transform spawnPoint;
+    [SerializeField] private Button spawnButton;
+    [SerializeField] private TextMeshProUGUI cooldownText;
 
-    [Header("UI")]
-    public GameObject spawnButtonObject;
-    public Button spawnButton;
+    private int sessionKillCount = 0;
+    private bool isOnField = false;
+    private bool isOnCooldown = false;
+    private float cooldownRemaining = 0f;
+    private float durationRemaining = 0f;
+    private GameObject currentMonster = null;
 
-    [Header("Spawn Position")]
-    public Vector2 spawnPosition = new Vector2(-6f, 3f);
+    private void Awake() => Instance = this;
 
-    [Header("Path Settings")]
-    public PathManager pathManager;
-
-    private float spawnInterval = 20f;
-    private float intervalTimer = 0f;
-    private bool isButtonActive = false;
-    private Coroutine buttonCoroutine = null;
-
-    void Awake()
+    private void Start()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-    }
-
-    void Start()
-    {
-        RefreshSettings();
-        if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
-        if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
         if (spawnButton != null)
         {
             spawnButton.onClick.RemoveAllListeners();
-            spawnButton.onClick.AddListener(OnSpawnButtonClicked);
+            spawnButton.onClick.AddListener(OnSpawnButtonPressed);
         }
+        UpdateButton();
     }
 
-    void RefreshSettings()
+    private void Update()
     {
-        int stage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
-        if (CSVLoader.Instance != null)
+        if (isOnField)
         {
-            SpecialMonsterStageData data = CSVLoader.Instance.GetSpecialMonsterData(stage);
-            if (data != null) spawnInterval = data.spawnInterval;
+            if (currentMonster == null)
+            {
+                isOnField = false;
+                UpdateButton();
+            }
+            else
+            {
+                durationRemaining -= Time.deltaTime;
+                if (durationRemaining <= 0f)
+                {
+                    isOnField = false;
+                    Destroy(currentMonster);
+                    currentMonster = null;
+                    UpdateButton();
+                }
+            }
         }
-    }
 
-    void Update()
-    {
-        if (isButtonActive) return;
-        intervalTimer += Time.deltaTime;
-        if (intervalTimer >= spawnInterval)
+        if (!isOnField && isOnCooldown)
         {
-            intervalTimer = 0f;
-            buttonCoroutine = StartCoroutine(ShowButtonRoutine());
+            cooldownRemaining -= Time.deltaTime;
+            if (cooldownRemaining <= 0f)
+            {
+                isOnCooldown = false;
+                cooldownRemaining = 0f;
+                UpdateButton();
+            }
         }
+
+        if (cooldownText != null)
+            cooldownText.text = (!isOnField && isOnCooldown)
+                ? Mathf.CeilToInt(cooldownRemaining).ToString()
+                : string.Empty;
     }
 
-    IEnumerator ShowButtonRoutine()
+    private Vector3 GetSpawnPosition()
     {
-        isButtonActive = true;
-        if (spawnButtonObject != null && (RecipeBook.Instance == null || !RecipeBook.Instance.IsPanelOpen))
-            spawnButtonObject.SetActive(true);
-        yield return null;
+        if (spawnPoint != null) return spawnPoint.position;
+        if (EnemySpawner.Instance != null) return EnemySpawner.Instance.transform.position;
+        return Vector3.zero;
     }
 
-    void OnSpawnButtonClicked()
+    public void OnSpawnButtonPressed()
     {
-        if (buttonCoroutine != null) { StopCoroutine(buttonCoroutine); buttonCoroutine = null; }
-        if (spawnButtonObject != null) spawnButtonObject.SetActive(false);
-        isButtonActive = false;
-        SpawnSpecialMonster();
+        if (isOnField || isOnCooldown) return;
+        if (specialMonsterPrefab == null) return;
+
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
+        if (data == null) return;
+
+        var go = Instantiate(specialMonsterPrefab, GetSpawnPosition(), Quaternion.identity);
+        var eh = go.GetComponent<EnemyHealth>();
+        if (eh != null) eh.InitAsSpecialMonster(data.hp, data.coinReward, data.defense);
+        var em = go.GetComponent<EnemyMove>();
+        if (em != null) em.speed = data.speed;
+
+        currentMonster = go;
+        durationRemaining = data.lifetime;
+        isOnField = true;
+        UpdateButton();
     }
 
-    void SpawnSpecialMonster()
+    public void OnSpecialMonsterKilled()
     {
-        if (specialMonsterPrefab == null || pathManager == null) return;
+        if (!isOnField) return;
 
-        int stage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
-        SpecialMonsterStageData settings = CSVLoader.Instance?.GetSpecialMonsterData(stage);
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
+        float cooldown = data != null ? data.cooldown : 30f;
 
-        float hp = settings?.hp ?? 500f;
-        float speed = settings?.speed ?? 1.5f;
-        float lifetime = settings?.lifetime ?? 15f;
-        int coinReward = settings?.coinReward ?? 3;
-        float defense = settings?.defense ?? 0f;
-
-        GameObject obj = Instantiate(specialMonsterPrefab, spawnPosition, Quaternion.identity);
-        EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
-        if (enemyMove != null) { enemyMove.SetPathManager(pathManager); enemyMove.speed = speed; }
-        EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
-        {
-            enemyHealth.isSpecial = true;
-            enemyHealth.specialCoinReward = coinReward;
-            enemyHealth.Init(hp, defense);
-        }
-        GameManager.Instance?.OnEnemySpawned();
-        StartCoroutine(DespawnAfterTime(obj, enemyHealth, lifetime));
+        sessionKillCount++;
+        isOnField = false;
+        currentMonster = null;
+        isOnCooldown = true;
+        cooldownRemaining = cooldown;
+        UpdateButton();
     }
 
-    IEnumerator DespawnAfterTime(GameObject obj, EnemyHealth health, float lifetime)
+    private void UpdateButton()
     {
-        yield return new WaitForSeconds(lifetime);
-        if (obj != null)
-        {
-            if (health != null && health.gameObject.activeInHierarchy)
-                GameManager.Instance?.OnEnemyDied();
-            Destroy(obj);
-        }
+        if (spawnButton != null)
+            spawnButton.interactable = !isOnField && !isOnCooldown;
     }
 }

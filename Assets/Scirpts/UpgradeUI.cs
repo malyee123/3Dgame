@@ -13,10 +13,10 @@ public class UpgradeUI : MonoBehaviour
     public TextMeshProUGUI attackDamageCostText;
     public Button attackDamageButton;
 
-    [Header("Attack Speed UI")]
-    public TextMeshProUGUI attackSpeedLevelText;
-    public TextMeshProUGUI attackSpeedCostText;
-    public Button attackSpeedButton;
+    [Header("Character Limit UI")]
+    public TextMeshProUGUI characterLimitLevelText;
+    public TextMeshProUGUI characterLimitCostText;
+    public Button characterLimitButton;
 
     [Header("Coin Per Kill UI")]
     public TextMeshProUGUI coinPerKillLevelText;
@@ -59,10 +59,17 @@ public class UpgradeUI : MonoBehaviour
             UpgradeManager.Instance.GetUpgradeCost("AttackDamage", UpgradeManager.Instance.AttackDamageLevel),
             sp, $"+{UpgradeManager.Instance.GetAttackDamageMultiplier() * 100 - 100:F0}%");
 
-        UpdateSlot(attackSpeedLevelText, attackSpeedCostText, attackSpeedButton,
-            UpgradeManager.Instance.AttackSpeedLevel, maxLevel,
-            UpgradeManager.Instance.GetUpgradeCost("AttackSpeed", UpgradeManager.Instance.AttackSpeedLevel),
-            sp, $"+{(UpgradeManager.Instance.GetAttackSpeedMultiplier() - 1f) * 100:F0}%");
+        int charLevel = UpgradeManager.Instance.CharacterLimitLevel;
+        int charCost = UpgradeManager.Instance.GetCharacterLimitUpgradeCost();
+        bool charMaxed = UpgradeManager.Instance.IsCharacterLimitMaxed();
+        if (characterLimitLevelText != null)
+            characterLimitLevelText.text = charMaxed
+                ? $"Lv.{charLevel}  (+{charLevel}마리)  MAX"
+                : $"Lv.{charLevel}  (+{charLevel}마리)";
+        if (characterLimitCostText != null)
+            characterLimitCostText.text = charMaxed ? "MAX" : $"Cost: {charCost}";
+        if (characterLimitButton != null)
+            characterLimitButton.interactable = !charMaxed && sp >= charCost;
 
         UpdateSlot(coinPerKillLevelText, coinPerKillCostText, coinPerKillButton,
             UpgradeManager.Instance.CoinPerKillLevel, maxLevel,
@@ -91,7 +98,7 @@ public class UpgradeUI : MonoBehaviour
     }
 
     public void OnClickAttackDamage() { UpgradeManager.Instance.UpgradeAttackDamage(); RefreshUI(); }
-    public void OnClickAttackSpeed() { UpgradeManager.Instance.UpgradeAttackSpeed(); RefreshUI(); }
+    public void OnClickCharacterLimit() { UpgradeManager.Instance.UpgradeCharacterLimit(); RefreshUI(); }
     public void OnClickCoinPerKill() { UpgradeManager.Instance.UpgradeCoinPerKill(); RefreshUI(); }
     public void OnClickStartingCoin() { UpgradeManager.Instance.UpgradeStartingCoin(); RefreshUI(); }
     public void OnClickTierUnlock() { UpgradeManager.Instance.UnlockNextTier(); RefreshUI(); }

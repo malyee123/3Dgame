@@ -15,7 +15,7 @@ public class AnvilCard : MonoBehaviour
         currentData = data;
         parentUI = ui;
 
-        if (cardImage != null && data.sprite != null) cardImage.sprite = data.sprite;
+        if (cardImage != null) cardImage.sprite = data.sprite;
 
         if (selectButton != null)
         {

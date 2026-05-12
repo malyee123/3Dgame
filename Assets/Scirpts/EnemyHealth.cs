@@ -38,6 +38,14 @@ public class EnemyHealth : MonoBehaviour
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
 
+    public void InitAsSpecialMonster(float hp, int reward, float def = 0f)
+    {
+        isSpecial = true;
+        isBoss = false;
+        specialCoinReward = reward;
+        Init(hp, def);
+    }
+
     void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
     public void ApplyDefenseDown(float amount) => defenseDown = amount;
@@ -63,7 +71,6 @@ public class EnemyHealth : MonoBehaviour
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
         ShowDamageText(actualDamage);
 
-        // 사형 집행인 증강 - 보스 체력 10% 미만 처형
         if (isBoss && AugmentManager.Instance != null && AugmentManager.Instance.HasExecutioner)
             if (currentHp / maxHp < 0.1f) { ExecuteKill(); return; }
 
@@ -100,12 +107,15 @@ public class EnemyHealth : MonoBehaviour
             if (SpecialCoinManager.Instance != null)
             {
                 int reward = specialCoinReward;
-                // 투자 전문가 증강 - 보스/특수 처치 시 특수 코인 2배
                 if (AugmentManager.Instance != null && AugmentManager.Instance.HasBossSpecialCoinDouble)
                     reward *= 2;
                 SpecialCoinManager.Instance.AddSpecialCoins(reward);
             }
-            if (isBoss) GameManager.Instance?.OnBossKilled();
+
+            if (isBoss)
+                GameManager.Instance?.OnBossKilled();
+            else
+                SpecialMonsterManager.Instance?.OnSpecialMonsterKilled();
         }
         else
         {

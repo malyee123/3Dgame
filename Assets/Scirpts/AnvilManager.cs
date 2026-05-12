@@ -5,10 +5,10 @@ public enum AnvilType
 {
     AttackDamage,
     AttackSpeed,
-    CharacterLimit,
-    EnemyLimit,
+    DefenseDown,
     BossTime,
-    ArmorPenetration
+    EnemyLimit,
+    CharacterLimit
 }
 
 [System.Serializable]
@@ -29,22 +29,22 @@ public class AnvilManager : MonoBehaviour
 {
     public static AnvilManager Instance { get; private set; }
 
-    [Header("Anvil Sprites (인덱스: 0=AttackDamage, 1=AttackSpeed, 2=CharacterLimit, 3=EnemyLimit, 4=BossTime, 5=ArmorPenetration)")]
+    [Header("Anvil Sprites (인덱스: 0=AttackDamage, 1=AttackSpeed, 2=DefenseDown, 3=BossTime, 4=EnemyLimit, 5=CharacterLimit)")]
     public AnvilSpriteSet[] anvilSpriteSets = new AnvilSpriteSet[6];
 
     private float bonusAttackDamage = 0f;
     private float bonusAttackSpeed = 0f;
-    private int bonusCharacterLimit = 0;
-    private int bonusEnemyLimit = 0;
+    private float bonusDefenseDown = 0f;
     private float bonusBossTime = 0f;
-    private float bonusArmorPenetration = 0f;
+    private int bonusEnemyLimit = 0;
+    private int bonusCharacterLimit = 0;
 
     public float BonusAttackDamage => bonusAttackDamage;
     public float BonusAttackSpeed => bonusAttackSpeed;
-    public int BonusCharacterLimit => bonusCharacterLimit;
-    public int BonusEnemyLimit => bonusEnemyLimit;
+    public float BonusDefenseDown => bonusDefenseDown;
     public float BonusBossTime => bonusBossTime;
-    public float BonusArmorPenetration => bonusArmorPenetration;
+    public int BonusEnemyLimit => bonusEnemyLimit;
+    public int BonusCharacterLimit => bonusCharacterLimit;
 
     private int cachedStage = 1;
 
@@ -54,7 +54,6 @@ public class AnvilManager : MonoBehaviour
         Instance = this;
     }
 
-    // 모루 UI 열릴 때 스테이지를 한 번 캐싱 → 풀 생성 동안 일관된 스테이지 사용
     public void CacheCurrentStage()
     {
         cachedStage = GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
@@ -72,10 +71,16 @@ public class AnvilManager : MonoBehaviour
                 return Mathf.Round(Random.Range(range.min, range.max));
             }
         }
-        return type == AnvilType.CharacterLimit ? Random.Range(1, 3) :
-               type == AnvilType.EnemyLimit ? Random.Range(10, 31) :
-               type == AnvilType.BossTime ? Mathf.Round(Random.Range(10f, 31f)) :
-               Mathf.Round(Random.Range(5f, 15f));
+        switch (type)
+        {
+            case AnvilType.AttackDamage: return Mathf.Round(Random.Range(5f, 21f));
+            case AnvilType.AttackSpeed: return Mathf.Round(Random.Range(10f, 31f));
+            case AnvilType.DefenseDown: return Mathf.Round(Random.Range(10f, 21f));
+            case AnvilType.BossTime: return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.EnemyLimit: return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.CharacterLimit: return Random.Range(1, 3);
+            default: return 0f;
+        }
     }
 
     Sprite GetSprite(AnvilType type)
@@ -92,12 +97,12 @@ public class AnvilManager : MonoBehaviour
     {
         List<AnvilData> pool = new List<AnvilData>
         {
-            new AnvilData { type = AnvilType.AttackDamage,     value = GetRangeValue(AnvilType.AttackDamage),     sprite = GetSprite(AnvilType.AttackDamage) },
-            new AnvilData { type = AnvilType.AttackSpeed,      value = GetRangeValue(AnvilType.AttackSpeed),      sprite = GetSprite(AnvilType.AttackSpeed) },
-            new AnvilData { type = AnvilType.CharacterLimit,   value = GetRangeValue(AnvilType.CharacterLimit),   sprite = GetSprite(AnvilType.CharacterLimit) },
-            new AnvilData { type = AnvilType.EnemyLimit,       value = GetRangeValue(AnvilType.EnemyLimit),       sprite = GetSprite(AnvilType.EnemyLimit) },
-            new AnvilData { type = AnvilType.BossTime,         value = GetRangeValue(AnvilType.BossTime),         sprite = GetSprite(AnvilType.BossTime) },
-            new AnvilData { type = AnvilType.ArmorPenetration, value = GetRangeValue(AnvilType.ArmorPenetration), sprite = GetSprite(AnvilType.ArmorPenetration) },
+            new AnvilData { type = AnvilType.AttackDamage,   value = GetRangeValue(AnvilType.AttackDamage),   sprite = GetSprite(AnvilType.AttackDamage) },
+            new AnvilData { type = AnvilType.AttackSpeed,    value = GetRangeValue(AnvilType.AttackSpeed),    sprite = GetSprite(AnvilType.AttackSpeed) },
+            new AnvilData { type = AnvilType.DefenseDown,    value = GetRangeValue(AnvilType.DefenseDown),    sprite = GetSprite(AnvilType.DefenseDown) },
+            new AnvilData { type = AnvilType.BossTime,       value = GetRangeValue(AnvilType.BossTime),       sprite = GetSprite(AnvilType.BossTime) },
+            new AnvilData { type = AnvilType.EnemyLimit,     value = GetRangeValue(AnvilType.EnemyLimit),     sprite = GetSprite(AnvilType.EnemyLimit) },
+            new AnvilData { type = AnvilType.CharacterLimit, value = GetRangeValue(AnvilType.CharacterLimit), sprite = GetSprite(AnvilType.CharacterLimit) },
         };
         List<AnvilData> result = new List<AnvilData>();
         List<int> usedIndices = new List<int>();
@@ -124,27 +129,27 @@ public class AnvilManager : MonoBehaviour
                 bonusAttackSpeed += data.value;
                 ApplyToAllUnits(0f, data.value);
                 break;
-            case AnvilType.CharacterLimit:
-                bonusCharacterLimit += (int)data.value;
-                if (PlayerSpawner.Instance != null)
-                    PlayerSpawner.Instance.AddCharacterLimit((int)data.value);
-                break;
-            case AnvilType.EnemyLimit:
-                bonusEnemyLimit += (int)data.value;
-                if (GameManager.Instance != null)
-                    GameManager.Instance.AddEnemyLimit((int)data.value);
+            case AnvilType.DefenseDown:
+                bonusDefenseDown += data.value;
+                ApplyDefenseDownToExisting();
+                if (EnemySpawner.Instance != null)
+                    EnemySpawner.Instance.armorBreakerMultiplier =
+                        Mathf.Max(0f, EnemySpawner.Instance.armorBreakerMultiplier - data.value / 100f);
                 break;
             case AnvilType.BossTime:
                 bonusBossTime += data.value;
                 if (GameManager.Instance != null)
                     GameManager.Instance.AddBossTime(data.value);
                 break;
-            case AnvilType.ArmorPenetration:
-                bonusArmorPenetration += data.value;
-                ApplyArmorPenetrationToExisting();
-                if (EnemySpawner.Instance != null)
-                    EnemySpawner.Instance.armorBreakerMultiplier =
-                        Mathf.Max(0f, EnemySpawner.Instance.armorBreakerMultiplier - data.value / 100f);
+            case AnvilType.EnemyLimit:
+                bonusEnemyLimit += (int)data.value;
+                if (GameManager.Instance != null)
+                    GameManager.Instance.AddEnemyLimit((int)data.value);
+                break;
+            case AnvilType.CharacterLimit:
+                bonusCharacterLimit += (int)data.value;
+                if (PlayerSpawner.Instance != null)
+                    PlayerSpawner.Instance.AddCharacterLimit((int)data.value);
                 break;
         }
         PassiveManager.Instance?.RecalculatePassives();
@@ -157,20 +162,20 @@ public class AnvilManager : MonoBehaviour
             if (unit != null) unit.ApplyAugmentBonus(dmg, spd);
     }
 
-    void ApplyArmorPenetrationToExisting()
+    void ApplyDefenseDownToExisting()
     {
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
-            if (eh != null) eh.ApplyArmorBreaker(bonusArmorPenetration / 100f);
+            if (eh != null) eh.ApplyArmorBreaker(bonusDefenseDown / 100f);
     }
 
     public void ResetAnvils()
     {
         bonusAttackDamage = 0f;
         bonusAttackSpeed = 0f;
-        bonusCharacterLimit = 0;
-        bonusEnemyLimit = 0;
+        bonusDefenseDown = 0f;
         bonusBossTime = 0f;
-        bonusArmorPenetration = 0f;
+        bonusEnemyLimit = 0;
+        bonusCharacterLimit = 0;
     }
 }

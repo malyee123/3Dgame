@@ -516,7 +516,7 @@ GameObject:
   m_Component:
   - component: {fileID: 365111067}
   m_Layer: 5
-  m_Name: AttackSpeedSlot
+  m_Name: CharacterLimitSlot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1480,9 +1480,9 @@ MonoBehaviour:
   attackDamageLevelText: {fileID: 1182647821}
   attackDamageCostText: {fileID: 1250608057}
   attackDamageButton: {fileID: 1390063658}
-  attackSpeedLevelText: {fileID: 75729255}
-  attackSpeedCostText: {fileID: 2027477104}
-  attackSpeedButton: {fileID: 1576306223}
+  characterLimitLevelText: {fileID: 75729255}
+  characterLimitCostText: {fileID: 2027477104}
+  characterLimitButton: {fileID: 1576306223}
   coinPerKillLevelText: {fileID: 802316966}
   coinPerKillCostText: {fileID: 896149591}
   coinPerKillButton: {fileID: 1774676209}
@@ -2682,7 +2682,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 990821212}
         m_TargetAssemblyTypeName: UpgradeUI, Assembly-CSharp
-        m_MethodName: OnClickAttackSpeed
+        m_MethodName: OnClickCharacterLimit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2712,7 +2712,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 248015900655325542, guid: 0d96c2aab42160b41a46104090439e48, type: 3}
+  m_Sprite: {fileID: -6570791250749471261, guid: d4909becd060ae94f86a8aab13063d25, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3776,7 +3776,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uACF5\uACA9 \uC18D\uB3C4 \uAC15\uD654"
+  m_text: "\uCE90\uB9AD\uD130 \uC218 +1"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: de88880c68d424344a175e4aa56d7341, type: 2}
   m_sharedMaterial: {fileID: -2741660018913726341, guid: de88880c68d424344a175e4aa56d7341, type: 2}

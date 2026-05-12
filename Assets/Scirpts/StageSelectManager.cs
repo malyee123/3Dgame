@@ -1,78 +1,102 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class StageSelectManager : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("Stage Display")]
+    public Button stageButtonPrefab;
     public Transform stageButtonContainer;
-    public GameObject stageButtonPrefab;
-    public ScrollRect scrollRect;
+
+    [Header("Navigation")]
+    public Button prevButton;
+    public Button nextButton;
+
+    [Header("Stage Info")]
+    public TextMeshProUGUI stageNameText;
+    public Image stageImage;
+    public Sprite[] stageSprites;
+
+    private int currentIndex = 0;
+    private int maxStage = 1;
+    private int unlockedStage = 1;
 
     void Start()
     {
-        GenerateStageButtons();
-        StartCoroutine(ScrollToUnlockedStage());
-    }
+        maxStage = GetMaxStageFromCSV();
+        unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
+        currentIndex = unlockedStage - 1;
 
-    IEnumerator ScrollToUnlockedStage()
-    {
-        yield return null;
-        int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
-        int maxStage = GetMaxStageFromCSV();
-        float normalizedPos = (float)(unlockedStage - 1) / Mathf.Max(1, maxStage - 1);
-        scrollRect.horizontalNormalizedPosition = Mathf.Clamp01(normalizedPos);
-    }
-
-    void GenerateStageButtons()
-    {
-        if (CSVLoader.Instance == null || stageButtonPrefab == null || stageButtonContainer == null) return;
-
-        int maxStage = GetMaxStageFromCSV();
-        int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
-
-        for (int i = 1; i <= maxStage; i++)
+        if (prevButton != null)
         {
-            int stageIndex = i;
-            GameObject btn = Instantiate(stageButtonPrefab, stageButtonContainer);
+            prevButton.onClick.RemoveAllListeners();
+            prevButton.onClick.AddListener(OnPrev);
+        }
+        if (nextButton != null)
+        {
+            nextButton.onClick.RemoveAllListeners();
+            nextButton.onClick.AddListener(OnNext);
+        }
 
-            TextMeshProUGUI text = btn.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null) text.text = $"Stage {stageIndex}";
+        RefreshUI();
+    }
 
-            Button button = btn.GetComponent<Button>();
-            Image image = btn.GetComponent<Image>();
-            bool isUnlocked = stageIndex <= unlockedStage;
+    void OnPrev()
+    {
+        if (currentIndex > 0) currentIndex--;
+        RefreshUI();
+    }
 
-            if (button != null)
+    void OnNext()
+    {
+        if (currentIndex < maxStage - 1) currentIndex++;
+        RefreshUI();
+    }
+
+    void RefreshUI()
+    {
+        int stage = currentIndex + 1;
+        bool isUnlocked = stage <= unlockedStage;
+
+        if (stageNameText != null)
+            stageNameText.text = $"Stage {stage}";
+
+        if (stageImage != null && stageSprites != null && currentIndex < stageSprites.Length)
+            stageImage.sprite = stageSprites[currentIndex];
+
+        if (prevButton != null) prevButton.interactable = currentIndex > 0;
+        if (nextButton != null) nextButton.interactable = currentIndex < maxStage - 1;
+
+        if (stageButtonContainer != null)
+        {
+            Button btn = stageButtonContainer.GetComponentInChildren<Button>();
+            if (btn != null)
             {
-                button.interactable = isUnlocked;
+                btn.interactable = isUnlocked;
+                btn.onClick.RemoveAllListeners();
                 if (isUnlocked)
                 {
-                    button.onClick.AddListener(() =>
+                    int selected = stage;
+                    btn.onClick.AddListener(() =>
                     {
-                        PlayerPrefs.SetInt("SelectedStage", stageIndex);
+                        PlayerPrefs.SetInt("SelectedStage", selected);
                         PlayerPrefs.Save();
-                        UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+                        SceneManager.LoadScene("GameScene");
                     });
                 }
             }
-
-            if (image != null)
-                image.color = isUnlocked ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
         }
     }
 
     int GetMaxStageFromCSV()
     {
+        if (CSVLoader.Instance == null) return 1;
         int max = 1;
         foreach (RoundData rd in CSVLoader.Instance.roundDataList)
             if (rd.stage > max) max = rd.stage;
         return max;
     }
 
-    public void GoToLobby()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
-    }
+    public void GoToLobby() => SceneManager.LoadScene("LobbyScene");
 }

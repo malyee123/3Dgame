@@ -45,12 +45,12 @@ public class GameSettingsData
 [System.Serializable]
 public class SpecialMonsterStageData
 {
-    public int stage;
+    public int killCount;
     public float hp;
     public float speed;
     public float lifetime;
     public int coinReward;
-    public float spawnInterval;
+    public float cooldown;
     public float defense;
 }
 
@@ -202,9 +202,9 @@ public class CSVLoader : MonoBehaviour
                 bossWaveLevel = ParseInt(col[2].Trim(), 1),
                 hp = ParseFloat(col[3].Trim(), 1000f),
                 speed = ParseFloat(col[4].Trim(), 1f),
-                reward = ParseInt(col[5].Trim(), 3),
-                defense = ParseFloat(col[6].Trim()),
-                forceDamageOne = ParseInt(col[7].Trim()) == 1
+                defense = ParseFloat(col[5].Trim()),
+                reward = ParseInt(col[6].Trim(), 1),
+                forceDamageOne = col[7].Trim() == "1"
             });
         }
     }
@@ -292,12 +292,12 @@ public class CSVLoader : MonoBehaviour
             if (col.Length < 6) continue;
             specialMonsterDataList.Add(new SpecialMonsterStageData
             {
-                stage = ParseInt(col[0].Trim(), 1),
+                killCount = ParseInt(col[0].Trim()),
                 hp = ParseFloat(col[1].Trim(), 500f),
                 speed = ParseFloat(col[2].Trim(), 1.5f),
-                lifetime = ParseFloat(col[3].Trim(), 15f),
+                lifetime = ParseFloat(col[3].Trim(), 20f),
                 coinReward = ParseInt(col[4].Trim(), 3),
-                spawnInterval = ParseFloat(col[5].Trim(), 20f),
+                cooldown = ParseFloat(col[5].Trim(), 30f),
                 defense = col.Length >= 7 ? ParseFloat(col[6].Trim(), 0f) : 0f
             });
         }
@@ -325,15 +325,15 @@ public class CSVLoader : MonoBehaviour
         }
     }
 
-    public SpecialMonsterStageData GetSpecialMonsterData(int stage)
+    public SpecialMonsterStageData GetSpecialMonsterData(int killCount)
     {
         SpecialMonsterStageData best = null;
-        int bestStage = 0;
+        int bestKill = -1;
         foreach (SpecialMonsterStageData data in specialMonsterDataList)
         {
-            if (data.stage <= stage && data.stage > bestStage)
+            if (data.killCount <= killCount && data.killCount > bestKill)
             {
-                bestStage = data.stage;
+                bestKill = data.killCount;
                 best = data;
             }
         }
