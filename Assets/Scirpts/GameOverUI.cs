@@ -39,6 +39,11 @@ public class GameOverUI : MonoBehaviour
         SceneManager.LoadScene("LobbyScene");
     }
 
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
     string FormatTime(float time)
     {
         int minutes = (int)(time / 60);

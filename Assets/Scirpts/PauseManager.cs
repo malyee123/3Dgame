@@ -32,14 +32,20 @@ public class PauseManager : MonoBehaviour
         {
             bgmSlider.value = AudioManager.Instance != null ? AudioManager.Instance.BGMVolume : 1f;
             bgmSlider.onValueChanged.RemoveAllListeners();
-            bgmSlider.onValueChanged.AddListener(OnBGMSliderChanged);
+            bgmSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.BGMVolume = v; });
         }
         if (sfxSlider != null)
         {
             sfxSlider.value = AudioManager.Instance != null ? AudioManager.Instance.SFXVolume : 1f;
             sfxSlider.onValueChanged.RemoveAllListeners();
-            sfxSlider.onValueChanged.AddListener(OnSFXSliderChanged);
+            sfxSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.SFXVolume = v; });
         }
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+            TogglePause();
     }
 
     void OnBGMSliderChanged(float value)
@@ -55,7 +61,7 @@ public class PauseManager : MonoBehaviour
     public void TogglePause()
     {
         isPaused = !isPaused;
-        Time.timeScale = isPaused ? 0f : 1f;
+        Time.timeScale = isPaused ? 0f : (SpeedManager.Instance != null ? SpeedManager.Instance.CurrentSpeed : 1f);
         if (pausePanel != null) pausePanel.SetActive(isPaused);
         if (blockerPanel != null) blockerPanel.SetActive(isPaused);
         SetPlayerInteraction(!isPaused);

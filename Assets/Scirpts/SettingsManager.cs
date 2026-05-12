@@ -17,6 +17,8 @@ public class SettingsManager : MonoBehaviour
     public Button closeButton;
     public Button quitButton;
 
+    private bool isOpen = false;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -32,25 +34,21 @@ public class SettingsManager : MonoBehaviour
             bgmSlider.onValueChanged.RemoveAllListeners();
             bgmSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.BGMVolume = v; });
         }
-
         if (sfxSlider != null)
         {
             sfxSlider.onValueChanged.RemoveAllListeners();
             sfxSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.SFXVolume = v; });
         }
-
         if (openButton != null)
         {
             openButton.onClick.RemoveAllListeners();
             openButton.onClick.AddListener(OpenSettings);
         }
-
         if (closeButton != null)
         {
             closeButton.onClick.RemoveAllListeners();
             closeButton.onClick.AddListener(CloseSettings);
         }
-
         if (quitButton != null)
         {
             quitButton.onClick.RemoveAllListeners();
@@ -58,8 +56,18 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (isOpen) CloseSettings();
+            else OpenSettings();
+        }
+    }
+
     public void OpenSettings()
     {
+        isOpen = true;
         if (settingsPanel != null) settingsPanel.SetActive(true);
         if (bgmSlider != null && AudioManager.Instance != null)
             bgmSlider.value = AudioManager.Instance.BGMVolume;
@@ -69,11 +77,9 @@ public class SettingsManager : MonoBehaviour
 
     public void CloseSettings()
     {
+        isOpen = false;
         if (settingsPanel != null) settingsPanel.SetActive(false);
     }
 
-    public void QuitGame()
-    {
-        Application.Quit();
-    }
+    public void QuitGame() => Application.Quit();
 }

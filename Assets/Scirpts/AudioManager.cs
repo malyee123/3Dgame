@@ -7,6 +7,7 @@ public class AudioManager : MonoBehaviour
 
     [Header("BGM")]
     public AudioClip lobbyBGM;
+    public AudioClip gameBGM;
 
     [Header("SFX")]
     public AudioClip attackSFX;
@@ -20,13 +21,13 @@ public class AudioManager : MonoBehaviour
     public float BGMVolume
     {
         get => PlayerPrefs.GetFloat(KEY_BGM_VOL, 1f);
-        set { PlayerPrefs.SetFloat(KEY_BGM_VOL, value); PlayerPrefs.Save(); bgmSource.volume = value; }
+        set { PlayerPrefs.SetFloat(KEY_BGM_VOL, value); PlayerPrefs.Save(); if (bgmSource != null) bgmSource.volume = value; }
     }
 
     public float SFXVolume
     {
         get => PlayerPrefs.GetFloat(KEY_SFX_VOL, 1f);
-        set { PlayerPrefs.SetFloat(KEY_SFX_VOL, value); PlayerPrefs.Save(); sfxSource.volume = value; }
+        set { PlayerPrefs.SetFloat(KEY_SFX_VOL, value); PlayerPrefs.Save(); if (sfxSource != null) sfxSource.volume = value; }
     }
 
     void Awake()
@@ -44,18 +45,34 @@ public class AudioManager : MonoBehaviour
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
         sfxSource.volume = SFXVolume;
+
+        PlayBGMForScene(SceneManager.GetActiveScene().name);
     }
 
     void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
     void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
 
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode) => PlayBGMForScene(scene.name);
+
+    void PlayBGMForScene(string sceneName)
     {
-        if (scene.name == "TitleScene" || scene.name == "LobbyScene" ||
-            scene.name == "UpgradeScene" || scene.name == "PassiveUpgradeScene")
-            PlayBGM(lobbyBGM);
-        else
-            StopBGM();
+        switch (sceneName)
+        {
+            case "TitleScene":
+            case "LobbyScene":
+            case "UpgradeScene":
+            case "PassiveUpgradeScene":
+            case "StageSelectScene":
+            case "GameOverScene":
+                PlayBGM(lobbyBGM);
+                break;
+            case "GameScene":
+                PlayBGM(gameBGM != null ? gameBGM : lobbyBGM);
+                break;
+            default:
+                StopBGM();
+                break;
+        }
     }
 
     void PlayBGM(AudioClip clip)
@@ -74,6 +91,6 @@ public class AudioManager : MonoBehaviour
     public void PlayAttackSFX()
     {
         if (attackSFX == null) return;
-        sfxSource.PlayOneShot(attackSFX);
+        sfxSource.PlayOneShot(attackSFX, SFXVolume);
     }
 }

@@ -27,6 +27,14 @@ public class SpecialMonsterManager : MonoBehaviour
             spawnButton.onClick.RemoveAllListeners();
             spawnButton.onClick.AddListener(OnSpawnButtonPressed);
         }
+
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(0);
+        if (data != null && data.cooldown > 0f)
+        {
+            isOnCooldown = true;
+            cooldownRemaining = data.cooldown;
+        }
+
         UpdateButton();
     }
 
@@ -85,9 +93,11 @@ public class SpecialMonsterManager : MonoBehaviour
         if (data == null) return;
 
         var go = Instantiate(specialMonsterPrefab, GetSpawnPosition(), Quaternion.identity);
-        var eh = go.GetComponent<EnemyHealth>();
+
+        var eh = go.GetComponentInChildren<EnemyHealth>();
         if (eh != null) eh.InitAsSpecialMonster(data.hp, data.coinReward, data.defense);
-        var em = go.GetComponent<EnemyMove>();
+
+        var em = go.GetComponentInChildren<EnemyMove>();
         if (em != null) em.speed = data.speed;
 
         currentMonster = go;
