@@ -58,9 +58,16 @@ public class SpecialCoinManager : MonoBehaviour
 
     public int GetSpecialCoins() => specialCoins;
 
+    public void RefreshAnvilButton()
+    {
+        if (anvilButton != null)
+            anvilButton.interactable = specialCoins >= anvilCost;
+    }
+
     void UpdateUI()
     {
         if (specialCoinText != null) specialCoinText.text = $"Special: {specialCoins}";
-        if (anvilButton != null) anvilButton.interactable = specialCoins >= anvilCost;
+        if (anvilButton != null)
+            anvilButton.interactable = specialCoins >= anvilCost;
     }
 }

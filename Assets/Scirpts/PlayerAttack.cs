@@ -301,7 +301,7 @@ public class PlayerAttack : MonoBehaviour
         if (health == null) { currentTarget = null; return; }
 
         PlayAttackAnimAll();
-        AudioManager.Instance?.PlayAttackSFX(unitTag);
+        AudioManager.Instance?.PlayAttackSFX(characterData?.attackType ?? "Melee");
 
         int slotCount = GetSlotUnitCount();
         float finalDamage = appliedDamage * slotCount;
@@ -394,8 +394,11 @@ public class PlayerAttack : MonoBehaviour
     {
         if (remainCount <= 0) yield break;
         yield return new WaitForSeconds(appliedCooldown * 0.3f);
-        PlayAttackAnimAll();
-        AudioManager.Instance?.PlayAttackSFX(unitTag);
+        if (characterData == null || characterData.tier < 5)
+        {
+            PlayAttackAnimAll();
+            AudioManager.Instance?.PlayAttackSFX(characterData?.attackType ?? "Melee");
+        }
         if (currentTarget != null)
         {
             float damage = appliedDamage * GetSlotUnitCount();
@@ -536,7 +539,7 @@ public class PlayerAttack : MonoBehaviour
         EnemyMove target = GetCurrentTarget();
         if (target == null) target = FindBackmostEnemyInRange();
         if (target == null) yield break;
-        Vector3 pitPosition = new Vector3(target.transform.position.x, target.transform.position.y - 0.3f, 0f);
+        Vector3 pitPosition = new Vector3(target.transform.position.x, target.transform.position.y, 0f);
         StartCoroutine(SpawnPitForUnit(this, pitPosition));
         yield break;
     }
@@ -546,12 +549,17 @@ public class PlayerAttack : MonoBehaviour
         float elapsed = 0f;
         float damage = unit.appliedDamagePublic * (unit.manaSkillDamagePublic / 100f);
         float interval = unit.manaSkillIntervalPublic > 0f ? unit.manaSkillIntervalPublic : 0.1f;
-        float range = unit.characterData.attackRange;
 
-        float borderThreshold = 4.5f;
-        Quaternion rotation = Mathf.Abs(pitPosition.x) >= borderThreshold
+        const float pitHalfW = 0.15f;
+        const float pitHalfH = 0.25f;
+
+        bool isBorderCase = Mathf.Abs(pitPosition.x) >= 4.5f;
+        Quaternion rotation = isBorderCase
             ? Quaternion.Euler(0f, 0f, 270f)
             : Quaternion.identity;
+
+        float halfX = isBorderCase ? pitHalfH : pitHalfW;
+        float halfY = isBorderCase ? pitHalfW : pitHalfH;
 
         GameObject pit = null;
         if (unit.characterData.manaSkillEffectPrefab != null)
@@ -560,19 +568,27 @@ public class PlayerAttack : MonoBehaviour
         {
             pit = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             pit.transform.position = pitPosition;
-            pit.transform.localScale = new Vector3(range * 2f, 0.05f, range * 2f);
+            pit.transform.localScale = new Vector3(0.3f, 0.05f, 0.5f);
             pit.GetComponent<Renderer>().material.color = new Color(0.5f, 0f, 0f, 0.5f);
             Destroy(pit.GetComponent<Collider>());
         }
+
+        const float checkTick = 0.1f;
+        float damagePerTick = damage * (checkTick / Mathf.Max(interval, checkTick));
 
         while (elapsed < unit.manaSkillDurationPublic)
         {
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth eh in allEnemies)
-                if (eh != null && Vector2.Distance(eh.transform.position, pitPosition) <= range)
-                    eh.TakeDamage(damage, unit, true);
-            yield return new WaitForSeconds(interval);
-            elapsed += interval;
+            {
+                if (eh == null) continue;
+                float dx = Mathf.Abs(eh.transform.position.x - pitPosition.x);
+                float dy = Mathf.Abs(eh.transform.position.y - pitPosition.y);
+                if (dx <= halfX && dy <= halfY)
+                    eh.TakeDamage(damagePerTick, unit, true);
+            }
+            yield return new WaitForSeconds(checkTick);
+            elapsed += checkTick;
         }
 
         if (pit != null) Destroy(pit);

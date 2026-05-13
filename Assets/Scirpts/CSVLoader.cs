@@ -129,6 +129,8 @@ public class CSVLoader : MonoBehaviour
             data.upgradeCost = ParseInt(col[6].Trim(), data.upgradeCost);
             data.sellPrice = ParseInt(col[7].Trim(), data.sellPrice);
             data.attackHitDelay = ParseFloat(col[8].Trim(), data.attackHitDelay);
+            if (col.Length >= 10 && !string.IsNullOrWhiteSpace(col[9].Trim()))
+                data.attackType = col[9].Trim();
         }
     }
 

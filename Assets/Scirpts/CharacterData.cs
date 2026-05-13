@@ -52,6 +52,9 @@ public class CharacterData : ScriptableObject
     public float attackSpeed = 1f;
     public float attackHitDelay = 0.3f;
 
+    [Header("Attack Type")]
+    public string attackType = "Melee";
+
     [Header("Merge Settings")]
     [Min(1)] public int tier = 1;
 

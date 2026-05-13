@@ -45,7 +45,7 @@ public class SpecialMonsterManager : MonoBehaviour
             if (currentMonster == null)
             {
                 isOnField = false;
-                UpdateButton();
+                StartCooldown();
             }
             else
             {
@@ -55,7 +55,7 @@ public class SpecialMonsterManager : MonoBehaviour
                     isOnField = false;
                     Destroy(currentMonster);
                     currentMonster = null;
-                    UpdateButton();
+                    StartCooldown();
                 }
             }
         }
@@ -77,6 +77,15 @@ public class SpecialMonsterManager : MonoBehaviour
                 : string.Empty;
     }
 
+    private void StartCooldown()
+    {
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
+        float cooldown = data != null ? data.cooldown : 30f;
+        isOnCooldown = true;
+        cooldownRemaining = cooldown;
+        UpdateButton();
+    }
+
     private Vector3 GetSpawnPosition()
     {
         if (spawnPoint != null) return spawnPoint.position;
@@ -93,10 +102,8 @@ public class SpecialMonsterManager : MonoBehaviour
         if (data == null) return;
 
         var go = Instantiate(specialMonsterPrefab, GetSpawnPosition(), Quaternion.identity);
-
         var eh = go.GetComponentInChildren<EnemyHealth>();
         if (eh != null) eh.InitAsSpecialMonster(data.hp, data.coinReward, data.defense);
-
         var em = go.GetComponentInChildren<EnemyMove>();
         if (em != null) em.speed = data.speed;
 
@@ -109,16 +116,10 @@ public class SpecialMonsterManager : MonoBehaviour
     public void OnSpecialMonsterKilled()
     {
         if (!isOnField) return;
-
-        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
-        float cooldown = data != null ? data.cooldown : 30f;
-
-        sessionKillCount++;
         isOnField = false;
         currentMonster = null;
-        isOnCooldown = true;
-        cooldownRemaining = cooldown;
-        UpdateButton();
+        StartCooldown();
+        sessionKillCount++;
     }
 
     private void UpdateButton()

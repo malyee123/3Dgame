@@ -98,7 +98,7 @@ public class GameManager : MonoBehaviour
     }
 
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
-    public void OnEnemyDied() { currentEnemyCount--; UpdateEnemyCountUI(); }
+    public void OnEnemyDied() { currentEnemyCount = Mathf.Max(0, currentEnemyCount - 1); UpdateEnemyCountUI(); }
 
     public void OnBossKilled()
     {

@@ -7,7 +7,7 @@ public class DemoEndUI : MonoBehaviour
 {
     [Header("UI")]
     public TextMeshProUGUI messageText;
-    public TextMeshProUGUI totalTimeText;
+    //public TextMeshProUGUI totalTimeText;
     public Button lobbyButton;
     public Button quitButton;
 
@@ -16,9 +16,9 @@ public class DemoEndUI : MonoBehaviour
         if (messageText != null)
             messageText.text = "데모 버전 플레이 해주셔서 감사합니다";
 
-        float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
-        if (totalTimeText != null)
-            totalTimeText.text = $"생존 시간: {FormatTime(totalTime)}";
+        //float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
+        //if (totalTimeText != null)
+        //    totalTimeText.text = $"생존 시간: {FormatTime(totalTime)}";
 
         if (lobbyButton != null)
         {

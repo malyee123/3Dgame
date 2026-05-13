@@ -503,6 +503,7 @@ public class PlayerSpawner : MonoBehaviour
             for (int i = 0; i < slotOccupancy.Length; i++) total += slotOccupancy[i];
             characterCountText.text = $"필드 캐릭터 : {total} / {currentCharacterLimit}";
         }
+        SpecialCoinManager.Instance?.RefreshAnvilButton();
     }
 
     Vector3 GetTriangleOffset(int stackIndex)

@@ -19,8 +19,9 @@ MonoBehaviour:
   characterColor: {r: 1, g: 1, b: 1, a: 1}
   attackRange: 1.5
   attackDamage: 26000
-  attackCooldown: 2
+  attackSpeed: 2
   attackHitDelay: 0.5
+  attackType: Melee
   tier: 5
   upgradeCost: 500
   sellPrice: 1000
