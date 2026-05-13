@@ -52,7 +52,7 @@ public class EnemyHealth : MonoBehaviour
     public void BoostMaxHp(float multiplier) { maxHp *= multiplier; currentHp *= multiplier; if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = currentHp; } }
     public void ApplyArmorBreaker(float reduction) => armorBreakerReduction = reduction;
 
-    public void TakeDamage(float damage, PlayerAttack attacker = null)
+    public void TakeDamage(float damage, PlayerAttack attacker = null, bool isSkillDamage = false)
     {
         if (isDead) return;
         if (attacker != null) lastAttacker = attacker;
@@ -69,7 +69,7 @@ public class EnemyHealth : MonoBehaviour
         currentHp -= actualDamage;
         if (hpSlider != null) hpSlider.value = currentHp;
         if (hpFillImage != null) hpFillImage.color = Color.Lerp(Color.red, Color.green, currentHp / maxHp);
-        ShowDamageText(actualDamage);
+        ShowDamageText(actualDamage, isSkillDamage);
 
         if (isBoss && AugmentManager.Instance != null && AugmentManager.Instance.HasExecutioner)
             if (currentHp / maxHp < 0.1f) { ExecuteKill(); return; }
@@ -87,12 +87,17 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakePercentDamage(float percent, PlayerAttack attacker = null) => TakeDamage(maxHp * (percent / 100f), attacker);
 
-    public void ShowDamageText(float damage)
+    public void ShowDamageText(float damage, bool isSkillDamage = false)
     {
         if (damageTextPrefab == null) return;
         GameObject obj = Instantiate(damageTextPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
         DamageText dt = obj.GetComponent<DamageText>();
-        if (dt != null) dt.Init(damage, transform, isSpecial ? 6f : 3f, isSpecial ? 1f : 0.5f);
+        if (dt == null) return;
+
+        if (isSkillDamage)
+            dt.Init(damage, transform, 6f, 0.8f, Color.red);
+        else
+            dt.Init(damage, transform, isSpecial ? 6f : 3f, isSpecial ? 1f : 0.5f);
     }
 
     void Die()

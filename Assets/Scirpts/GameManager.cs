@@ -13,6 +13,9 @@ public class GameManager : MonoBehaviour
     public int bossWaveInterval = 10;
     public float bossRoundDuration = 40f;
 
+    [Header("Demo Settings")]
+    public int demoEndRound = 20;
+
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
     public TextMeshProUGUI roundText;
@@ -30,7 +33,6 @@ public class GameManager : MonoBehaviour
     private bool isWarning = false;
     private EnemySpawner enemySpawner;
 
-    // 모루로 추가된 수치 별도 저장
     private int anvilEnemyLimitBonus = 0;
 
     private int prevEnemyCount = -1;
@@ -47,6 +49,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         currentStage = PlayerPrefs.GetInt("SelectedStage", 1);
         currentRound = 1;
+        PlayerPrefs.Save();
     }
 
     void Start()
@@ -69,7 +72,6 @@ public class GameManager : MonoBehaviour
     public void SetWarning(bool warning) => isWarning = warning;
     public void ExtendRoundTime(float time) => roundTimeLeft = time;
 
-    // 모루 - 적 인원 제한 증가 (별도 저장으로 초기화 방지)
     public void AddEnemyLimit(int amount)
     {
         anvilEnemyLimitBonus += amount;
@@ -77,7 +79,6 @@ public class GameManager : MonoBehaviour
         UpdateEnemyCountUI();
     }
 
-    // 모루 - 보스전 시간 증가
     public void AddBossTime(float amount) => bossRoundDuration += amount;
 
     void ApplyRoundData(int round)
@@ -88,7 +89,6 @@ public class GameManager : MonoBehaviour
             if (data != null)
             {
                 roundTimeLeft = data.roundDuration;
-                // 모루 보너스 유지하면서 CSV 기본값 적용
                 maxEnemyCount = data.maxEnemyCount + anvilEnemyLimitBonus;
                 return;
             }
@@ -104,6 +104,12 @@ public class GameManager : MonoBehaviour
     {
         if (!isBossWave) return;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
+
+        if (currentStage == 1 && currentRound == demoEndRound)
+        {
+            LoadDemoEnd();
+            return;
+        }
 
         int stageEndRound = CSVLoader.Instance != null ? CSVLoader.Instance.GetStageEndRound(currentStage) : 50;
         if (currentRound >= stageEndRound) { StageClear(); return; }
@@ -128,14 +134,14 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("LobbyScene");
     }
 
-    void UpdateUIIfChanged()
+    void LoadDemoEnd()
     {
-        int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
-        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
-        if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
-        int currentTotalSeconds = (int)totalElapsedTime;
-        if (currentTotalSeconds != prevTotalTimeSeconds) { prevTotalTimeSeconds = currentTotalSeconds; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
-        if (currentStage != prevStage) { prevStage = currentStage; if (stageText != null) stageText.text = $"Stage: {currentStage}"; }
+        isGameOver = true;
+        PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
+        PlayerPrefs.SetInt("LastRound", currentRound);
+        PlayerPrefs.Save();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("DemoEndScene");
     }
 
     void NextRound()
@@ -147,6 +153,7 @@ public class GameManager : MonoBehaviour
         if (enemySpawner != null) enemySpawner.SetPaused(false);
 
         currentRound++;
+
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
 
@@ -176,6 +183,16 @@ public class GameManager : MonoBehaviour
         if (roundTimerText != null) roundTimerText.text = $"Time: {Mathf.CeilToInt(roundTimeLeft)}s";
         if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
         if (stageText != null) stageText.text = $"Stage: {currentStage}";
+    }
+
+    void UpdateUIIfChanged()
+    {
+        int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
+        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
+        if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
+        int currentTotalSeconds = (int)totalElapsedTime;
+        if (currentTotalSeconds != prevTotalTimeSeconds) { prevTotalTimeSeconds = currentTotalSeconds; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
+        if (currentStage != prevStage) { prevStage = currentStage; if (stageText != null) stageText.text = $"Stage: {currentStage}"; }
     }
 
     void UpdateEnemyCountUI()

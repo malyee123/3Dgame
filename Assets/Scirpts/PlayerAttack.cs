@@ -569,7 +569,7 @@ public class PlayerAttack : MonoBehaviour
             EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
             foreach (EnemyHealth eh in allEnemies)
                 if (eh != null && Vector2.Distance(eh.transform.position, pitPosition) <= range)
-                    eh.TakeDamage(damage, unit);
+                    eh.TakeDamage(damage, unit, true);
             yield return new WaitForSeconds(interval);
             elapsed += interval;
         }
@@ -626,7 +626,7 @@ public class PlayerAttack : MonoBehaviour
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, finalTarget.transform.position, Quaternion.identity);
             Destroy(effect, 2f);
         }
-        finalTarget.TakeDamage(damage, this);
+        finalTarget.TakeDamage(damage, this, true);
         yield break;
     }
 
@@ -642,7 +642,7 @@ public class PlayerAttack : MonoBehaviour
         float damage = appliedDamage * GetSlotUnitCount() * (manaSkillDamage / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
-            if (eh != null) eh.TakeDamage(damage, this);
+            if (eh != null) eh.TakeDamage(damage, this, true);
         yield break;
     }
 
