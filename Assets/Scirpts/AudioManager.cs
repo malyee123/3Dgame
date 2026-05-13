@@ -9,8 +9,10 @@ public class AudioManager : MonoBehaviour
     public AudioClip lobbyBGM;
     public AudioClip gameBGM;
 
-    [Header("SFX")]
-    public AudioClip attackSFX;
+    [Header("Attack SFX")]
+    public AudioClip meleeSFX;
+    public AudioClip bowSFX;
+    public AudioClip magicSFX;
 
     private AudioSource bgmSource;
     private AudioSource sfxSource;
@@ -64,6 +66,7 @@ public class AudioManager : MonoBehaviour
             case "PassiveUpgradeScene":
             case "StageSelectScene":
             case "GameOverScene":
+            case "DemoEndScene":
                 PlayBGM(lobbyBGM);
                 break;
             case "GameScene":
@@ -88,9 +91,15 @@ public class AudioManager : MonoBehaviour
         if (bgmSource.isPlaying) bgmSource.Stop();
     }
 
-    public void PlayAttackSFX()
+    public void PlayAttackSFX(string unitTag)
     {
-        if (attackSFX == null) return;
-        sfxSource.PlayOneShot(attackSFX, SFXVolume);
+        AudioClip clip = unitTag switch
+        {
+            "Bow"   => bowSFX,
+            "Magic" => magicSFX,
+            _       => meleeSFX,
+        };
+        if (clip == null) return;
+        sfxSource.PlayOneShot(clip, SFXVolume);
     }
 }

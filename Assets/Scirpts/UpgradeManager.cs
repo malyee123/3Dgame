@@ -39,6 +39,8 @@ public class UpgradeManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        PlayerPrefs.DeleteKey(KEY_ATK_SPD);
+        PlayerPrefs.Save();
     }
 
     public int GetMaxUpgradeLevel() => PlayerPrefs.GetInt("UnlockedStage", 1) * 10;

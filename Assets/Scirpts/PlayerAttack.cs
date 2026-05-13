@@ -96,11 +96,10 @@ public class PlayerAttack : MonoBehaviour
     void ApplyUpgradeStats()
     {
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
-        float spdMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackSpeedMultiplier() : 1f;
         appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty;
         float totalSpeedBonus = (passiveSpeedBonus + augmentSpeedBonus) / 100f;
         float totalSpeedPenalty = augmentSpeedPenalty / 100f;
-        float totalSpeed = spdMult + totalSpeedBonus;
+        float totalSpeed = 1f + totalSpeedBonus;
         appliedCooldown = Mathf.Max(0.1f, Mathf.Round(1f / characterData.attackSpeed / totalSpeed * (1f + totalSpeedPenalty) * 100f) / 100f);
         appliedRange = characterData.attackRange + augmentRangeBonus;
     }
@@ -302,6 +301,7 @@ public class PlayerAttack : MonoBehaviour
         if (health == null) { currentTarget = null; return; }
 
         PlayAttackAnimAll();
+        AudioManager.Instance?.PlayAttackSFX(unitTag);
 
         int slotCount = GetSlotUnitCount();
         float finalDamage = appliedDamage * slotCount;
@@ -395,6 +395,7 @@ public class PlayerAttack : MonoBehaviour
         if (remainCount <= 0) yield break;
         yield return new WaitForSeconds(appliedCooldown * 0.3f);
         PlayAttackAnimAll();
+        AudioManager.Instance?.PlayAttackSFX(unitTag);
         if (currentTarget != null)
         {
             float damage = appliedDamage * GetSlotUnitCount();
