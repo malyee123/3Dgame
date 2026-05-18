@@ -39,12 +39,12 @@ public class AnvilManager : MonoBehaviour
     private int bonusEnemyLimit = 0;
     private int bonusCharacterLimit = 0;
 
-    public float BonusAttackDamage => bonusAttackDamage;
-    public float BonusAttackSpeed => bonusAttackSpeed;
-    public float BonusDefenseDown => bonusDefenseDown;
-    public float BonusBossTime => bonusBossTime;
-    public int BonusEnemyLimit => bonusEnemyLimit;
-    public int BonusCharacterLimit => bonusCharacterLimit;
+    public float BonusAttackDamage  => bonusAttackDamage;
+    public float BonusAttackSpeed   => bonusAttackSpeed;
+    public float BonusDefenseDown   => bonusDefenseDown;
+    public float BonusBossTime      => bonusBossTime;
+    public int   BonusEnemyLimit    => bonusEnemyLimit;
+    public int   BonusCharacterLimit => bonusCharacterLimit;
 
     private int cachedStage = 1;
 
@@ -73,11 +73,11 @@ public class AnvilManager : MonoBehaviour
         }
         switch (type)
         {
-            case AnvilType.AttackDamage: return Mathf.Round(Random.Range(5f, 21f));
-            case AnvilType.AttackSpeed: return Mathf.Round(Random.Range(10f, 31f));
-            case AnvilType.DefenseDown: return Mathf.Round(Random.Range(10f, 21f));
-            case AnvilType.BossTime: return Mathf.Round(Random.Range(5f, 16f));
-            case AnvilType.EnemyLimit: return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.AttackDamage:   return Mathf.Round(Random.Range(5f, 21f));
+            case AnvilType.AttackSpeed:    return Mathf.Round(Random.Range(10f, 31f));
+            case AnvilType.DefenseDown:    return Mathf.Round(Random.Range(10f, 21f));
+            case AnvilType.BossTime:       return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.EnemyLimit:     return Mathf.Round(Random.Range(5f, 16f));
             case AnvilType.CharacterLimit: return Random.Range(1, 3);
             default: return 0f;
         }
@@ -131,10 +131,6 @@ public class AnvilManager : MonoBehaviour
                 break;
             case AnvilType.DefenseDown:
                 bonusDefenseDown += data.value;
-                ApplyDefenseDownToExisting();
-                if (EnemySpawner.Instance != null)
-                    EnemySpawner.Instance.armorBreakerMultiplier =
-                        Mathf.Max(0f, EnemySpawner.Instance.armorBreakerMultiplier - data.value / 100f);
                 break;
             case AnvilType.BossTime:
                 bonusBossTime += data.value;
@@ -162,20 +158,13 @@ public class AnvilManager : MonoBehaviour
             if (unit != null) unit.ApplyAugmentBonus(dmg, spd);
     }
 
-    void ApplyDefenseDownToExisting()
-    {
-        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
-        foreach (EnemyHealth eh in allEnemies)
-            if (eh != null) eh.ApplyArmorBreaker(bonusDefenseDown / 100f);
-    }
-
     public void ResetAnvils()
     {
-        bonusAttackDamage = 0f;
-        bonusAttackSpeed = 0f;
-        bonusDefenseDown = 0f;
-        bonusBossTime = 0f;
-        bonusEnemyLimit = 0;
+        bonusAttackDamage  = 0f;
+        bonusAttackSpeed   = 0f;
+        bonusDefenseDown   = 0f;
+        bonusBossTime      = 0f;
+        bonusEnemyLimit    = 0;
         bonusCharacterLimit = 0;
     }
 }

@@ -23,7 +23,6 @@ public class PassiveManager : MonoBehaviour
     public void RecalculatePassives()
     {
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
-        EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
 
         float totalDamageBonus = 0f, totalSpeedBonus = 0f;
         totalEnemySpeedDown = 0f;
@@ -105,12 +104,17 @@ public class PassiveManager : MonoBehaviour
                 manaSkillDamage, manaSkillDuration, manaSkillInterval);
         }
 
+        EnemyMove[] allEnemies = FindObjectsByType<EnemyMove>(FindObjectsSortMode.None);
         foreach (EnemyMove enemy in allEnemies)
             if (enemy != null) enemy.ApplySpeedPenalty(totalEnemySpeedDown);
 
+        float anvilDefenseDown = AnvilManager.Instance != null ? AnvilManager.Instance.BonusDefenseDown : 0f;
+        float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown : 0f;
+        float combinedDefenseDown = totalEnemyDefenseDown + anvilDefenseDown + augmentDefenseDown;
+
         EnemyHealth[] allEnemyHealths = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemyHealths)
-            if (eh != null) eh.ApplyDefenseDown(totalEnemyDefenseDown);
+            if (eh != null) eh.ApplyDefenseDownPercent(combinedDefenseDown);
 
         UpdatePassiveUI(totalDamageBonus, totalSpeedBonus, totalEnemySpeedDown, totalEnemyDefenseDown);
     }
@@ -118,12 +122,15 @@ public class PassiveManager : MonoBehaviour
     void UpdatePassiveUI(float dmg, float spd, float enemySpd, float enemyDef)
     {
         if (passiveStatusText == null) return;
-        if (dmg == 0f && spd == 0f && enemySpd == 0f && enemyDef == 0f) { passiveStatusText.text = ""; return; }
+        float anvilDefenseDown = AnvilManager.Instance != null ? AnvilManager.Instance.BonusDefenseDown : 0f;
+        float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown : 0f;
+        float totalDefDisplay = enemyDef + anvilDefenseDown + augmentDefenseDown;
+        if (dmg == 0f && spd == 0f && enemySpd == 0f && totalDefDisplay == 0f) { passiveStatusText.text = ""; return; }
         System.Text.StringBuilder sb = new System.Text.StringBuilder("[ 패시브 현황 ]\n");
         if (dmg > 0f) sb.Append($"공격력 +{dmg}%\n");
         if (spd > 0f) sb.Append($"공격속도 +{spd}%\n");
         if (enemySpd > 0f) sb.Append($"적 이동속도 -{enemySpd}\n");
-        if (enemyDef > 0f) sb.Append($"적 방어력 -{enemyDef}\n");
-        passiveStatusText.text = sb.ToString();
+        if (totalDefDisplay > 0f) sb.Append($"적 방어력 -{totalDefDisplay}%\n");
+        passiveStatusText.text = sb.ToString().TrimEnd();
     }
 }

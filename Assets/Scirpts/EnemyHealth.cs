@@ -23,8 +23,7 @@ public class EnemyHealth : MonoBehaviour
     public GameObject damageTextPrefab;
 
     private float currentHp;
-    private float defenseDown = 0f;
-    private float armorBreakerReduction = 0f;
+    private float defenseDownPercent = 0f;
     private bool isDead = false;
     private PlayerAttack lastAttacker = null;
 
@@ -33,7 +32,7 @@ public class EnemyHealth : MonoBehaviour
 
     public void Init(float hp, float def = 0f)
     {
-        maxHp = hp; currentHp = hp; defense = def; defenseDown = 0f; armorBreakerReduction = 0f; isDead = false; lastAttacker = null;
+        maxHp = hp; currentHp = hp; defense = def; defenseDownPercent = 0f; isDead = false; lastAttacker = null;
         if (hpSlider != null) { hpSlider.maxValue = hp; hpSlider.value = hp; }
         if (hpFillImage != null) hpFillImage.color = Color.green;
     }
@@ -48,9 +47,8 @@ public class EnemyHealth : MonoBehaviour
 
     void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
-    public void ApplyDefenseDown(float amount) => defenseDown = amount;
+    public void ApplyDefenseDownPercent(float percent) => defenseDownPercent = Mathf.Clamp(percent, 0f, 100f);
     public void BoostMaxHp(float multiplier) { maxHp *= multiplier; currentHp *= multiplier; if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = currentHp; } }
-    public void ApplyArmorBreaker(float reduction) => armorBreakerReduction = reduction;
 
     public void TakeDamage(float damage, PlayerAttack attacker = null, bool isSkillDamage = false)
     {
@@ -62,7 +60,7 @@ public class EnemyHealth : MonoBehaviour
             actualDamage = 1f;
         else
         {
-            float effectiveDefense = Mathf.Max(0f, defense * (1f - armorBreakerReduction) - defenseDown);
+            float effectiveDefense = Mathf.Max(0f, defense * (1f - defenseDownPercent / 100f));
             actualDamage = Mathf.Max(1f, damage - effectiveDefense);
         }
 
@@ -93,7 +91,6 @@ public class EnemyHealth : MonoBehaviour
         GameObject obj = Instantiate(damageTextPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
         DamageText dt = obj.GetComponent<DamageText>();
         if (dt == null) return;
-
         if (isSkillDamage)
             dt.Init(damage, transform, 6f, 0.8f, Color.red);
         else
@@ -116,7 +113,6 @@ public class EnemyHealth : MonoBehaviour
                     reward *= 2;
                 SpecialCoinManager.Instance.AddSpecialCoins(reward);
             }
-
             if (isBoss)
                 GameManager.Instance?.OnBossKilled();
             else

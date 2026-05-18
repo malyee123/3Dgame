@@ -21,8 +21,6 @@ public class EnemySpawner : MonoBehaviour
     private Coroutine spawnCoroutine;
     private bool isPaused = false;
 
-    [HideInInspector] public float armorBreakerMultiplier = 1f;
-
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -32,8 +30,8 @@ public class EnemySpawner : MonoBehaviour
     void Start()
     {
         if (pathManager == null) pathManager = FindFirstObjectByType<PathManager>();
-        if (pathManager == null) { Debug.LogError("[EnemySpawner] PathManager not found."); return; }
-        if (enemyPrefab == null) { Debug.LogError("[EnemySpawner] enemyPrefab is missing."); return; }
+        if (pathManager == null) return;
+        if (enemyPrefab == null) return;
     }
 
     public void SetPaused(bool paused) => isPaused = paused;
@@ -83,19 +81,18 @@ public class EnemySpawner : MonoBehaviour
         {
             enemyMove.SetPathManager(pathManager);
             enemyMove.speed = currentEnemySpeed;
-            // ���� �����Ǵ� ������ AllEnemySpeedDown ��� ����
-            if (PassiveManager.Instance != null)
-                enemyMove.ApplySpeedPenalty(PassiveManager.Instance.GetTotalEnemySpeedDown());
+            float speedDown = PassiveManager.Instance != null ? PassiveManager.Instance.GetTotalEnemySpeedDown() : 0f;
+            enemyMove.ApplySpeedPenalty(speedDown);
         }
 
         EnemyHealth enemyHealth = obj.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
         {
-            float defense = currentEnemyDefense * armorBreakerMultiplier;
-            enemyHealth.Init(currentEnemyHp, defense);
-            // ���� �����Ǵ� ������ AllEnemyDefenseDown ��� ����
-            if (PassiveManager.Instance != null)
-                enemyHealth.ApplyDefenseDown(PassiveManager.Instance.GetTotalEnemyDefenseDown());
+            enemyHealth.Init(currentEnemyHp, currentEnemyDefense);
+            float passiveDefenseDown = PassiveManager.Instance != null ? PassiveManager.Instance.GetTotalEnemyDefenseDown() : 0f;
+            float anvilDefenseDown = AnvilManager.Instance != null ? AnvilManager.Instance.BonusDefenseDown : 0f;
+            float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown : 0f;
+            enemyHealth.ApplyDefenseDownPercent(passiveDefenseDown + anvilDefenseDown + augmentDefenseDown);
         }
 
         GameManager.Instance?.OnEnemySpawned();
