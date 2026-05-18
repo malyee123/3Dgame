@@ -516,7 +516,7 @@ MonoBehaviour:
   totalTimeText: {fileID: 237627721}
   roundReachedText: {fileID: 1726408956}
   skillPointText: {fileID: 400283301}
-  secondsPerPoint: 15
+  secondsPerPoint: 10
 --- !u!4 &714210538
 Transform:
   m_ObjectHideFlags: 0
