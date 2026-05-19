@@ -4785,7 +4785,7 @@ MonoBehaviour:
   maxEnemyCount: 100
   bossWaveInterval: 10
   bossRoundDuration: 40
-  demoEndRound: 20
+  demoEndRound: 30
   enemyCountText: {fileID: 1603918615}
   roundText: {fileID: 1144987974}
   roundTimerText: {fileID: 304515278}
@@ -5969,7 +5969,6 @@ MonoBehaviour:
   enemyPrefab: {fileID: 2492102594665920056, guid: 725640bbad4b362438fcc5820077c21c, type: 3}
   pathManager: {fileID: 2072419691}
   spawnPosition: {x: -5.5, y: 2.5}
-  armorBreakerMultiplier: 1
 --- !u!4 &1074021557
 Transform:
   m_ObjectHideFlags: 0
