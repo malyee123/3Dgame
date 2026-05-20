@@ -16,6 +16,7 @@ public class AugmentData
     public string summary;
     public AugmentType type;
     public Sprite sprite;
+    public int requiredTier;
 }
 
 public class AugmentManager : MonoBehaviour
@@ -26,28 +27,28 @@ public class AugmentManager : MonoBehaviour
     public Sprite[] augmentSprites = new Sprite[14];
 
     private bool hasBossSpecialCoinDouble = false;
-    private bool hasGiantSlayer = false;
-    private bool hasTheBigOne = false;
-    private bool hasExecutioner = false;
-    private bool hasTwinsOfChaos = false;
-    private bool hasLuckyDay = false;
-    private float augmentDefenseDown = 0f;
+    private bool hasGiantSlayer           = false;
+    private bool hasTheBigOne             = false;
+    private bool hasExecutioner           = false;
+    private bool hasTwinsOfChaos          = false;
+    private bool hasLuckyDay              = false;
+    private float augmentDefenseDown      = 0f;
 
-    public bool HasGiantSlayer => hasGiantSlayer;
-    public bool HasTheBigOne => hasTheBigOne;
-    public bool HasExecutioner => hasExecutioner;
-    public bool HasTwinsOfChaos => hasTwinsOfChaos;
-    public bool HasBossSpecialCoinDouble => hasBossSpecialCoinDouble;
-    public bool HasLuckyDay => hasLuckyDay;
-    public float BonusDefenseDown => augmentDefenseDown;
+    public bool  HasGiantSlayer           => hasGiantSlayer;
+    public bool  HasTheBigOne             => hasTheBigOne;
+    public bool  HasExecutioner           => hasExecutioner;
+    public bool  HasTwinsOfChaos          => hasTwinsOfChaos;
+    public bool  HasBossSpecialCoinDouble => hasBossSpecialCoinDouble;
+    public bool  HasLuckyDay              => hasLuckyDay;
+    public float BonusDefenseDown         => augmentDefenseDown;
 
     private int freeSpawnCount = 0;
     public int FreeSpawnCount => freeSpawnCount;
     public void UseFreeSpawn() { if (freeSpawnCount > 0) freeSpawnCount--; }
 
-    private List<string> activeSummaries = new List<string>();
+    private List<string>      activeSummaries  = new List<string>();
     private List<AugmentType> selectedAugments = new List<AugmentType>();
-    private AugmentData[] allAugments;
+    private AugmentData[]     allAugments;
 
     void Awake()
     {
@@ -56,20 +57,20 @@ public class AugmentManager : MonoBehaviour
 
         allAugments = new AugmentData[]
         {
-            new AugmentData { augmentName = "기초 훈련",            description = "일반, 고급 등급 유닛의 공격력이 30% 증가하고 즉시 200골드를 획득합니다.",                                                       summary = "1~2티어 공격력 +30% / 즉시 +200골드",               type = AugmentType.BasicTraining },
-            new AugmentData { augmentName = "비상금",               description = "즉시 600 골드 및 특수 코인 6개를 획득합니다.",                                                                                   summary = "즉시 +600골드 / 특수코인 +6",                         type = AugmentType.EmergencyFund },
-            new AugmentData { augmentName = "가벼운 발걸음",         description = "모든 유닛의 공격 속도가 15%, 사거리가 1 증가합니다.",                                                                            summary = "공격속도 +15% / 사거리 +1",                           type = AugmentType.LightStep },
-            new AugmentData { augmentName = "현상금 사냥꾼",         description = "적 처치 시 5% 확률로 10골드 획득\n*소환 비용 20% 증가",                                                                         summary = "킬 시 5%확률 +10골드 / 소환비용 +20%",               type = AugmentType.HuntersSense },
-            new AugmentData { augmentName = "작은 주머니",           description = "소환 비용이 15% 감소하고 즉시 300 골드를 획득합니다.",                                                                           summary = "소환비용 -15% / 즉시 +300골드",                       type = AugmentType.SmallPouch },
-            new AugmentData { augmentName = "운빨 좋은 날",          description = "유닛 소환 시 고급 이상 등급이 나올 확률이 1.5배 증가하고 무료 소환권을 3회 획득합니다.",                                          summary = "고급이상 확률 1.5배 / 무료소환 3회",                  type = AugmentType.LuckyDay },
-            new AugmentData { augmentName = "방어구 파쇄기",         description = "적의 방어력이 15% 하락하고 모든 아군 유닛의 공격력이 5% 증가합니다.",                                                            summary = "적 방어력 -15% / 공격력 +5%",                         type = AugmentType.ArmorBreaker },
-            new AugmentData { augmentName = "베테랑 교관",           description = "유닛 업그레이드 비용이 50% 감소합니다.",                                                                                         summary = "업그레이드비용 -50%",                                 type = AugmentType.VeteranInstructor },
-            new AugmentData { augmentName = "백지장도 맞들면 낫다",   description = "희귀 등급 유닛을 랜덤으로 5명 소환합니다.",                                                                                       summary = "희귀유닛 5명 소환",                                   type = AugmentType.Teamwork },
-            new AugmentData { augmentName = "투자 전문가",           description = "보스 및 특수 몬스터 처치 시 특수 코인을 2배로 획득합니다.",                                                                       summary = "특수코인 획득량 2배",                                 type = AugmentType.InvestmentExpert },
-            new AugmentData { augmentName = "거인 학살자",           description = "보스 및 특수 몬스터에게 입히는 피해량이 100% 증가합니다.\n*일반 몬스터 피해 20% 감소",                                           summary = "보스/특수 피해 +100% / 일반 피해 -20%",               type = AugmentType.GiantSlayer },
-            new AugmentData { augmentName = "딱 대",                 description = "레전드 유닛이 10% 확률로 5배의 피해를 입힙니다.\n*레전드 유닛 공격속도 15% 감소",                                               summary = "레전드 10% 확률 5배 / 공속 -15%",                     type = AugmentType.TheBigOne },
-            new AugmentData { augmentName = "사형 집행인",           description = "보스 몬스터의 체력이 10% 이하가 되면 즉시 처형시킵니다.\n*보스 최대 체력 20% 증가",                                             summary = "보스 10% 처형 / 보스 체력 +20%",                      type = AugmentType.Executioner },
-            new AugmentData { augmentName = "두 사람은 문제아지만 최강", description = "동일한 레전드 유닛을 2마리 이상 배치하면, 해당 유닛들의 특수 능력 발동 확률이 2배가 됩니다.\n*유닛 배치 수 -2", summary = "동일 레전드 2마리시 패시브 2배 / 배치 수 -2",          type = AugmentType.TwinsOfChaos },
+            new AugmentData { augmentName = "기초 훈련",               requiredTier = 1, type = AugmentType.BasicTraining,     summary = "1~2티어 공격력 +30% / 즉시 +200골드",               description = "일반, 고급 등급 유닛의 공격력이 30% 증가하고 즉시 200골드를 획득합니다." },
+            new AugmentData { augmentName = "비상금",                  requiredTier = 1, type = AugmentType.EmergencyFund,     summary = "즉시 +600골드 / 특수코인 +6",                         description = "즉시 600 골드 및 특수 코인 6개를 획득합니다." },
+            new AugmentData { augmentName = "가벼운 발걸음",            requiredTier = 1, type = AugmentType.LightStep,         summary = "공격속도 +15% / 사거리 +1",                           description = "모든 유닛의 공격 속도가 15%, 사거리가 1 증가합니다." },
+            new AugmentData { augmentName = "현상금 사냥꾼",            requiredTier = 1, type = AugmentType.HuntersSense,      summary = "킬 시 5%확률 +10골드 / 소환비용 +20%",               description = "적 처치 시 5% 확률로 10골드 획득\n*소환 비용 20% 증가" },
+            new AugmentData { augmentName = "작은 주머니",              requiredTier = 1, type = AugmentType.SmallPouch,        summary = "소환비용 -15% / 즉시 +300골드",                       description = "소환 비용이 15% 감소하고 즉시 300 골드를 획득합니다." },
+            new AugmentData { augmentName = "운빨 좋은 날",             requiredTier = 1, type = AugmentType.LuckyDay,          summary = "고급이상 확률 1.5배 / 무료소환 3회",                  description = "유닛 소환 시 고급 이상 등급이 나올 확률이 1.5배 증가하고 무료 소환권을 3회 획득합니다." },
+            new AugmentData { augmentName = "방어구 파쇄기",            requiredTier = 1, type = AugmentType.ArmorBreaker,      summary = "적 방어력 -15% / 공격력 +5%",                         description = "적의 방어력이 15% 하락하고 모든 아군 유닛의 공격력이 5% 증가합니다." },
+            new AugmentData { augmentName = "베테랑 교관",              requiredTier = 1, type = AugmentType.VeteranInstructor, summary = "업그레이드비용 -50%",                                 description = "유닛 업그레이드 비용이 50% 감소합니다." },
+            new AugmentData { augmentName = "백지장도 맞들면 낫다",      requiredTier = 3, type = AugmentType.Teamwork,          summary = "희귀유닛 5명 소환",                                   description = "희귀 등급 유닛을 랜덤으로 5명 소환합니다." },
+            new AugmentData { augmentName = "투자 전문가",              requiredTier = 1, type = AugmentType.InvestmentExpert,  summary = "특수코인 획득량 2배",                                 description = "보스 및 특수 몬스터 처치 시 특수 코인을 2배로 획득합니다." },
+            new AugmentData { augmentName = "거인 학살자",              requiredTier = 1, type = AugmentType.GiantSlayer,       summary = "보스/특수 피해 +100% / 일반 피해 -20%",               description = "보스 및 특수 몬스터에게 입히는 피해량이 100% 증가합니다.\n*일반 몬스터 피해 20% 감소" },
+            new AugmentData { augmentName = "딱 대",                    requiredTier = 5, type = AugmentType.TheBigOne,         summary = "레전드 10% 확률 5배 / 공속 -15%",                     description = "레전드 유닛이 10% 확률로 5배의 피해를 입힙니다.\n*레전드 유닛 공격속도 15% 감소" },
+            new AugmentData { augmentName = "사형 집행인",              requiredTier = 1, type = AugmentType.Executioner,       summary = "보스 10% 처형 / 보스 체력 +20%",                      description = "보스 몬스터의 체력이 10% 이하가 되면 즉시 처형시킵니다.\n*보스 최대 체력 20% 증가" },
+            new AugmentData { augmentName = "두 사람은 문제아지만 최강", requiredTier = 5, type = AugmentType.TwinsOfChaos,      summary = "동일 레전드 2마리시 패시브 2배 / 배치 수 -2",          description = "동일한 레전드 유닛을 2마리 이상 배치하면, 해당 유닛들의 특수 능력 발동 확률이 2배가 됩니다.\n*유닛 배치 수 -2" },
         };
 
         for (int i = 0; i < allAugments.Length && i < augmentSprites.Length; i++)
@@ -78,16 +79,18 @@ public class AugmentManager : MonoBehaviour
 
     public AugmentData[] GetRandomAugments()
     {
+        int unlockedTier = UpgradeManager.Instance != null ? UpgradeManager.Instance.UnlockedTier : 1;
+
         List<AugmentData> pool = new List<AugmentData>();
         foreach (AugmentData data in allAugments)
-            if (!selectedAugments.Contains(data.type))
+            if (!selectedAugments.Contains(data.type) && data.requiredTier <= unlockedTier)
                 pool.Add(data);
 
         if (pool.Count == 0) return new AugmentData[0];
 
         int count = Mathf.Min(3, pool.Count);
-        List<AugmentData> result = new List<AugmentData>();
-        List<int> usedIndices = new List<int>();
+        List<AugmentData> result      = new List<AugmentData>();
+        List<int>          usedIndices = new List<int>();
         while (result.Count < count)
         {
             int idx = Random.Range(0, pool.Count);
@@ -241,13 +244,13 @@ public class AugmentManager : MonoBehaviour
     public void ResetAugments()
     {
         hasBossSpecialCoinDouble = false;
-        hasGiantSlayer = false;
-        hasTheBigOne = false;
-        hasExecutioner = false;
-        hasTwinsOfChaos = false;
-        hasLuckyDay = false;
-        augmentDefenseDown = 0f;
-        freeSpawnCount = 0;
+        hasGiantSlayer           = false;
+        hasTheBigOne             = false;
+        hasExecutioner           = false;
+        hasTwinsOfChaos          = false;
+        hasLuckyDay              = false;
+        augmentDefenseDown       = 0f;
+        freeSpawnCount           = 0;
         activeSummaries.Clear();
         selectedAugments.Clear();
         if (PlayerSpawner.Instance != null) { PlayerSpawner.Instance.sellPriceMultiplier = 1f; PlayerSpawner.Instance.luckyDayMultiplier = 1f; }

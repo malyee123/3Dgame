@@ -31,8 +31,21 @@ public class UpgradeManager : MonoBehaviour
     public int Tier4PassiveLevel => PlayerPrefs.GetInt(KEY_TIER4_PASSIVE, 0);
     public int Tier5PassiveLevel => PlayerPrefs.GetInt(KEY_TIER5_PASSIVE, 0);
 
-    public int[] TierUnlockCosts =>
-        CSVLoader.Instance?.GameSettings?.tierUnlockCosts ?? defaultTierUnlockCosts;
+    public int[] TierUnlockCosts
+    {
+        get
+        {
+            if (CSVLoader.Instance == null) return defaultTierUnlockCosts;
+            int[] result = new int[4];
+            for (int i = 0; i < 4; i++)
+            {
+                string key = $"TierUnlock{i + 2}";
+                UpgradeData data = CSVLoader.Instance.GetUpgradeData(key);
+                result[i] = data != null ? data.costPerLevel : defaultTierUnlockCosts[i];
+            }
+            return result;
+        }
+    }
 
     void Awake()
     {

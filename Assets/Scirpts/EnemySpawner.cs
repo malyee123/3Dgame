@@ -43,17 +43,17 @@ public class EnemySpawner : MonoBehaviour
         if (data != null)
         {
             int offsetInRange = round - data.waveStart;
-            currentEnemyHp = data.baseHp + data.hpIncrement * offsetInRange;
-            currentSpawnDelay = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
-            currentEnemySpeed = data.enemySpeed;
+            currentEnemyHp      = data.baseHp + data.hpIncrement * offsetInRange;
+            currentSpawnDelay   = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
+            currentEnemySpeed   = data.enemySpeed;
             currentEnemyDefense = data.enemyDefense;
             if (CoinManager.Instance != null) CoinManager.Instance.coinsPerKill = data.coinsPerKill;
         }
         else
         {
-            currentEnemyHp = 50f;
-            currentSpawnDelay = 1f;
-            currentEnemySpeed = 2f;
+            currentEnemyHp      = 50f;
+            currentSpawnDelay   = 1f;
+            currentEnemySpeed   = 2f;
             currentEnemyDefense = 0f;
         }
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
@@ -89,9 +89,9 @@ public class EnemySpawner : MonoBehaviour
         if (enemyHealth != null)
         {
             enemyHealth.Init(currentEnemyHp, currentEnemyDefense);
-            float passiveDefenseDown = PassiveManager.Instance != null ? PassiveManager.Instance.GetTotalEnemyDefenseDown() : 0f;
-            float anvilDefenseDown = AnvilManager.Instance != null ? AnvilManager.Instance.BonusDefenseDown : 0f;
-            float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown : 0f;
+            float passiveDefenseDown  = PassiveManager.Instance  != null ? PassiveManager.Instance.GetTotalEnemyDefenseDown()  : 0f;
+            float anvilDefenseDown   = AnvilManager.Instance   != null ? AnvilManager.Instance.BonusDefenseDown              : 0f;
+            float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown             : 0f;
             enemyHealth.ApplyDefenseDownPercent(passiveDefenseDown + anvilDefenseDown + augmentDefenseDown);
         }
 

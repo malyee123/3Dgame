@@ -105,7 +105,9 @@ public class PlayerSpawner : MonoBehaviour
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, selectedData.tier, out int spawnIndex)) return;
-        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(CoinManager.Instance.GetActualSpawnCost())) return;
+        int spawnCost = CoinManager.Instance != null ? CoinManager.Instance.GetActualSpawnCost() : 20;
+        if (CoinManager.Instance == null || !CoinManager.Instance.SpendCoins(spawnCost)) return;
+        CoinManager.Instance.RecordSpawn();
         MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
     }

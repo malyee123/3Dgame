@@ -769,6 +769,7 @@ MonoBehaviour:
   gameSettingsCSV: {fileID: 4900000, guid: 10740f56e251339468bec7d51b40f039, type: 3}
   specialMonsterCSV: {fileID: 4900000, guid: b1505f734bf1d414299a8773b932af88, type: 3}
   anvilSettingsCSV: {fileID: 4900000, guid: 835981dc2849a174baaa361f40e63de2, type: 3}
+  spawnCostCSV: {fileID: 4900000, guid: d3947d5a75bb7d548b94bc9dab655d88, type: 3}
   characterDataList:
   - {fileID: 11400000, guid: ab3ac4ed200add244bfeecfacab0fc8d, type: 2}
   - {fileID: 11400000, guid: 5c1fe0cca87233c4d986151eb2ada68c, type: 2}
@@ -816,6 +817,7 @@ MonoBehaviour:
     forceDamageOne: 0
   upgradeDataList: []
   anvilRangeList: []
+  spawnCostDataList: []
   specialMonsterDataList: []
 --- !u!4 &313177401
 Transform:

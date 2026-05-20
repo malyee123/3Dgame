@@ -7,18 +7,18 @@ public class DemoEndUI : MonoBehaviour
 {
     [Header("UI")]
     public TextMeshProUGUI messageText;
-    //public TextMeshProUGUI totalTimeText;
+    public TextMeshProUGUI totalTimeText;
     public Button lobbyButton;
     public Button quitButton;
 
     void Start()
     {
         if (messageText != null)
-            messageText.text = "µ¥¸ğ ¹öÀü ÇÃ·¹ÀÌ ÇØÁÖ¼Å¼­ °¨»çÇÕ´Ï´Ù";
+            messageText.text = "ë°ëª¨ ë²„ì „ í”Œë ˆì´ í•´ì£¼ì…”ì„œ ê°ì‚¬í•©ë‹ˆë‹¤";
 
-        //float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
-        //if (totalTimeText != null)
-        //    totalTimeText.text = $"»ıÁ¸ ½Ã°£: {FormatTime(totalTime)}";
+        float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
+        if (totalTimeText != null)
+            totalTimeText.text = $"ìƒì¡´ ì‹œê°„: {FormatTime(totalTime)}";
 
         if (lobbyButton != null)
         {

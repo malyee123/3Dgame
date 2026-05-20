@@ -65,11 +65,11 @@ public class AnvilUI : MonoBehaviour
         {
             switch (kv.Key)
             {
-                case AnvilType.AttackDamage: sb.Append($"공격력 +{kv.Value}%\n"); break;
-                case AnvilType.AttackSpeed: sb.Append($"공격속도 +{kv.Value}%\n"); break;
-                case AnvilType.DefenseDown: sb.Append($"방어력 감소 {kv.Value}%\n"); break;
-                case AnvilType.BossTime: sb.Append($"보스전 시간 +{kv.Value}초\n"); break;
-                case AnvilType.EnemyLimit: sb.Append($"적 최대 인원수 +{(int)kv.Value}\n"); break;
+                case AnvilType.AttackDamage:   sb.Append($"공격력 +{kv.Value}%\n"); break;
+                case AnvilType.AttackSpeed:    sb.Append($"공격속도 +{kv.Value}%\n"); break;
+                case AnvilType.DefenseDown:    sb.Append($"방어력 감소 {kv.Value}%\n"); break;
+                case AnvilType.BossTime:       sb.Append($"보스전 시간 +{kv.Value}초\n"); break;
+                case AnvilType.EnemyLimit:     sb.Append($"적 최대 인원수 +{(int)kv.Value}\n"); break;
                 case AnvilType.CharacterLimit: sb.Append($"배치 캐릭터 +{(int)kv.Value}\n"); break;
             }
         }

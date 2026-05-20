@@ -55,6 +55,13 @@ public class SpecialMonsterStageData
 }
 
 [System.Serializable]
+public class SpawnCostData
+{
+    public int spawnCount;
+    public int cost;
+}
+
+[System.Serializable]
 public class AnvilRangeData
 {
     public AnvilType type;
@@ -72,6 +79,7 @@ public class CSVLoader : MonoBehaviour
     public TextAsset gameSettingsCSV;
     public TextAsset specialMonsterCSV;
     public TextAsset anvilSettingsCSV;
+    public TextAsset spawnCostCSV;
 
     [Header("Character Data List")]
     public CharacterData[] characterDataList;
@@ -79,7 +87,8 @@ public class CSVLoader : MonoBehaviour
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
     public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
-    public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
+    public List<AnvilRangeData>  anvilRangeList     = new List<AnvilRangeData>();
+    public List<SpawnCostData>   spawnCostDataList  = new List<SpawnCostData>();
     public List<SpecialMonsterStageData> specialMonsterDataList = new List<SpecialMonsterStageData>();
 
     public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
@@ -107,6 +116,7 @@ public class CSVLoader : MonoBehaviour
         LoadGameSettings();
         LoadSpecialMonsterStats();
         LoadAnvilSettings();
+        LoadSpawnCostData();
     }
 
     void LoadCharacterStats()
@@ -342,6 +352,33 @@ public class CSVLoader : MonoBehaviour
         if (best == null && specialMonsterDataList.Count > 0)
             best = specialMonsterDataList[0];
         return best;
+    }
+
+    void LoadSpawnCostData()
+    {
+        spawnCostDataList.Clear();
+        if (spawnCostCSV == null) return;
+        string[] lines = spawnCostCSV.text.Split('\n');
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(',');
+            if (col.Length < 2) continue;
+            spawnCostDataList.Add(new SpawnCostData
+            {
+                spawnCount = ParseInt(col[0].Trim()),
+                cost       = ParseInt(col[1].Trim(), 20)
+            });
+        }
+    }
+
+    public int GetSpawnCost(int spawnCount)
+    {
+        int result = GameSettings?.spawnCost ?? 20;
+        foreach (SpawnCostData data in spawnCostDataList)
+            if (spawnCount >= data.spawnCount) result = data.cost;
+        return result;
     }
 
     public AnvilRangeData GetAnvilRange(AnvilType type, int stage)

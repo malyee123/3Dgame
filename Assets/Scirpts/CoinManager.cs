@@ -8,14 +8,14 @@ public class CoinManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI coinText;
 
-    [HideInInspector] public int spawnCost = 20;
     [HideInInspector] public float spawnCostMultiplier = 1f;
-    [HideInInspector] public bool huntersSenseActive = false;
-    [HideInInspector] public int augmentCoinBonus = 0;
-    [HideInInspector] public int coinsPerKill = 10;
+    [HideInInspector] public bool  huntersSenseActive  = false;
+    [HideInInspector] public int   augmentCoinBonus    = 0;
+    [HideInInspector] public int   coinsPerKill        = 10;
 
-    private int startingCoins = 100;
+    private int startingCoins  = 100;
     private int currentCoins;
+    private int totalSpawnCount = 0;
 
     void Awake()
     {
@@ -26,23 +26,31 @@ public class CoinManager : MonoBehaviour
     void Start()
     {
         if (CSVLoader.Instance?.GameSettings != null)
-        {
             startingCoins = CSVLoader.Instance.GameSettings.startingCoins;
-            spawnCost = CSVLoader.Instance.GameSettings.spawnCost;
-        }
         int bonus = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetStartingCoinBonus() : 0;
         currentCoins = startingCoins + bonus;
         UpdateCoinUI();
     }
 
-    public int GetActualSpawnCost() => Mathf.Max(1, Mathf.RoundToInt(spawnCost * spawnCostMultiplier));
+    public int GetActualSpawnCost()
+    {
+        int baseCost = CSVLoader.Instance != null
+            ? CSVLoader.Instance.GetSpawnCost(totalSpawnCount)
+            : CSVLoader.Instance?.GameSettings?.spawnCost ?? 20;
+        return Mathf.Max(1, Mathf.RoundToInt(baseCost * spawnCostMultiplier));
+    }
+
+    public void RecordSpawn()
+    {
+        totalSpawnCount++;
+    }
 
     public void AddCoins(int amount, bool applyKillBonus = false)
     {
-        int bonus = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
-        int augBonus = applyKillBonus ? augmentCoinBonus : 0;
+        int bonus      = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
+        int augBonus   = applyKillBonus ? augmentCoinBonus : 0;
         int huntersBonus = (applyKillBonus && huntersSenseActive && Random.Range(0f, 100f) < 5f) ? 10 : 0;
-        currentCoins += amount + bonus + augBonus + huntersBonus;
+        currentCoins  += amount + bonus + augBonus + huntersBonus;
         UpdateCoinUI();
         MergeManager.Instance?.CheckMergeAvailable();
     }

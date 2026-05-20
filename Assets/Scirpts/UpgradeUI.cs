@@ -83,7 +83,7 @@ public class UpgradeUI : MonoBehaviour
 
         int currentTier = UpgradeManager.Instance.UnlockedTier;
         int[] tierCosts = UpgradeManager.Instance.TierUnlockCosts;
-        bool tierMaxed = tierCosts == null || currentTier >= tierCosts.Length;
+        bool tierMaxed = tierCosts == null || currentTier > tierCosts.Length;
         if (tierLevelText != null) tierLevelText.text = $"티어 해금  Lv.{currentTier}";
         if (tierCostText != null) tierCostText.text = tierMaxed ? "MAX" : $"Cost: {tierCosts[currentTier - 1]}";
         if (tierUnlockButton != null) tierUnlockButton.interactable = !tierMaxed && sp >= (tierMaxed ? 0 : tierCosts[currentTier - 1]);
