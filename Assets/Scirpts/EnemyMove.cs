@@ -78,7 +78,7 @@ public class EnemyMove : MonoBehaviour
         if (isPaused) return;
         Transform target = pathManager.GetWaypoint(waypointIndex);
         if (target == null) return;
-        float currentSpeed = Mathf.Max(0f, speed - speedPenalty - tempSpeedPenalty);
+        float currentSpeed = Mathf.Max(speed * 0.1f, speed - speedPenalty - tempSpeedPenalty);
         transform.position = Vector2.MoveTowards(transform.position, target.position, currentSpeed * Time.deltaTime);
         if (spriteRenderer != null) spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10);
         if (Vector2.Distance(transform.position, target.position) < 0.1f)

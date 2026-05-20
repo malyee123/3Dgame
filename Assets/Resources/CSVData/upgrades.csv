@@ -7,3 +7,7 @@ Tier2Passive,6,5
 Tier3Passive,9,5
 Tier4Passive,12,5
 Tier5Passive,20,5
+TierUnlock2,5,0
+TierUnlock3,10,0
+TierUnlock4,20,0
+TierUnlock5,40,0
