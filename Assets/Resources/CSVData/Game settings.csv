@@ -1,6 +1,6 @@
 ﻿key,value
-startingCoins,500
-spawnCost,100
+startingCoins,300
+spawnCost,50
 anvilCost,3
 specialSpawnCost,3
 specialSpawnMinTier,2
