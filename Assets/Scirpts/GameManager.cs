@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     public float bossRoundDuration = 40f;
 
     [Header("Demo Settings")]
-    public int demoEndRound = 30;
+    public int demoEndRound = 50;
 
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
