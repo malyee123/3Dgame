@@ -47,10 +47,11 @@ public class CoinManager : MonoBehaviour
 
     public void AddCoins(int amount, bool applyKillBonus = false)
     {
-        int bonus      = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
-        int augBonus   = applyKillBonus ? augmentCoinBonus : 0;
+        int bonus        = (applyKillBonus && UpgradeManager.Instance != null) ? UpgradeManager.Instance.GetCoinPerKillBonus() : 0;
+        int augBonus     = applyKillBonus ? augmentCoinBonus : 0;
         int huntersBonus = (applyKillBonus && huntersSenseActive && Random.Range(0f, 100f) < 5f) ? 10 : 0;
-        currentCoins  += amount + bonus + augBonus + huntersBonus;
+        float mult       = applyKillBonus && AugmentManager.Instance != null ? AugmentManager.Instance.CoinRewardMultiplier : 1f;
+        currentCoins    += Mathf.RoundToInt((amount + bonus + augBonus + huntersBonus) * mult);
         UpdateCoinUI();
         MergeManager.Instance?.CheckMergeAvailable();
     }

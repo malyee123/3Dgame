@@ -66,6 +66,11 @@ public class PlayerAttack : MonoBehaviour
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
     private bool isAllySpeedBoosted = false;
+    private float sharpBladeChance      = 0f;
+    private float iceShardChance        = 0f;
+    private float iceShardDuration      = 1f;
+    private float fateDiceDamageBonus   = 0f;
+    private float fateDiceSpeedBonus    = 0f;
     private bool isDragging = false;
 
     public float currentMana = 0f;
@@ -96,10 +101,12 @@ public class PlayerAttack : MonoBehaviour
     void ApplyUpgradeStats()
     {
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
-        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty;
+        float fateDiceDmgMult = fateDiceDamageBonus > 0f ? fateDiceDamageBonus : 1f;
+        float fateDiceSpdMult = fateDiceSpeedBonus  > 0f ? fateDiceSpeedBonus  : 1f;
+        appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty * fateDiceDmgMult;
         float totalSpeedBonus = (passiveSpeedBonus + augmentSpeedBonus) / 100f;
         float totalSpeedPenalty = augmentSpeedPenalty / 100f;
-        float totalSpeed = 1f + totalSpeedBonus;
+        float totalSpeed = (1f + totalSpeedBonus) * fateDiceSpdMult;
         appliedCooldown = Mathf.Max(0.1f, Mathf.Round(1f / characterData.attackSpeed / totalSpeed * (1f + totalSpeedPenalty) * 100f) / 100f);
         appliedRange = characterData.attackRange + augmentRangeBonus;
     }
@@ -115,6 +122,27 @@ public class PlayerAttack : MonoBehaviour
     }
 
     public void RefreshAugmentState() => ApplyUpgradeStats();
+
+    public void ApplySharpBlade(float chance) => sharpBladeChance = chance;
+
+    EnemyHealth FindBounceTarget(Vector3 origin, GameObject exclude)
+    {
+        EnemyHealth[] all = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        EnemyHealth best  = null;
+        float minDist     = float.MaxValue;
+        foreach (EnemyHealth eh in all)
+        {
+            if (eh == null || eh.gameObject == exclude) continue;
+            float d = Vector2.Distance(origin, eh.transform.position);
+            if (d < minDist) { minDist = d; best = eh; }
+        }
+        return best;
+    }
+    public void ApplyIceShard(float chance, float duration) { iceShardChance = chance; iceShardDuration = duration; }
+
+    public void ResetFateDice()  { fateDiceDamageBonus = 0f; fateDiceSpeedBonus = 0f; ApplyUpgradeStats(); }
+    public void ApplyFateDiceDamage(float mult) { fateDiceDamageBonus = mult; ApplyUpgradeStats(); }
+    public void ApplyFateDiceSpeed(float mult)  { fateDiceSpeedBonus  = mult; ApplyUpgradeStats(); }
 
     public void ApplyPassiveBonus(float damageBonus, float speedBonus,
         float doubleChance, float doubleMultiplier,
@@ -312,7 +340,6 @@ public class PlayerAttack : MonoBehaviour
         if (AugmentManager.Instance != null && AugmentManager.Instance.HasGiantSlayer)
         {
             if (health.isSpecial) finalDamage *= 2f;
-            else finalDamage *= augmentNormalDamagePenalty;
         }
         if (characterData.tier >= 5 && AugmentManager.Instance != null && AugmentManager.Instance.HasTheBigOne)
             if (Random.Range(0f, 100f) < 10f) finalDamage *= 5f;
@@ -489,9 +516,28 @@ public class PlayerAttack : MonoBehaviour
     {
         yield return new WaitForSeconds((1f / characterData.attackSpeed) * 0.3f);
         if (target == null) yield break;
+        AudioManager.Instance?.PlayAttackSFX(characterData?.attackType ?? "Melee");
         Vector3 targetPos = target.transform.position;
         EnemyHealth health = target.GetComponent<EnemyHealth>();
-        if (health != null) health.TakeDamage(damage, this);
+        if (health != null)
+        {
+            float finalDmg = damage;
+            if (sharpBladeChance > 0f && Random.Range(0f, 100f) < sharpBladeChance) finalDmg *= 2f;
+            if (AugmentManager.Instance != null)
+            {
+                finalDmg *= AugmentManager.Instance.GetDominatorDamageMultiplier();
+                if (AugmentManager.Instance.HasWeakPoint) finalDmg *= 0.7f;
+            }
+            health.TakeDamage(finalDmg, this);
+            EnemyMove em = target.GetComponent<EnemyMove>();
+            if (iceShardChance > 0f && Random.Range(0f, 100f) < iceShardChance && em != null)
+                em.ApplyTempSpeedPenalty(em.speed * 0.5f, iceShardDuration);
+            if (AugmentManager.Instance != null && AugmentManager.Instance.HasBouncingArrow)
+            {
+                EnemyHealth bounce = FindBounceTarget(targetPos, health.gameObject);
+                if (bounce != null) bounce.TakeDamage(finalDmg * 0.5f, this);
+            }
+        }
         SpawnHitEffect(targetPos, null);
         if (remainMultiAttack > 0) StartCoroutine(MultiAttackRoutine(remainMultiAttack));
     }
@@ -585,7 +631,15 @@ public class PlayerAttack : MonoBehaviour
                 float dx = Mathf.Abs(eh.transform.position.x - pitPosition.x);
                 float dy = Mathf.Abs(eh.transform.position.y - pitPosition.y);
                 if (dx <= halfX && dy <= halfY)
-                    eh.TakeDamage(damagePerTick, unit, true);
+                {
+                    float pitDmg = damagePerTick;
+                    if (AugmentManager.Instance != null)
+                    {
+                        pitDmg *= AugmentManager.Instance.GetDominatorDamageMultiplier();
+                        if (AugmentManager.Instance.HasWeakPoint) pitDmg *= 2f;
+                    }
+                    eh.TakeDamage(pitDmg, unit, true);
+                }
             }
             yield return new WaitForSeconds(checkTick);
             elapsed += checkTick;
@@ -643,7 +697,13 @@ public class PlayerAttack : MonoBehaviour
             GameObject effect = Instantiate(characterData.manaSkillEffectPrefab, finalTarget.transform.position, Quaternion.identity);
             Destroy(effect, 2f);
         }
-        finalTarget.TakeDamage(damage, this, true);
+        float t53dmg = damage;
+        if (AugmentManager.Instance != null)
+        {
+            t53dmg *= AugmentManager.Instance.GetDominatorDamageMultiplier();
+            if (AugmentManager.Instance.HasWeakPoint) t53dmg *= 2f;
+        }
+        finalTarget.TakeDamage(t53dmg, this, true);
         yield break;
     }
 
@@ -659,7 +719,16 @@ public class PlayerAttack : MonoBehaviour
         float damage = appliedDamage * GetSlotUnitCount() * (manaSkillDamage / 100f);
         EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth eh in allEnemies)
-            if (eh != null) eh.TakeDamage(damage, this, true);
+            if (eh != null)
+            {
+                float t54d = damage;
+                if (AugmentManager.Instance != null)
+                {
+                    t54d *= AugmentManager.Instance.GetDominatorDamageMultiplier();
+                    if (AugmentManager.Instance.HasWeakPoint) t54d *= 2f;
+                }
+                eh.TakeDamage(t54d, this, true);
+            }
         yield break;
     }
 

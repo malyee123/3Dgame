@@ -8,6 +8,9 @@ public class PlayerSpawner : MonoBehaviour
 {
     public static PlayerSpawner Instance { get; private set; }
 
+    [Header("Free Spawn UI")]
+    public TextMeshProUGUI freeSpawnText;
+
     [Header("Player Settings")]
     public GameObject playerPrefab;
 
@@ -89,6 +92,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         yield return null;
         UpdateSpawnButton();
+        UpdateFreeSpawnText();
     }
 
     void Update()
@@ -105,9 +109,19 @@ public class PlayerSpawner : MonoBehaviour
         if (selectedData == null) return;
         string unitTag = GetUnitTag(selectedData);
         if (!TryGetSpawnSlot(unitTag, selectedData.tier, out int spawnIndex)) return;
-        int spawnCost = CoinManager.Instance != null ? CoinManager.Instance.GetActualSpawnCost() : 20;
-        if (CoinManager.Instance == null || !CoinManager.Instance.SpendCoins(spawnCost)) return;
-        CoinManager.Instance.RecordSpawn();
+        bool usedFreeSpawn = false;
+        if (AugmentManager.Instance != null && AugmentManager.Instance.FreeSpawnCount > 0)
+        {
+            AugmentManager.Instance.UseFreeSpawn();
+            usedFreeSpawn = true;
+        }
+        if (!usedFreeSpawn)
+        {
+            int spawnCost = CoinManager.Instance != null ? CoinManager.Instance.GetActualSpawnCost() : 20;
+            if (CoinManager.Instance == null || !CoinManager.Instance.SpendCoins(spawnCost)) return;
+        }
+        CoinManager.Instance?.RecordSpawn();
+        UpdateFreeSpawnText();
         MergeManager.Instance?.HideUnitActionUI();
         SpawnPlayer(spawnIndex, selectedData, unitTag);
     }
@@ -132,6 +146,21 @@ public class PlayerSpawner : MonoBehaviour
         string unitTag = GetUnitTag(characterData);
         if (!TryGetSpawnSlot(unitTag, characterData.tier, out int spawnIndex)) return;
         SpawnPlayer(spawnIndex, characterData, unitTag);
+    }
+
+    public void SpawnLegendUnit()
+    {
+        if (characterDataList == null || characterDataList.Length == 0) return;
+        var legends = new System.Collections.Generic.List<CharacterData>();
+        foreach (var cd in characterDataList)
+            if (cd != null && cd.tier >= 5) legends.Add(cd);
+        if (legends.Count == 0) return;
+        CharacterData chosen = legends[Random.Range(0, legends.Count)];
+        SyncSlotStateFromScene();
+        if (!HasAvailableSlot()) return;
+        string unitTag = GetUnitTag(chosen);
+        if (!TryGetSpawnSlot(unitTag, chosen.tier, out int spawnIndex)) return;
+        SpawnPlayer(spawnIndex, chosen, unitTag);
     }
 
     public void SpawnRareUnits(int count)
@@ -520,5 +549,12 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (data == null) return "Unknown";
         return !string.IsNullOrWhiteSpace(data.unitTag) ? data.unitTag.Trim() : data.characterName;
+    }
+
+    void UpdateFreeSpawnText()
+    {
+        if (freeSpawnText == null) return;
+        int count = AugmentManager.Instance != null ? AugmentManager.Instance.FreeSpawnCount : 0;
+        freeSpawnText.text = $"무료소환 {count}회";
     }
 }

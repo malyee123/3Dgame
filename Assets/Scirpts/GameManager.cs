@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     public float bossRoundDuration = 40f;
 
     [Header("Demo Settings")]
-    public int demoEndRound = 50;
+    public int demoEndRound = 30;
 
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
@@ -153,6 +153,7 @@ public class GameManager : MonoBehaviour
         if (enemySpawner != null) enemySpawner.SetPaused(false);
 
         currentRound++;
+        AugmentManager.Instance?.OnNewRoundStart();
 
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
@@ -163,6 +164,7 @@ public class GameManager : MonoBehaviour
             if (enemySpawner != null) enemySpawner.SetPaused(true);
             roundTimeLeft = bossRoundDuration;
             BossManager.Instance?.TrySpawnBoss();
+            AugmentManager.Instance?.OnBossWaveStart();
         }
     }
 
@@ -187,6 +189,7 @@ public class GameManager : MonoBehaviour
 
     void UpdateUIIfChanged()
     {
+        prevRoundTimeLeftPublic = roundTimeLeft;
         int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
         if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
         if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
@@ -202,9 +205,22 @@ public class GameManager : MonoBehaviour
         if (enemyCountText != null) enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
     }
 
-    public float GetTotalTime() => totalElapsedTime;
-    public int GetCurrentRound() => currentRound;
-    public int GetCurrentStage() => currentStage;
+    public float GetTotalTime()          => totalElapsedTime;
+    public int   GetCurrentRound()        => currentRound;
+    public int   GetCurrentStage()        => currentStage;
+    public int   GetCurrentEnemyCount()   => currentEnemyCount;
+    public float GetRoundTimeLeft()       => roundTimeLeft;
+    public float GetCurrentRoundDuration()
+    {
+        if (CSVLoader.Instance != null)
+        {
+            RoundData data = CSVLoader.Instance.GetRoundData(currentRound, currentStage);
+            if (data != null) return data.roundDuration;
+        }
+        return 60f;
+    }
+    private float prevRoundTimeLeftPublic = 0f;
+    public float GetPrevRoundTimeLeft()   => prevRoundTimeLeftPublic;
 
     string FormatTime(float time)
     {

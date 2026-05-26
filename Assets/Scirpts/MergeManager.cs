@@ -29,6 +29,7 @@ public class MergeManager : MonoBehaviour
     public Canvas gameCanvas;
 
     [HideInInspector] public float upgradeCostMultiplier = 1f;
+    [HideInInspector] public bool  mergeAccelActive        = false;
 
     private PlayerAttack selectedUnit;
     private bool justSelected = false;
@@ -238,7 +239,19 @@ public class MergeManager : MonoBehaviour
         int baseCost = selectedUnit.characterData != null ? selectedUnit.characterData.upgradeCost : 150;
         int actualCost = GetActualUpgradeCost(baseCost);
         if (UpgradeManager.Instance != null && (tier + 1) > UpgradeManager.Instance.UnlockedTier) return;
-        if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(actualCost)) return;
+        if (mergeAccelActive)
+        {
+            float roll = Random.Range(0f, 100f);
+            if (roll < 1f)
+            {
+                if (!CoinManager.Instance.SpendCoins(actualCost * 2)) return;
+            }
+            else if (roll >= 30f)
+            {
+                if (!CoinManager.Instance.SpendCoins(actualCost)) return;
+            }
+        }
+        else if (CoinManager.Instance != null && !CoinManager.Instance.SpendCoins(actualCost)) return;
         if (PlayerSpawner.Instance.TryManualMerge(selectedUnit.spawnIndex, selectedUnit.unitTag, selectedUnit.characterData))
             HideUnitActionUI();
         else
