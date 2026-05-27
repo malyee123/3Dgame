@@ -66,11 +66,11 @@ public class PlayerAttack : MonoBehaviour
     private bool isSelfSpeedBoosted = false;
     private bool isSelfDamageBoosted = false;
     private bool isAllySpeedBoosted = false;
-    private float sharpBladeChance      = 0f;
-    private float iceShardChance        = 0f;
-    private float iceShardDuration      = 1f;
-    private float fateDiceDamageBonus   = 0f;
-    private float fateDiceSpeedBonus    = 0f;
+    private float sharpBladeChance = 0f;
+    private float iceShardChance = 0f;
+    private float iceShardDuration = 1f;
+    private float fateDiceDamageBonus = 0f;
+    private float fateDiceSpeedBonus = 0f;
     private bool isDragging = false;
 
     public float currentMana = 0f;
@@ -102,13 +102,13 @@ public class PlayerAttack : MonoBehaviour
     {
         float dmgMult = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetAttackDamageMultiplier() : 1f;
         float fateDiceDmgMult = fateDiceDamageBonus > 0f ? fateDiceDamageBonus : 1f;
-        float fateDiceSpdMult = fateDiceSpeedBonus  > 0f ? fateDiceSpeedBonus  : 1f;
+        float fateDiceSpdMult = fateDiceSpeedBonus > 0f ? fateDiceSpeedBonus : 1f;
         appliedDamage = characterData.attackDamage * dmgMult * (1f + passiveDamageBonus / 100f) * (1f + augmentDamageBonus / 100f) * augmentNormalDamagePenalty * fateDiceDmgMult;
         float totalSpeedBonus = (passiveSpeedBonus + augmentSpeedBonus) / 100f;
         float totalSpeedPenalty = augmentSpeedPenalty / 100f;
         float totalSpeed = (1f + totalSpeedBonus) * fateDiceSpdMult;
         appliedCooldown = Mathf.Max(0.1f, Mathf.Round(1f / characterData.attackSpeed / totalSpeed * (1f + totalSpeedPenalty) * 100f) / 100f);
-        appliedRange = characterData.attackRange + augmentRangeBonus;
+        appliedRange = Mathf.Max(1f, characterData.attackRange + augmentRangeBonus);
     }
 
     public void ApplyAugmentBonus(float damageBonus, float speedBonus, float rangeBonus = 0f, float normalDamagePenalty = 1f, float speedPenalty = 0f)
@@ -128,8 +128,8 @@ public class PlayerAttack : MonoBehaviour
     EnemyHealth FindBounceTarget(Vector3 origin, GameObject exclude)
     {
         EnemyHealth[] all = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
-        EnemyHealth best  = null;
-        float minDist     = float.MaxValue;
+        EnemyHealth best = null;
+        float minDist = float.MaxValue;
         foreach (EnemyHealth eh in all)
         {
             if (eh == null || eh.gameObject == exclude) continue;
@@ -140,9 +140,9 @@ public class PlayerAttack : MonoBehaviour
     }
     public void ApplyIceShard(float chance, float duration) { iceShardChance = chance; iceShardDuration = duration; }
 
-    public void ResetFateDice()  { fateDiceDamageBonus = 0f; fateDiceSpeedBonus = 0f; ApplyUpgradeStats(); }
+    public void ResetFateDice() { fateDiceDamageBonus = 0f; fateDiceSpeedBonus = 0f; ApplyUpgradeStats(); }
     public void ApplyFateDiceDamage(float mult) { fateDiceDamageBonus = mult; ApplyUpgradeStats(); }
-    public void ApplyFateDiceSpeed(float mult)  { fateDiceSpeedBonus  = mult; ApplyUpgradeStats(); }
+    public void ApplyFateDiceSpeed(float mult) { fateDiceSpeedBonus = mult; ApplyUpgradeStats(); }
 
     public void ApplyPassiveBonus(float damageBonus, float speedBonus,
         float doubleChance, float doubleMultiplier,

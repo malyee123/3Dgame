@@ -42,4 +42,33 @@ public class AugmentCard : MonoBehaviour
             selectButton.onClick.AddListener(() => parentUI.OnSelectAugment(currentData));
         }
     }
+
+    public void SetupDebug(AugmentData data, AugmentUI ui)
+    {
+        currentData = data;
+        parentUI = ui;
+
+        bool hasSprite = data.sprite != null;
+
+        if (cardBackground != null && hasSprite)
+            cardBackground.sprite = data.sprite;
+
+        if (nameText != null)
+        {
+            nameText.gameObject.SetActive(!hasSprite);
+            nameText.text = data.augmentName;
+        }
+
+        if (summaryText != null)
+        {
+            summaryText.gameObject.SetActive(!hasSprite);
+            summaryText.text = data.summary;
+        }
+
+        if (selectButton != null)
+        {
+            selectButton.onClick.RemoveAllListeners();
+            selectButton.onClick.AddListener(() => parentUI.OnSelectAugmentDebug(currentData));
+        }
+    }
 }

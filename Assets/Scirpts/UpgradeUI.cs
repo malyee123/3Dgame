@@ -46,7 +46,7 @@ public class UpgradeUI : MonoBehaviour
         RefreshUI();
     }
 
-    void RefreshUI()
+    public void RefreshUI()
     {
         if (UpgradeManager.Instance == null) return;
         int sp = UpgradeManager.Instance.GetSkillPoints();

@@ -53,6 +53,29 @@ public class UpgradeManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         PlayerPrefs.DeleteKey(KEY_ATK_SPD);
+
+        // 이전 세션 디버그 잔여값 복원 (OnDestroy 미호출 대비)
+        if (PlayerPrefs.HasKey("Save_UpgradeAttackDamage"))
+        {
+            PlayerPrefs.SetInt("UpgradeAttackDamage", PlayerPrefs.GetInt("Save_UpgradeAttackDamage", 0));
+            PlayerPrefs.SetInt("UpgradeCharacterLimit", PlayerPrefs.GetInt("Save_UpgradeCharacterLimit", 0));
+            PlayerPrefs.SetInt("UpgradeCoinPerKill", PlayerPrefs.GetInt("Save_UpgradeCoinPerKill", 0));
+            PlayerPrefs.SetInt("UpgradeStartingCoin", PlayerPrefs.GetInt("Save_UpgradeStartingCoin", 0));
+            PlayerPrefs.SetInt("Tier2PassiveLevel", PlayerPrefs.GetInt("Save_Tier2PassiveLevel", 0));
+            PlayerPrefs.SetInt("Tier3PassiveLevel", PlayerPrefs.GetInt("Save_Tier3PassiveLevel", 0));
+            PlayerPrefs.SetInt("Tier4PassiveLevel", PlayerPrefs.GetInt("Save_Tier4PassiveLevel", 0));
+            PlayerPrefs.SetInt("Tier5PassiveLevel", PlayerPrefs.GetInt("Save_Tier5PassiveLevel", 0));
+            PlayerPrefs.SetInt("UnlockedTier", PlayerPrefs.GetInt("Save_UnlockedTier", 1));
+            PlayerPrefs.DeleteKey("Save_UpgradeAttackDamage");
+            PlayerPrefs.DeleteKey("Save_UpgradeCharacterLimit");
+            PlayerPrefs.DeleteKey("Save_UpgradeCoinPerKill");
+            PlayerPrefs.DeleteKey("Save_UpgradeStartingCoin");
+            PlayerPrefs.DeleteKey("Save_Tier2PassiveLevel");
+            PlayerPrefs.DeleteKey("Save_Tier3PassiveLevel");
+            PlayerPrefs.DeleteKey("Save_Tier4PassiveLevel");
+            PlayerPrefs.DeleteKey("Save_Tier5PassiveLevel");
+            PlayerPrefs.DeleteKey("Save_UnlockedTier");
+        }
         PlayerPrefs.Save();
     }
 
