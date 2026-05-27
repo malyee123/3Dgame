@@ -158,7 +158,7 @@ public class UpgradeManager : MonoBehaviour
     {
         int currentTier = UnlockedTier;
         int[] costs = TierUnlockCosts;
-        if (costs == null || currentTier >= costs.Length) return false;
+        if (costs == null || currentTier > costs.Length) return false;
         int cost = costs[currentTier - 1];
         if (!SpendSkillPoints(cost)) return false;
         PlayerPrefs.SetInt(KEY_TIER, currentTier + 1); PlayerPrefs.Save(); return true;

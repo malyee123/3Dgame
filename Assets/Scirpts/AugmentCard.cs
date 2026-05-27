@@ -19,40 +19,27 @@ public class AugmentCard : MonoBehaviour
         currentData = data;
         parentUI = ui;
 
-        if (cardBackground != null && data != null && data.sprite != null)
+        bool hasSprite = data.sprite != null;
+
+        if (cardBackground != null && hasSprite)
             cardBackground.sprite = data.sprite;
 
         if (nameText != null)
         {
-            nameText.text = data != null ? data.augmentName : string.Empty;
-            nameText.raycastTarget = false;
+            nameText.gameObject.SetActive(!hasSprite);
+            nameText.text = data.augmentName;
         }
 
         if (summaryText != null)
         {
-            summaryText.text = data != null ? data.summary : string.Empty;
-            summaryText.raycastTarget = false;
+            summaryText.gameObject.SetActive(!hasSprite);
+            summaryText.text = data.summary;
         }
-
-        if (cardBackground != null)
-            cardBackground.raycastTarget = false;
 
         if (selectButton != null)
         {
             selectButton.onClick.RemoveAllListeners();
-            selectButton.onClick.AddListener(HandleClick);
-            selectButton.interactable = true;
-
-            if (selectButton.targetGraphic == null && selectButton.image != null)
-                selectButton.targetGraphic = selectButton.image;
+            selectButton.onClick.AddListener(() => parentUI.OnSelectAugment(currentData));
         }
-    }
-
-    private void HandleClick()
-    {
-        if (parentUI == null || currentData == null)
-            return;
-
-        parentUI.OnSelectAugment(currentData);
     }
 }
