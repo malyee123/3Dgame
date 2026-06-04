@@ -14,6 +14,15 @@ public class EnemySpawner : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private Vector2 spawnPosition = new Vector2(-6f, 3f);
 
+    [System.Serializable]
+    public class WaveSpriteSet
+    {
+        public int    fromRound;
+        public Sprite enemySprite;
+    }
+    [Header("웨이브별 적 스프라이트 (fromRound 오름차순 정렬)")]
+    public WaveSpriteSet[] waveSpritesets;
+
     private float currentSpawnDelay;
     private float currentEnemyHp;
     private float currentEnemySpeed;
@@ -36,6 +45,18 @@ public class EnemySpawner : MonoBehaviour
 
     public void SetPaused(bool paused) => isPaused = paused;
     public void SetSpawnPosition(Vector2 pos) => spawnPosition = pos;
+
+    void ApplyWaveSprite(GameObject obj)
+    {
+        if (waveSpritesets == null || waveSpritesets.Length == 0 || obj == null) return;
+        int round = GameManager.Instance != null ? GameManager.Instance.GetCurrentRound() : 1;
+        Sprite target = null;
+        foreach (WaveSpriteSet set in waveSpritesets)
+            if (round >= set.fromRound) target = set.enemySprite;
+        if (target == null) return;
+        SpriteRenderer sr = obj.GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) sr.sprite = target;
+    }
 
     public void ApplyRoundSettings(int round)
     {
@@ -76,6 +97,7 @@ public class EnemySpawner : MonoBehaviour
         Vector2 offsetPos = spawnPosition;
         offsetPos.x += Random.Range(-0.3f, 0.3f);
         GameObject obj = Instantiate(enemyPrefab, offsetPos, Quaternion.identity);
+        ApplyWaveSprite(obj);
 
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null)

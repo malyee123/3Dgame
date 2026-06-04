@@ -35,9 +35,18 @@ public class CompendiumCard : MonoBehaviour,
 
         if (portrait != null)
         {
-            portrait.sprite  = unlocked ? cd.characterSprite : null;
-            portrait.color   = unlocked ? Color.white : new Color(0.2f, 0.2f, 0.2f);
-            portrait.enabled = cd.characterSprite != null || !unlocked;
+            bool hasSprite = cd.characterSprite != null;
+            portrait.sprite = (unlocked && hasSprite) ? cd.characterSprite : null;
+            if (!unlocked)
+                portrait.color = new Color(0.15f, 0.15f, 0.15f);
+            else if (!hasSprite)
+            {
+                // 이미지 없을 때 티어 색상으로 플레이스홀더 표시
+                int idx = Mathf.Clamp(cd.tier - 1, 0, tierColors.Length - 1);
+                portrait.color = new Color(tierColors[idx].r, tierColors[idx].g, tierColors[idx].b, 0.4f);
+            }
+            else
+                portrait.color = Color.white;
         }
 
         if (nameText != null)
