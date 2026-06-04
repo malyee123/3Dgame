@@ -35,6 +35,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     public void SetPaused(bool paused) => isPaused = paused;
+    public void SetSpawnPosition(Vector2 pos) => spawnPosition = pos;
 
     public void ApplyRoundSettings(int round)
     {

@@ -105,10 +105,17 @@ public class GameManager : MonoBehaviour
         if (!isBossWave) return;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
 
+        // 최초 1회만 DemoEnd 표시 (이후에는 정상 스테이지 클리어 진행)
         if (currentStage == 1 && currentRound == demoEndRound)
         {
-            LoadDemoEnd();
-            return;
+            bool demoEndShown = PlayerPrefs.GetInt("DemoEndShown", 0) == 1;
+            if (!demoEndShown)
+            {
+                PlayerPrefs.SetInt("DemoEndShown", 1);
+                PlayerPrefs.Save();
+                LoadDemoEnd();
+                return;
+            }
         }
 
         int stageEndRound = CSVLoader.Instance != null ? CSVLoader.Instance.GetStageEndRound(currentStage) : 50;
