@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d72490bda0432fb45b9497e15c3713e1, type: 3}
+  m_Name: "EC_Tier4_\uBC95\uC0AC"
+  m_EditorClassIdentifier: Assembly-CSharp::EncyclopediaCharacterData
+  characterName: "4\uD2F0\uC5B4 \uBC95\uC0AC"
+  tier: 4
+  starRating: 4
+  portraitSprite: {fileID: -8541592213720408040, guid: f66d299297ff5684db2176ec85fd97a4, type: 3}
+  fullBodySprite: {fileID: -7082306462609512521, guid: 54ef354ce872b6047b8e43e7e9345a1b, type: 3}
+  attackPower: 3000
+  attackSpeed: 2
+  range: 3
+  skillSprites:
+  - {fileID: -3089816881041979743, guid: 708ce823ddefe6a4c962289486480d80, type: 3}
+  - {fileID: -258705719772803744, guid: 85ca844aa6b1f9c43b90cd7372550fc6, type: 3}
+  skillDescriptions: []
+  description: "\uB354\uB354\uC6B1 \uAC15\uB825\uD574\uC9C4 \uB9C8\uBC95\uC73C\uB85C
+    \uACF5\uACA9\uD569\uB2C8\uB2E4"
+  unlockRound: 3

@@ -14,13 +14,15 @@ public class SceneTransitionManager : MonoBehaviour
     public TextMeshProUGUI loadingText;
 
     [Header("Settings")]
-    public float minDelaySeconds = 0.2f;
+    public float minDelaySeconds = 1f;
 
     private bool isTransitioning = false;
 
     private static readonly string[] loadingMessages =
     {
-        "로딩중..."
+        "로딩중...",
+        "잠시만 기다려주세요...",
+        "준비중..."
     };
 
     void Awake()

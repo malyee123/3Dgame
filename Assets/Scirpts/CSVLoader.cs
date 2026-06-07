@@ -87,8 +87,8 @@ public class CSVLoader : MonoBehaviour
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
     public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
-    public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
-    public List<SpawnCostData> spawnCostDataList = new List<SpawnCostData>();
+    public List<AnvilRangeData>  anvilRangeList     = new List<AnvilRangeData>();
+    public List<SpawnCostData>   spawnCostDataList  = new List<SpawnCostData>();
     public List<SpecialMonsterStageData> specialMonsterDataList = new List<SpecialMonsterStageData>();
 
     public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
@@ -368,7 +368,7 @@ public class CSVLoader : MonoBehaviour
             spawnCostDataList.Add(new SpawnCostData
             {
                 spawnCount = ParseInt(col[0].Trim()),
-                cost = ParseInt(col[1].Trim(), 20)
+                cost       = ParseInt(col[1].Trim(), 20)
             });
         }
     }

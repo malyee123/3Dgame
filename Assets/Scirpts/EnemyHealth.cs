@@ -50,8 +50,8 @@ public class EnemyHealth : MonoBehaviour
     public void ApplyDefenseDownPercent(float percent) => defenseDownPercent = Mathf.Clamp(percent, 0f, 100f);
     public void ApplyWaveEnemy(RuntimeAnimatorController controller, Sprite staticSprite)
     {
-        Animator anim = GetComponentInChildren<Animator>();
-        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+        Animator       anim = GetComponentInChildren<Animator>();
+        SpriteRenderer sr   = GetComponentInChildren<SpriteRenderer>();
 
         if (controller != null && anim != null)
         {
@@ -74,7 +74,7 @@ public class EnemyHealth : MonoBehaviour
         {
             // 애니메이션 없는 정적 스프라이트: Animator 비활성화 후 스프라이트 고정
             if (anim != null) anim.enabled = false;
-            if (sr != null) sr.sprite = staticSprite;
+            if (sr   != null) sr.sprite    = staticSprite;
         }
     }
 
