@@ -202,6 +202,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
   speed: 5
+  speedPenalty: 0
+  tempSpeedPenalty: 0
 --- !u!114 &-4224196809069148067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,6 +221,8 @@ MonoBehaviour:
   hpSlider: {fileID: 5636807078509065139}
   hpFillImage: {fileID: 2184951827499982371}
   isSpecial: 0
+  isBoss: 0
+  forceDamageOne: 0
   specialCoinReward: 0
   damageTextPrefab: {fileID: 7710263174651298662, guid: 11733687031c55c4aac1b80c42a3f9f1, type: 3}
 --- !u!222 &2725980376595593548
@@ -239,7 +243,7 @@ Animator:
   m_GameObject: {fileID: 2492102594665920056}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 2d1d7850cfd4c784199800f48e37ad97, type: 2}
+  m_Controller: {fileID: 9100000, guid: f0428c9e14ca1c5419ea2b04e04fae98, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

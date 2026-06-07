@@ -9,18 +9,18 @@ public class SceneTransitionManager : MonoBehaviour
     public static SceneTransitionManager Instance { get; private set; }
 
     [Header("UI")]
-    public Canvas     transitionCanvas;
-    public Image      backgroundPanel;
+    public Canvas          transitionCanvas;
+    public Image           backgroundPanel;
     public TextMeshProUGUI loadingText;
 
     [Header("Settings")]
-    public float delaySeconds = 1f;
+    public float minDelaySeconds = 0.2f;
 
-    private static string[] loadingMessages = new string[]
+    private bool isTransitioning = false;
+
+    private static readonly string[] loadingMessages =
     {
-        "로딩중...",
-        "잠시만 기다려주세요...",
-        "준비중..."
+        "로딩중..."
     };
 
     void Awake()
@@ -33,16 +33,33 @@ public class SceneTransitionManager : MonoBehaviour
 
     public void LoadScene(string sceneName)
     {
+        if (isTransitioning) return;
         StartCoroutine(TransitionRoutine(sceneName));
     }
 
     IEnumerator TransitionRoutine(string sceneName)
     {
+        isTransitioning = true;
         ShowPanel();
-        yield return new WaitForSecondsRealtime(delaySeconds);
-        SceneManager.LoadScene(sceneName);
-        yield return null;
+
+        // 비동기 로딩 시작 — 씬 활성화 보류
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        op.allowSceneActivation = false;
+
+        // 최소 딜레이 무조건 강제 대기 (timeScale 무관)
+        yield return new WaitForSecondsRealtime(minDelaySeconds);
+
+        // 로드 완료 대기 (progress 0.9 = 씬 준비 완료)
+        while (op.progress < 0.9f)
+            yield return null;
+
+        // 씬 활성화
+        op.allowSceneActivation = true;
+
+        // 새 씬 프레임 대기 후 패널 숨김
+        yield return new WaitForSecondsRealtime(0.05f);
         HidePanel();
+        isTransitioning = false;
     }
 
     void ShowPanel()

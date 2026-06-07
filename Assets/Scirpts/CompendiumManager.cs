@@ -44,7 +44,7 @@ public class CompendiumManager : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(() => SceneManager.LoadScene("LobbyScene"));
+            closeButton.onClick.AddListener(() => SceneLoader.GoTo("LobbyScene"));
         }
 
         if (tierFilterButtons != null)

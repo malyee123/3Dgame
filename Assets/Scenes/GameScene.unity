@@ -6301,6 +6301,22 @@ MonoBehaviour:
   enemyPrefab: {fileID: 2492102594665920056, guid: 725640bbad4b362438fcc5820077c21c, type: 3}
   pathManager: {fileID: 2072419691}
   spawnPosition: {x: -5.5, y: 2.5}
+  waveEnemySets:
+  - fromRound: 0
+    animatorController: {fileID: 9100000, guid: 2d1d7850cfd4c784199800f48e37ad97, type: 2}
+    staticSprite: {fileID: 0}
+  - fromRound: 10
+    animatorController: {fileID: 9100000, guid: f0428c9e14ca1c5419ea2b04e04fae98, type: 2}
+    staticSprite: {fileID: 0}
+  - fromRound: 20
+    animatorController: {fileID: 9100000, guid: 0c132bb24a3acce4eb85b108ad40fdd4, type: 2}
+    staticSprite: {fileID: 0}
+  - fromRound: 30
+    animatorController: {fileID: 9100000, guid: 13f9931a00a83284ba3732fd7c4663c1, type: 2}
+    staticSprite: {fileID: 0}
+  - fromRound: 40
+    animatorController: {fileID: 9100000, guid: df6db4ec70af03d43a124cdfc647cacf, type: 2}
+    staticSprite: {fileID: 0}
 --- !u!4 &1074021557
 Transform:
   m_ObjectHideFlags: 0

@@ -30,13 +30,13 @@ public class GameOverUI : MonoBehaviour
     public void RetryGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("GameScene");
+        SceneLoader.GoTo("GameScene");
     }
 
     public void GoToLobby()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("LobbyScene");
+        SceneLoader.GoTo("LobbyScene");
     }
 
     public void QuitGame()

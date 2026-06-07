@@ -15,13 +15,17 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private Vector2 spawnPosition = new Vector2(-6f, 3f);
 
     [System.Serializable]
-    public class WaveSpriteSet
+    public class WaveEnemySet
     {
-        public int    fromRound;
-        public Sprite enemySprite;
+        [Tooltip("이 라운드 이상이면 적용 (오름차순 입력)")]
+        public int fromRound;
+        [Tooltip("적용할 RuntimeAnimatorController (없으면 정적 스프라이트 사용)")]
+        public RuntimeAnimatorController animatorController;
+        [Tooltip("애니메이션 없을 때 사용할 고정 스프라이트 (animatorController가 null일 때만 적용)")]
+        public Sprite staticSprite;
     }
-    [Header("웨이브별 적 스프라이트 (fromRound 오름차순 정렬)")]
-    public WaveSpriteSet[] waveSpritesets;
+    [Header("웨이브별 적 설정 (fromRound 오름차순)")]
+    public WaveEnemySet[] waveEnemySets;
 
     private float currentSpawnDelay;
     private float currentEnemyHp;
@@ -46,16 +50,16 @@ public class EnemySpawner : MonoBehaviour
     public void SetPaused(bool paused) => isPaused = paused;
     public void SetSpawnPosition(Vector2 pos) => spawnPosition = pos;
 
-    void ApplyWaveSprite(GameObject obj)
+    void ApplyWaveEnemy(GameObject obj)
     {
-        if (waveSpritesets == null || waveSpritesets.Length == 0 || obj == null) return;
+        if (waveEnemySets == null || waveEnemySets.Length == 0 || obj == null) return;
         int round = GameManager.Instance != null ? GameManager.Instance.GetCurrentRound() : 1;
-        Sprite target = null;
-        foreach (WaveSpriteSet set in waveSpritesets)
-            if (round >= set.fromRound) target = set.enemySprite;
+        WaveEnemySet target = null;
+        foreach (WaveEnemySet set in waveEnemySets)
+            if (round >= set.fromRound) target = set;
         if (target == null) return;
-        SpriteRenderer sr = obj.GetComponentInChildren<SpriteRenderer>();
-        if (sr != null) sr.sprite = target;
+        EnemyHealth eh = obj.GetComponent<EnemyHealth>();
+        if (eh != null) eh.ApplyWaveEnemy(target.animatorController, target.staticSprite);
     }
 
     public void ApplyRoundSettings(int round)
@@ -65,17 +69,17 @@ public class EnemySpawner : MonoBehaviour
         if (data != null)
         {
             int offsetInRange = round - data.waveStart;
-            currentEnemyHp      = data.baseHp + data.hpIncrement * offsetInRange;
-            currentSpawnDelay   = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
-            currentEnemySpeed   = data.enemySpeed;
+            currentEnemyHp = data.baseHp + data.hpIncrement * offsetInRange;
+            currentSpawnDelay = Mathf.Max(0.1f, data.spawnDelay - data.spawnDelayDecrement * offsetInRange);
+            currentEnemySpeed = data.enemySpeed;
             currentEnemyDefense = data.enemyDefense;
             if (CoinManager.Instance != null) CoinManager.Instance.coinsPerKill = data.coinsPerKill;
         }
         else
         {
-            currentEnemyHp      = 50f;
-            currentSpawnDelay   = 1f;
-            currentEnemySpeed   = 2f;
+            currentEnemyHp = 50f;
+            currentSpawnDelay = 1f;
+            currentEnemySpeed = 2f;
             currentEnemyDefense = 0f;
         }
         if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
@@ -97,7 +101,7 @@ public class EnemySpawner : MonoBehaviour
         Vector2 offsetPos = spawnPosition;
         offsetPos.x += Random.Range(-0.3f, 0.3f);
         GameObject obj = Instantiate(enemyPrefab, offsetPos, Quaternion.identity);
-        ApplyWaveSprite(obj);
+        try { ApplyWaveEnemy(obj); } catch (System.Exception) { }
 
         EnemyMove enemyMove = obj.GetComponent<EnemyMove>();
         if (enemyMove != null)
@@ -112,9 +116,9 @@ public class EnemySpawner : MonoBehaviour
         if (enemyHealth != null)
         {
             enemyHealth.Init(currentEnemyHp, currentEnemyDefense);
-            float passiveDefenseDown  = PassiveManager.Instance  != null ? PassiveManager.Instance.GetTotalEnemyDefenseDown()  : 0f;
-            float anvilDefenseDown   = AnvilManager.Instance   != null ? AnvilManager.Instance.BonusDefenseDown              : 0f;
-            float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown             : 0f;
+            float passiveDefenseDown = PassiveManager.Instance != null ? PassiveManager.Instance.GetTotalEnemyDefenseDown() : 0f;
+            float anvilDefenseDown = AnvilManager.Instance != null ? AnvilManager.Instance.BonusDefenseDown : 0f;
+            float augmentDefenseDown = AugmentManager.Instance != null ? AugmentManager.Instance.BonusDefenseDown : 0f;
             enemyHealth.ApplyDefenseDownPercent(passiveDefenseDown + anvilDefenseDown + augmentDefenseDown);
         }
 

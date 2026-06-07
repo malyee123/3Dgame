@@ -10,9 +10,9 @@ public class TitleManager : MonoBehaviour
     [Header("Blink Settings")]
     public float blinkInterval = 0.5f;
 
-    private bool isLoading = false;
+    private bool isLoading  = false;
     private float blinkTimer = 0f;
-    private bool inputReady = false;
+    private bool inputReady  = false;
 
     void Start()
     {
@@ -37,17 +37,19 @@ public class TitleManager : MonoBehaviour
                 pressAnyKeyText.enabled = !pressAnyKeyText.enabled;
         }
 
-        if (Input.GetMouseButtonUp(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended))
+        if (Input.GetMouseButtonUp(0) ||
+           (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended))
         {
             isLoading = true;
-            StartCoroutine(LoadSceneNextFrame());
+            StartCoroutine(LoadTitleToLobby());
         }
     }
 
-    System.Collections.IEnumerator LoadSceneNextFrame()
+    System.Collections.IEnumerator LoadTitleToLobby()
     {
         yield return null;
         yield return null;
+        // TitleScene → LobbyScene: 딜레이 없이 즉시 전환
         SceneManager.LoadScene("LobbyScene");
     }
 }

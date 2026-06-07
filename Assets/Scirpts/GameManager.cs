@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("LobbyScene");
+        SceneLoader.GoTo("LobbyScene");
     }
 
     void LoadDemoEnd()
@@ -148,7 +148,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("DemoEndScene");
+        SceneLoader.GoTo("DemoEndScene");
     }
 
     void NextRound()
@@ -182,7 +182,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("GameOverScene");
+        SceneLoader.GoTo("GameOverScene");
     }
 
     void UpdateAllUI()

@@ -82,7 +82,7 @@ public class StageSelectManager : MonoBehaviour
                     {
                         PlayerPrefs.SetInt("SelectedStage", selected);
                         PlayerPrefs.Save();
-                        SceneManager.LoadScene("GameScene");
+                        SceneLoader.GoTo("GameScene");
                     });
                 }
             }
@@ -98,5 +98,5 @@ public class StageSelectManager : MonoBehaviour
         return max;
     }
 
-    public void GoToLobby() => SceneManager.LoadScene("LobbyScene");
+    public void GoToLobby() => SceneLoader.GoTo("LobbyScene");
 }

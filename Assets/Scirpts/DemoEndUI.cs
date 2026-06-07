@@ -35,7 +35,7 @@ public class DemoEndUI : MonoBehaviour
     public void GoToLobby()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("LobbyScene");
+        SceneLoader.GoTo("LobbyScene");
     }
 
     public void QuitGame()

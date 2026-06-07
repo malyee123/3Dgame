@@ -74,5 +74,5 @@ public class PassiveUpgradeUI : MonoBehaviour
     public void OnClickTier3() => OnClickTierPassive(3);
     public void OnClickTier4() => OnClickTierPassive(4);
     public void OnClickTier5() => OnClickTierPassive(5);
-    public void OnClickClose() => SceneManager.LoadScene("LobbyScene");
+    public void OnClickClose() => SceneLoader.GoTo("LobbyScene");
 }

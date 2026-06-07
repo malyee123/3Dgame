@@ -48,6 +48,36 @@ public class EnemyHealth : MonoBehaviour
     void Start() { if (currentHp <= 0f) Init(maxHp, defense); }
 
     public void ApplyDefenseDownPercent(float percent) => defenseDownPercent = Mathf.Clamp(percent, 0f, 100f);
+    public void ApplyWaveEnemy(RuntimeAnimatorController controller, Sprite staticSprite)
+    {
+        Animator anim = GetComponentInChildren<Animator>();
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+
+        if (controller != null && anim != null)
+        {
+            // AnimatorOverrideController 사용:
+            // 기존 컨트롤러의 파라미터/상태 구조를 유지하면서 클립만 교체
+            // runtimeAnimatorController 직접 교체 시 SPUM 딕셔너리 무효화 방지
+            try
+            {
+                AnimatorOverrideController overrideCtrl =
+                    new AnimatorOverrideController(controller);
+                anim.enabled = true;
+                anim.runtimeAnimatorController = overrideCtrl;
+            }
+            catch (System.Exception)
+            {
+                // SPUM 등 커스텀 애니메이션 시스템과 충돌 시 조용히 스킵
+            }
+        }
+        else if (staticSprite != null)
+        {
+            // 애니메이션 없는 정적 스프라이트: Animator 비활성화 후 스프라이트 고정
+            if (anim != null) anim.enabled = false;
+            if (sr != null) sr.sprite = staticSprite;
+        }
+    }
+
     public void BoostMaxHp(float multiplier) { maxHp *= multiplier; currentHp *= multiplier; if (hpSlider != null) { hpSlider.maxValue = maxHp; hpSlider.value = currentHp; } }
 
     public void TakeDamage(float damage, PlayerAttack attacker = null, bool isSkillDamage = false)

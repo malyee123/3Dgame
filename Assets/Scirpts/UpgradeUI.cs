@@ -102,5 +102,5 @@ public class UpgradeUI : MonoBehaviour
     public void OnClickCoinPerKill() { UpgradeManager.Instance.UpgradeCoinPerKill(); RefreshUI(); }
     public void OnClickStartingCoin() { UpgradeManager.Instance.UpgradeStartingCoin(); RefreshUI(); }
     public void OnClickTierUnlock() { UpgradeManager.Instance.UnlockNextTier(); RefreshUI(); }
-    public void OnClickClose() => SceneManager.LoadScene("LobbyScene");
+    public void OnClickClose() => SceneLoader.GoTo("LobbyScene");
 }
