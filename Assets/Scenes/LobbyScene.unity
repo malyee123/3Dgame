@@ -267,7 +267,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &19872846
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,7 +283,7 @@ MonoBehaviour:
   transitionCanvas: {fileID: 1338246094}
   backgroundPanel: {fileID: 1304366545}
   loadingText: {fileID: 2033443648}
-  minDelaySeconds: 0.2
+  minDelaySeconds: 0.5
 --- !u!4 &19872847
 Transform:
   m_ObjectHideFlags: 0
