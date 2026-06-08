@@ -54,7 +54,7 @@ public class EncyclopediaSlot : MonoBehaviour
 
     void OnClick()
     {
-        manager?.OnSlotSelected(this, data);
+        manager?.ShowDetail(data);
     }
 
     public void SetHighlight(bool active)

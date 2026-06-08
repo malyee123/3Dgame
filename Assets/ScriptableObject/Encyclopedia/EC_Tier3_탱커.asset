@@ -22,6 +22,7 @@ MonoBehaviour:
   range: 1.5
   skillSprites:
   - {fileID: -2889204279427158608, guid: 190b590b4e79dd14b8a6211fdfab1a45, type: 3}
-  skillDescriptions: []
+  skillDescriptions:
+  - 
   description: "\uAC15\uB825\uD574\uC9C4 \uBC29\uD328\uB85C \uACF5\uACA9\uD569\uB2C8\uB2E4"
   unlockRound: 2
