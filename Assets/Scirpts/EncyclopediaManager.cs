@@ -1,213 +1,392 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
+/// <summary>
+/// 도감 씬 전체를 총괄하는 매니저.
+/// - 캐릭터 데이터를 티어별로 분류하여 좌측 그리드에 동적 생성
+/// - 슬롯 클릭 시 우측 상세 패널 갱신
+/// - 스킬 아이콘 이미지 툴팁 팝업 제어
+/// - 버그 방어: 코루틴 기반 강제 레이아웃 재계산
+/// </summary>
 public class EncyclopediaManager : MonoBehaviour
 {
-    [Header("Data")]
-    public EncyclopediaCharacterData[] allCharacters; // 도감 데이터 에셋들
+    // ══════════════════════════════════════════════════════
+    // 싱글턴
+    // ══════════════════════════════════════════════════════
+    public static EncyclopediaManager Instance { get; private set; }
 
-    [Header("List UI")]
-    public Transform contentParent; // LeftPanel -> Viewport -> Content
-    public GameObject tierSectionPrefab; // 1티어, 2티어 등 섹션 프리팹
-    public GameObject slotPrefab; // 개별 캐릭터 카드(초상화) 프리팹
+    // ══════════════════════════════════════════════════════
+    // Inspector 연결 필드 — 좌측 목록
+    // ══════════════════════════════════════════════════════
+    [Header("▼ 좌측 목록 패널")]
+    [Tooltip("LeftPanel → Viewport → Content 오브젝트를 여기에 연결")]
+    public Transform  listContent;
+    [Tooltip("TierSectionPrefab (Project 폴더에서 드래그)")]
+    public GameObject tierSectionPrefab;
+    [Tooltip("EncyclopediaSlotPrefab (Project 폴더에서 드래그)")]
+    public GameObject slotPrefab;
 
-    [Header("Detail Panel UI")]
-    public GameObject detailPanel; // 선택 전 숨겨둘 전체 우측 패널
-    public TextMeshProUGUI detailNameText; // 상단 캐릭터 이름 텍스트
-    public Image detailPortraitImage; // 좌측 큰 전신 일러스트 이미지
-    public TextMeshProUGUI detailAttackText; // 스탯 - 공격력
-    public TextMeshProUGUI detailSpeedText; // 스탯 - 공격속도
-    public TextMeshProUGUI detailRangeText; // 스탯 - 사거리
+    // ══════════════════════════════════════════════════════
+    // Inspector 연결 필드 — 캐릭터 데이터
+    // ══════════════════════════════════════════════════════
+    [Header("▼ 캐릭터 데이터 배열")]
+    [Tooltip("모든 EncyclopediaCharacterData 에셋을 여기에 등록")]
+    public EncyclopediaCharacterData[] allCharacters;
 
-    [Header("Stars UI")]
-    public Image[] detailStars; // 별 5개가 들어갈 이미지 슬롯 배열
-    public Sprite starOnSprite; // 활성화된 노란 별 스프라이트
-    public Sprite starOffSprite; // 비활성화된 회색 별 스프라이트
+    // ══════════════════════════════════════════════════════
+    // Inspector 연결 필드 — 우측 상세 패널
+    // ══════════════════════════════════════════════════════
+    [Header("▼ 우측 상세 패널")]
+    [Tooltip("DetailPanel 오브젝트 (기본 비활성화 상태)")]
+    public GameObject detailPanel;
+    [Tooltip("DetailPanel → DetailFullBody Image")]
+    public Image      detailFullBody;
+    [Tooltip("DetailPanel → DetailName TMP")]
+    public TextMeshProUGUI detailName;
 
-    [Header("Skill UI")]
-    public Transform detailSkillContainer; // 스킬 아이콘들이 생성될 부모 (SkillIcons)
-    public GameObject skillIconPrefab; // 단일 스킬 아이콘 프리팹
-    public GameObject detailSkillDescPanel; // 스킬 툴팁(말풍선) 패널 자체 —— [★가이드북 기반 명칭 수정]
-    public TextMeshProUGUI detailSkillDescText; // 툴팁 내 스킬 설명 텍스트 —— [★가이드북 기반 명칭 수정]
+    [Header("▼ 별점 (Star1~Star5)")]
+    [Tooltip("Star1~Star5 Image 배열, Size=5 로 설정 후 각각 연결")]
+    public Image[] detailStars;
+    [Tooltip("채워진 노란 별 Sprite")]
+    public Sprite  starOnSprite;
+    [Tooltip("빈 회색 별 Sprite")]
+    public Sprite  starOffSprite;
 
-    // 생성된 스킬 아이콘들을 추적하고 지우기 위한 리스트
-    private List<GameObject> activeSkillIcons = new List<GameObject>();
+    [Header("▼ 스탯 텍스트")]
+    public TextMeshProUGUI detailAttackText;
+    public TextMeshProUGUI detailSpeedText;
+    public TextMeshProUGUI detailRangeText;
+    public TextMeshProUGUI detailDescription;
 
-    void Start()
+    [Header("▼ 스킬 아이콘 영역")]
+    [Tooltip("SkillIconsRow 오브젝트 (Horizontal Layout Group 부착)")]
+    public Transform  skillIconsContainer;
+    [Tooltip("스킬 아이콘 1개짜리 프리팹 (SkillTooltipTrigger 부착)")]
+    public GameObject skillIconPrefab;
+
+    // ══════════════════════════════════════════════════════
+    // Inspector 연결 필드 — 이미지 툴팁 팝업
+    // ══════════════════════════════════════════════════════
+    [Header("▼ 이미지 툴팁 팝업 (Canvas 최상위에 배치)")]
+    [Tooltip("ImageTooltipPopup 오브젝트 (Canvas 직속 자식, 기본 비활성)")]
+    public GameObject tooltipPopupPanel;
+    [Tooltip("ImageTooltipPopup → TooltipImage Image 컴포넌트")]
+    public Image      tooltipImage;
+
+    [Header("▼ 뒤로가기 버튼")]
+    public UnityEngine.UI.Button backButton;
+
+    // ══════════════════════════════════════════════════════
+    // 내부 상태
+    // ══════════════════════════════════════════════════════
+    private EncyclopediaSlot currentSelectedSlot;
+
+    // ══════════════════════════════════════════════════════
+    // Unity 생명주기
+    // ══════════════════════════════════════════════════════
+    private void Awake()
     {
-        // 게임 시작 시 우측 상세 정보 패널은 꺼둡니다. (카드를 눌러야 켜짐)
-        if (detailPanel != null) detailPanel.SetActive(false);
-        BuildList();
+        // 싱글턴 초기화
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
     }
 
-    /// <summary>
-    /// 좌측 도감 스크롤 목록을 동적으로 생성하는 함수
-    /// </summary>
-    private void BuildList()
+    private void Start()
     {
-        if (contentParent == null || allCharacters == null) return;
+        // 상세 패널과 툴팁 팝업은 처음에 비활성
+        if (detailPanel       != null) detailPanel.SetActive(false);
+        if (tooltipPopupPanel != null) tooltipPopupPanel.SetActive(false);
 
-        // 1. 기존 생성된 리스트가 있다면 모두 청소 (중복 생성 방지)
-        foreach (Transform child in contentParent)
+        // 뒤로가기 버튼 이벤트 연결
+        if (backButton != null)
         {
-            Destroy(child.gameObject);
+            backButton.onClick.RemoveAllListeners();
+            backButton.onClick.AddListener(() => SceneLoader.GoTo("LobbyScene"));
         }
 
-        // 2. 캐릭터 데이터를 티어(Tier) 번호별로 묶어주기 위한 Dictionary 활용
-        Dictionary<int, List<EncyclopediaCharacterData>> tierGroups = new Dictionary<int, List<EncyclopediaCharacterData>>();
+        // 목록 빌드 및 해금 체크
+        BuildList();
+        CheckRoundUnlocks();
+    }
+
+    // ══════════════════════════════════════════════════════
+    // BuildList — 티어별 그룹핑 → SlotContainer 하위에 동적 생성
+    //
+    // ⚠ 버그 3 방어: 코루틴으로 강제 레이아웃 재계산
+    // ══════════════════════════════════════════════════════
+    public void BuildList()
+    {
+        if (listContent == null)
+        {
+            Debug.LogError("[EncyclopediaManager] listContent가 연결되지 않았습니다!");
+            return;
+        }
+        if (allCharacters == null || allCharacters.Length == 0)
+        {
+            Debug.LogWarning("[EncyclopediaManager] allCharacters 배열이 비어있습니다.");
+            return;
+        }
+
+        // ── 기존 목록 전부 제거 ──────────────────────────
+        foreach (Transform child in listContent)
+            Destroy(child.gameObject);
+
+        // ── 티어별 Dictionary 그룹핑 ────────────────────
+        // Key: 티어 번호(int)  Value: 해당 티어 캐릭터 리스트
+        var tierGroups = new Dictionary<int, List<EncyclopediaCharacterData>>();
+
         foreach (var cd in allCharacters)
         {
             if (cd == null) continue;
             if (!tierGroups.ContainsKey(cd.tier))
-            {
                 tierGroups[cd.tier] = new List<EncyclopediaCharacterData>();
-            }
             tierGroups[cd.tier].Add(cd);
         }
 
-        // 3. 티어 숫자를 기준으로 오름차순 정렬 (1티어 -> 2티어 -> 3티어 순서)
-        List<int> tiers = new List<int>(tierGroups.Keys);
-        tiers.Sort();
+        // ── 티어 오름차순 정렬 ───────────────────────────
+        var sortedTiers = new List<int>(tierGroups.Keys);
+        sortedTiers.Sort();
 
-        // 4. 정렬된 티어 순서대로 화면에 프리팹 생성 시작
-        foreach (int tier in tiers)
+        // ── 티어 섹션 및 슬롯 생성 ──────────────────────
+        foreach (int tier in sortedTiers)
         {
-            // 기본적으로 슬롯이 생성될 부모 위치는 contentParent로 설정해둡니다.
-            Transform targetSlotParent = contentParent;
+            if (tierSectionPrefab == null) break;
 
-            // [A] 티어 섹션(헤더 텍스트 + 가로선 + SlotContainer) 통째로 생성
-            if (tierSectionPrefab != null)
+            // TierSectionPrefab 생성 → listContent 직속 자식
+            GameObject section = Instantiate(tierSectionPrefab, listContent);
+
+            // TierLabel 텍스트 설정
+            Transform header = section.transform.Find("TierHeader");
+            var label = header != null
+                ? header.GetComponentInChildren<TextMeshProUGUI>()
+                : section.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null) label.text = $"{tier}티어";
+
+            // SlotContainer (GridLayoutGroup 보유 오브젝트) 탐색
+            // ⭐ 핵심: listContent가 아닌 SlotContainer 하위에 생성해야
+            //         GridLayoutGroup 이 올바르게 배치
+            Transform slotContainer = section.transform.Find("SlotContainer");
+            if (slotContainer == null)
             {
-                GameObject sectionObj = Instantiate(tierSectionPrefab, contentParent);
-
-                // 티어 이름 텍스트 적용 (예: "1티어")
-                TextMeshProUGUI label = sectionObj.GetComponentInChildren<TextMeshProUGUI>();
-                if (label != null) label.text = $"{tier}티어";
-
-                // ★핵심: 하이어라키 개편에 맞춰, 생성된 섹션 내부의 'SlotContainer'를 찾아서 타겟 부모로 변경합니다.
-                // 이렇게 해야 카드들이 일렬로 세로 정렬되지 않고, Grid 바둑판 안에 예쁘게 들어갑니다.
-                Transform containerFinder = sectionObj.transform.Find("SlotContainer");
-                if (containerFinder != null)
-                {
-                    targetSlotParent = containerFinder;
-                }
+                // 이름으로 찾지 못하면 GridLayoutGroup으로 자동 탐색 (폴백)
+                var grid = section.GetComponentInChildren<GridLayoutGroup>();
+                slotContainer = (grid != null) ? grid.transform : section.transform;
             }
 
-            // [B] 해당 티어에 속하는 캐릭터 슬롯(카드)들을 'SlotContainer' 내부에 생성
+            // 해당 티어 캐릭터마다 슬롯 생성
             foreach (var cd in tierGroups[tier])
             {
-                if (slotPrefab == null) continue;
-
-                // targetSlotParent(즉, SlotContainer) 하위에 카드 생성
-                GameObject slotObj = Instantiate(slotPrefab, targetSlotParent);
-                EncyclopediaSlot slot = slotObj.GetComponent<EncyclopediaSlot>();
+                if (slotPrefab == null) break;
+                var slotObj = Instantiate(slotPrefab, slotContainer);
+                var slot    = slotObj.GetComponent<EncyclopediaSlot>();
                 if (slot != null)
-                {
-                    slot.Setup(cd, this); // 카드에 데이터 전달 및 매니저 본인 연결
-                }
+                    slot.Setup(cd, this);
             }
         }
 
-        // 레이아웃이 겹치거나 깨지는 현상을 방지하기 위한 UI 강제 새로고침 명령
-        Canvas.ForceUpdateCanvases();
-        var layoutGroups = contentParent.GetComponentsInChildren<LayoutGroup>();
-        foreach (var lg in layoutGroups)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(lg.GetComponent<RectTransform>());
-        }
+        // ⚠ 버그 3 방어: 동적 생성 직후 강제 레이아웃 재계산
+        StartCoroutine(ForceLayoutRefresh());
+
     }
 
-    /// <summary>
-    /// 좌측 리스트에서 특정 캐릭터 카드를 클릭했을 때 우측 상세 패널을 업데이트하는 함수
-    /// </summary>
-    public void ShowDetail(EncyclopediaCharacterData data)
+    // ══════════════════════════════════════════════════════
+    // 코루틴 기반 강제 레이아웃 재계산 (버그 3 방어)
+    // ══════════════════════════════════════════════════════
+    private IEnumerator ForceLayoutRefresh()
     {
-        // 숨겨두었던 전체 상세 패널을 활성화합니다.
-        if (detailPanel != null) detailPanel.SetActive(true);
+        // 1프레임 대기: Instantiate 완전 완료 보장
+        yield return null;
+        // 추가 1프레임 대기: LayoutGroup 내부 계산 완료 보장
+        yield return null;
 
-        // 1. 이름과 일러스트 세팅
-        if (detailNameText != null) detailNameText.text = data.characterName;
-        if (detailPortraitImage != null) detailPortraitImage.sprite = data.fullBodySprite;
+        // Canvas 전체 강제 업데이트
+        Canvas.ForceUpdateCanvases();
 
-        // 2. 스탯 텍스트 세팅 (데이터 파싱)
-        if (detailAttackText != null) detailAttackText.text = $"공격력 : {data.attackPower}";
-        if (detailSpeedText != null) detailSpeedText.text = $"공격 속도 : {data.attackSpeed}";
-        if (detailRangeText != null) detailRangeText.text = $"사거리 : {data.range}";
+        // listContent의 RectTransform 강제 재계산
+        if (listContent != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(
+                listContent.GetComponent<RectTransform>());
+        }
 
-        // 3. 별점(Star) UI 교체 로직
-        // 배열 길이는 5개 고정. 보유한 starRating 수치만큼 노란별을 채우고 나머지는 회색별로 덮습니다.
+        Debug.Log("[EncyclopediaManager] 레이아웃 강제 재계산 완료");
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 슬롯 클릭 콜백 — EncyclopediaSlot에서 호출
+    // ══════════════════════════════════════════════════════
+    public void OnSlotSelected(EncyclopediaSlot slot, EncyclopediaCharacterData data)
+    {
+        // 이전 선택 하이라이트 해제
+        if (currentSelectedSlot != null)
+            currentSelectedSlot.SetHighlight(false);
+
+        currentSelectedSlot = slot;
+        slot.SetHighlight(true);
+
+        // 툴팁 팝업 닫기 (다른 캐릭터 선택 시 자동 닫힘)
+        HideImageTooltip();
+
+        // 우측 패널 갱신
+        ShowDetailPanel(data);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 우측 상세 패널 갱신
+    // ══════════════════════════════════════════════════════
+    private void ShowDetailPanel(EncyclopediaCharacterData data)
+    {
+        if (detailPanel == null) return;
+        detailPanel.SetActive(true);
+
+        // ── 풀바디 이미지 ────────────────────────────────
+        if (detailFullBody != null)
+        {
+            detailFullBody.sprite  = data.fullBodySprite;
+            detailFullBody.enabled = data.fullBodySprite != null;
+        }
+
+        // ── 캐릭터 이름 ──────────────────────────────────
+        if (detailName != null) detailName.text = data.characterName;
+
+        // ── 별점 (starRating 수만큼 노란별) ─────────────
         if (detailStars != null)
         {
             for (int i = 0; i < detailStars.Length; i++)
             {
-                if (i < data.starRating)
-                    detailStars[i].sprite = starOnSprite;
-                else
-                    detailStars[i].sprite = starOffSprite;
+                if (detailStars[i] == null) continue;
+                bool on = (i < data.starRating);
+                if (on  && starOnSprite  != null) detailStars[i].sprite = starOnSprite;
+                if (!on && starOffSprite != null) detailStars[i].sprite = starOffSprite;
+                detailStars[i].color = on
+                    ? new Color(1.0f, 0.85f, 0.0f, 1f)  // 노란색
+                    : new Color(0.3f, 0.3f, 0.3f, 1f);  // 회색
             }
         }
 
-        // 4. 스킬 영역 및 툴팁 초기화 로직 호출
-        UpdateSkillSection(data);
+        // ── 스탯 텍스트 ──────────────────────────────────
+        if (detailAttackText != null)
+            detailAttackText.text = $"공격력 : {data.attackPower}";
+        if (detailSpeedText != null)
+            detailSpeedText.text  = $"공격 속도 : {data.attackSpeed}";
+        if (detailRangeText != null)
+            detailRangeText.text  = $"사거리 : {data.range}";
+
+        // ── 설명 텍스트 ──────────────────────────────────
+        if (detailDescription != null)
+            detailDescription.text = data.description;
+
+        // ── 스킬 아이콘 동적 생성 ─────────────────────────
+        RefreshSkillIcons(data);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 스킬 아이콘 갱신
+    // ══════════════════════════════════════════════════════
+    private void RefreshSkillIcons(EncyclopediaCharacterData data)
+    {
+        if (skillIconsContainer == null) return;
+
+        // 기존 아이콘 전부 삭제
+        foreach (Transform child in skillIconsContainer)
+            Destroy(child.gameObject);
+
+        if (data.skillIcons == null || data.skillIcons.Length == 0) return;
+
+        for (int i = 0; i < data.skillIcons.Length; i++)
+        {
+            if (skillIconPrefab == null) break;
+            if (data.skillIcons[i] == null) continue;
+
+            // 스킬 아이콘 프리팹 생성
+            var iconObj = Instantiate(skillIconPrefab, skillIconsContainer);
+
+            // 아이콘 이미지 설정
+            var img = iconObj.GetComponent<Image>();
+            if (img != null)
+            {
+                img.sprite         = data.skillIcons[i];
+                img.preserveAspect = true;
+                img.color          = Color.white;
+            }
+
+            // SkillTooltipTrigger 초기화 (툴팁 스프라이트 주입)
+            var trigger = iconObj.GetComponent<SkillTooltipTrigger>();
+            if (trigger != null)
+            {
+                // 1:1 매칭: skillTooltipSprites[i]가 있으면 사용, 없으면 null
+                Sprite tooltip = (data.skillTooltipSprites != null && i < data.skillTooltipSprites.Length)
+                    ? data.skillTooltipSprites[i]
+                    : null;
+                trigger.Initialize(tooltip, this);
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 이미지 툴팁 팝업 제어 — SkillTooltipTrigger 에서 호출
+    // ══════════════════════════════════════════════════════
+    /// <summary>툴팁 이미지 팝업을 표시한다.</summary>
+    public void ShowImageTooltip(Sprite tooltipSprite)
+    {
+        if (tooltipPopupPanel == null || tooltipImage == null) return;
+        if (tooltipSprite == null) return;
+
+        tooltipImage.sprite  = tooltipSprite;
+        tooltipImage.enabled = true;
+        tooltipPopupPanel.SetActive(true);
+    }
+
+    /// <summary>툴팁 이미지 팝업을 숨긴다.</summary>
+    public void HideImageTooltip()
+    {
+        if (tooltipPopupPanel != null)
+            tooltipPopupPanel.SetActive(false);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 해금 관련
+    // ══════════════════════════════════════════════════════
+    /// <summary>현재 게임 라운드 기준으로 자동 해금 체크.</summary>
+    public void CheckRoundUnlocks()
+    {
+        int  currentRound = PlayerPrefs.GetInt("LastRound", 0);
+        bool anyUnlocked  = false;
+
+        foreach (var cd in allCharacters)
+        {
+            if (EncyclopediaCharacterData.CheckAndUnlockByRound(cd, currentRound))
+                anyUnlocked = true;
+        }
+
+        // 새로 해금된 캐릭터가 있으면 목록 재빌드
+        if (anyUnlocked) BuildList();
     }
 
     /// <summary>
-    /// 우측 하단의 스킬 아이콘들을 동적으로 생성하고 버튼 이벤트를 연결하는 함수
+    /// 외부(GameScene 등)에서 캐릭터 이름+티어로 즉시 해금 처리.
+    /// 예) EncyclopediaManager.UnlockByName("기사", 5);
     /// </summary>
-    private void UpdateSkillSection(EncyclopediaCharacterData data)
+    public static void UnlockByName(string characterName, int tier)
     {
-        // 이전에 선택했던 캐릭터의 스킬 아이콘들이 남아있다면 모두 파괴
-        foreach (var icon in activeSkillIcons)
+        if (Instance == null) return;
+        foreach (var cd in Instance.allCharacters)
         {
-            Destroy(icon);
-        }
-        activeSkillIcons.Clear();
-
-        // 다른 캐릭터를 눌렀을 때 기본적으로 말풍선 툴팁창은 닫힌 상태로 초기화
-        if (detailSkillDescPanel != null) detailSkillDescPanel.SetActive(false);
-
-        // 데이터에 스킬 이미지가 배열로 존재할 경우 아이콘 생성
-        if (data.skillSprites != null && data.skillSprites.Length > 0)
-        {
-            for (int i = 0; i < data.skillSprites.Length; i++)
+            if (cd == null) continue;
+            if (cd.characterName == characterName && cd.tier == tier)
             {
-                // 부모(SkillIcons) 아래에 단일 스킬 아이콘 생성
-                GameObject iconObj = Instantiate(skillIconPrefab, detailSkillContainer);
-                activeSkillIcons.Add(iconObj);
-
-                // 스킬 이미지 교체
-                Image iconImg = iconObj.GetComponent<Image>();
-                if (iconImg != null) iconImg.sprite = data.skillSprites[i];
-
-                // 스킬 아이콘 버튼을 클릭하면 해당 스킬의 툴팁을 띄우도록 이벤트 연결
-                Button btn = iconObj.GetComponent<Button>();
-                if (btn != null)
-                {
-                    // 스킬 설명 데이터가 비어있을 경우를 대비한 안전 장치
-                    string desc = (data.skillDescriptions != null && i < data.skillDescriptions.Length)
-                                  ? data.skillDescriptions[i] : "해당 스킬에 대한 설명이 없습니다.";
-
-                    // 람다식을 이용해 클릭 이벤트 등록
-                    btn.onClick.AddListener(() => ShowSkillTooltip(desc));
-                }
-            }
-
-            // 편의성: 캐릭터를 처음 클릭했을 때 첫 번째 스킬의 말풍선이 자동으로 열려있게 세팅
-            if (data.skillDescriptions != null && data.skillDescriptions.Length > 0)
-            {
-                ShowSkillTooltip(data.skillDescriptions[0]);
+                EncyclopediaCharacterData.Unlock(cd);
+                Instance.BuildList(); // 목록 즉시 갱신
+                return;
             }
         }
-    }
-
-    /// <summary>
-    /// 하단 말풍선 패널을 켜고, 매개변수로 받은 설명 텍스트를 출력하는 함수
-    /// </summary>
-    public void ShowSkillTooltip(string description)
-    {
-        if (detailSkillDescPanel != null) detailSkillDescPanel.SetActive(true);
-        if (detailSkillDescText != null) detailSkillDescText.text = description;
     }
 }
