@@ -1,93 +1,83 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// 각 스킬 아이콘 오브젝트에 부착.
-/// 마우스 Hover(Enter/Exit) 및 Click 으로 스킬 설명 이미지 팝업을 제어한다.
-///
-/// 요구 컴포넌트: Image (아이콘 표시용)
-/// </summary>
+// ─────────────────────────────────────────────────────────
+//  SkillIconPrefab 루트에 부착
+//  RequireComponent(Image) 로 Raycast Target 보장
+// ─────────────────────────────────────────────────────────
+[RequireComponent(typeof(Image))]
 public class SkillTooltipTrigger : MonoBehaviour,
-    IPointerEnterHandler,   // 마우스가 올라왔을 때
-    IPointerExitHandler,    // 마우스가 벗어났을 때
-    IPointerClickHandler    // 클릭했을 때 (고정 토글용)
+    IPointerEnterHandler,
+    IPointerExitHandler
 {
-    // ───────── 런타임 주입 데이터 ─────────
-    // Initialize() 메서드를 통해 EncyclopediaManager가 주입
-    private UnityEngine.Sprite tooltipSprite; // 표시할 툴팁 이미지
-    private EncyclopediaManager manager;
-
-    // 클릭으로 팝업이 '고정' 된 상태인지 여부
-    private bool isPinnedByClick = false;
+    // Initialize() 로 주입
+    private Sprite              _tooltipSprite;
+    private EncyclopediaManager _manager;
+    private Image               _img;
 
     // ══════════════════════════════════════════════════════
-    // Initialize — EncyclopediaManager.RefreshSkillIcons() 에서 호출
+    //  Awake — RaycastTarget 선행 보장
     // ══════════════════════════════════════════════════════
-    /// <summary>
-    /// 이 트리거가 사용할 툴팁 스프라이트와 매니저를 주입한다.
-    /// Instantiate 직후 반드시 호출해야 한다.
-    /// </summary>
-    public void Initialize(UnityEngine.Sprite tooltip, EncyclopediaManager mgr)
+    private void Awake()
     {
-        tooltipSprite  = tooltip;
-        manager        = mgr;
-        isPinnedByClick = false;
+        _img = GetComponent<Image>();
+        if (_img != null)
+        {
+            _img.raycastTarget = true; // 이벤트 수신 절대 보장
+            _img.enabled       = true;
+        }
+        Debug.Log($"[Tooltip] Awake: {gameObject.name} | raycastTarget=true 설정");
     }
 
     // ══════════════════════════════════════════════════════
-    // IPointerEnterHandler — 마우스 올라옴 → 팝업 표시
+    //  Initialize — EncyclopediaManager 가 Instantiate 직후 호출
+    // ══════════════════════════════════════════════════════
+    public void Initialize(Sprite tooltipSprite, EncyclopediaManager manager)
+    {
+        _tooltipSprite = tooltipSprite;
+        _manager       = manager;
+
+        // Prefab 설정과 무관하게 강제 재보장
+        if (_img == null) _img = GetComponent<Image>();
+        if (_img != null)
+        {
+            _img.raycastTarget = true;
+            _img.enabled       = true;
+        }
+
+        Debug.Log($"[Tooltip] Initialize: {gameObject.name} | 툴팁={tooltipSprite?.name}");
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  마우스 진입 → 툴팁 표시
     // ══════════════════════════════════════════════════════
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // 클릭으로 다른 팝업이 고정된 상태가 아닐 때만 Hover 팝업 표시
-        if (!isPinnedByClick)
-            ShowTooltip();
+        Debug.Log($"[Tooltip] OnPointerEnter: {gameObject.name}");
+
+        if (_manager == null)
+        {
+            Debug.LogError("[Tooltip] _manager 가 null — Initialize 미호출 또는 매니저 연결 누락");
+            return;
+        }
+        if (_tooltipSprite == null)
+        {
+            Debug.LogWarning("[Tooltip] tooltipSprite 가 null — skillTooltipSprites 배열 확인");
+            return;
+        }
+
+        _manager.ShowTooltip(_tooltipSprite);
     }
 
     // ══════════════════════════════════════════════════════
-    // IPointerExitHandler — 마우스 벗어남 → 팝업 숨김
+    //  마우스 이탈 → 툴팁 숨김
     // ══════════════════════════════════════════════════════
     public void OnPointerExit(PointerEventData eventData)
     {
-        // 클릭 고정 상태라면 Exit 이벤트 무시
-        if (isPinnedByClick) return;
-        HideTooltip();
+        Debug.Log($"[Tooltip] OnPointerExit: {gameObject.name}");
+        _manager?.HideTooltip();
     }
 
-    // ══════════════════════════════════════════════════════
-    // IPointerClickHandler — 클릭 → 팝업 고정/해제 토글
-    // ══════════════════════════════════════════════════════
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        isPinnedByClick = !isPinnedByClick;
-
-        if (isPinnedByClick)
-            ShowTooltip();
-        else
-            HideTooltip();
-    }
-
-    // ══════════════════════════════════════════════════════
-    // 내부 팝업 표시 / 숨김 메서드
-    // ══════════════════════════════════════════════════════
-    private void ShowTooltip()
-    {
-        if (manager == null || tooltipSprite == null) return;
-        manager.ShowImageTooltip(tooltipSprite);
-    }
-
-    private void HideTooltip()
-    {
-        if (manager == null) return;
-        manager.HideImageTooltip();
-    }
-
-    // ══════════════════════════════════════════════════════
-    // 오브젝트 소멸 시 열린 팝업 자동 닫기
-    // ══════════════════════════════════════════════════════
-    private void OnDestroy()
-    {
-        if (isPinnedByClick)
-            HideTooltip();
-    }
+    private void OnDestroy() => _manager?.HideTooltip();
 }

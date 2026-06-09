@@ -4939,7 +4939,6 @@ MonoBehaviour:
   maxEnemyCount: 100
   bossWaveInterval: 10
   bossRoundDuration: 40
-  demoEndRound: 50
   enemyCountText: {fileID: 1603918615}
   roundText: {fileID: 1144987974}
   roundTimerText: {fileID: 304515278}
@@ -6302,19 +6301,29 @@ MonoBehaviour:
   pathManager: {fileID: 2072419691}
   spawnPosition: {x: -5.5, y: 2.5}
   waveEnemySets:
-  - fromRound: 0
+  - stageNumber: 1
+    fromWave: 1
+    toWave: 10
     animatorController: {fileID: 9100000, guid: 2d1d7850cfd4c784199800f48e37ad97, type: 2}
     staticSprite: {fileID: 0}
-  - fromRound: 10
+  - stageNumber: 1
+    fromWave: 11
+    toWave: 30
     animatorController: {fileID: 9100000, guid: f0428c9e14ca1c5419ea2b04e04fae98, type: 2}
     staticSprite: {fileID: 0}
-  - fromRound: 20
+  - stageNumber: 1
+    fromWave: 31
+    toWave: 45
     animatorController: {fileID: 9100000, guid: 0c132bb24a3acce4eb85b108ad40fdd4, type: 2}
     staticSprite: {fileID: 0}
-  - fromRound: 30
+  - stageNumber: 1
+    fromWave: 46
+    toWave: 47
     animatorController: {fileID: 9100000, guid: 13f9931a00a83284ba3732fd7c4663c1, type: 2}
     staticSprite: {fileID: 0}
-  - fromRound: 40
+  - stageNumber: 1
+    fromWave: 48
+    toWave: 50
     animatorController: {fileID: 9100000, guid: df6db4ec70af03d43a124cdfc647cacf, type: 2}
     staticSprite: {fileID: 0}
 --- !u!4 &1074021557

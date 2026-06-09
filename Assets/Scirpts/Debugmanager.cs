@@ -12,8 +12,8 @@ public class DebugManager : MonoBehaviour
     public Button debugAugmentButton;
     public TextMeshProUGUI debugStatusText;
 
-    private const int DEBUG_COINS         = 9999999;
-    private const int DEBUG_SPECIAL_COINS = 9999999;
+    private const int DEBUG_COINS         = 99999;
+    private const int DEBUG_SPECIAL_COINS = 99999;
     private const int DEBUG_UPGRADE_LEVEL = 100;
     private const int MAX_TIER_UPGRADE    = 10;
 

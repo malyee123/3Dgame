@@ -13,9 +13,6 @@ public class GameManager : MonoBehaviour
     public int bossWaveInterval = 10;
     public float bossRoundDuration = 40f;
 
-    [Header("Demo Settings")]
-    public int demoEndRound = 30;
-
     [Header("UI")]
     public TextMeshProUGUI enemyCountText;
     public TextMeshProUGUI roundText;
@@ -40,6 +37,7 @@ public class GameManager : MonoBehaviour
     private int prevRoundTimeLeft = -1;
     private int prevTotalTimeSeconds = -1;
     private int prevStage = -1;
+    private float prevRoundTimeLeftPublic = 0f;
 
     public bool IsWarning => isWarning;
 
@@ -105,19 +103,8 @@ public class GameManager : MonoBehaviour
         if (!isBossWave) return;
         if (BossManager.Instance != null) BossManager.Instance.ClearBossRef();
 
-        // 최초 1회만 DemoEnd 표시 (이후에는 정상 스테이지 클리어 진행)
-        if (currentStage == 1 && currentRound == demoEndRound)
-        {
-            bool demoEndShown = PlayerPrefs.GetInt("DemoEndShown", 0) == 1;
-            if (!demoEndShown)
-            {
-                PlayerPrefs.SetInt("DemoEndShown", 1);
-                PlayerPrefs.Save();
-                LoadDemoEnd();
-                return;
-            }
-        }
-
+        // [요구사항 1·2] 데모 체크 블록 제거됨.
+        // 스테이지 클리어 판정만 수행. 데모 처리는 StageClear() 내부에서 스테이지 번호로 분기.
         int stageEndRound = CSVLoader.Instance != null ? CSVLoader.Instance.GetStageEndRound(currentStage) : 50;
         if (currentRound >= stageEndRound) { StageClear(); return; }
 
@@ -129,26 +116,48 @@ public class GameManager : MonoBehaviour
 
     public void OnAugmentSelected() => roundTimeLeft = 0f;
 
+    // ─────────────────────────────────────────────────────────
+    // [요구사항 1·2] StageClear — 스테이지별 분기 처리
+    //
+    //  Stage 1 클리어 : 2스테이지 즉시 해금 → 로비 이동 (데모 없음)
+    //  Stage 2 클리어 : 데모 문구(DemoEndScene) 표시, 3스테이지 해금 없음
+    //  기타 스테이지  : 다음 스테이지 해금 → 로비 이동
+    // ─────────────────────────────────────────────────────────
     void StageClear()
     {
         isGameOver = true;
-        int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
-        if (currentStage >= unlockedStage) PlayerPrefs.SetInt("UnlockedStage", currentStage + 1);
+
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
         PlayerPrefs.SetInt("LastRound", currentRound);
+
+        if (currentStage == 2)
+        {
+            // Stage 2 클리어: 데모 문구 출력, Stage 3는 해금하지 않음
+            if (PlayerPrefs.GetInt("DemoEndShown", 0) == 0)
+            {
+                PlayerPrefs.SetInt("DemoEndShown", 1);
+                PlayerPrefs.Save();
+                Time.timeScale = 1f;
+                SceneLoader.GoTo("DemoEndScene");
+            }
+            else
+            {
+                // 이미 데모를 본 경우: 로비로 복귀 (Stage 3 해금 없음 유지)
+                PlayerPrefs.Save();
+                Time.timeScale = 1f;
+                SceneLoader.GoTo("LobbyScene");
+            }
+            return;
+        }
+
+        // Stage 1 및 기타: 다음 스테이지 즉시 해금 후 로비 이동
+        int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
+        if (currentStage >= unlockedStage)
+            PlayerPrefs.SetInt("UnlockedStage", currentStage + 1);
+
         PlayerPrefs.Save();
         Time.timeScale = 1f;
         SceneLoader.GoTo("LobbyScene");
-    }
-
-    void LoadDemoEnd()
-    {
-        isGameOver = true;
-        PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
-        PlayerPrefs.SetInt("LastRound", currentRound);
-        PlayerPrefs.Save();
-        Time.timeScale = 1f;
-        SceneLoader.GoTo("DemoEndScene");
     }
 
     void NextRound()
@@ -212,11 +221,13 @@ public class GameManager : MonoBehaviour
         if (enemyCountText != null) enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
     }
 
-    public float GetTotalTime()          => totalElapsedTime;
-    public int   GetCurrentRound()        => currentRound;
-    public int   GetCurrentStage()        => currentStage;
-    public int   GetCurrentEnemyCount()   => currentEnemyCount;
-    public float GetRoundTimeLeft()       => roundTimeLeft;
+    public float GetTotalTime() => totalElapsedTime;
+    public int GetCurrentRound() => currentRound;
+    public int GetCurrentStage() => currentStage;
+    public int GetCurrentEnemyCount() => currentEnemyCount;
+    public float GetRoundTimeLeft() => roundTimeLeft;
+    public float GetPrevRoundTimeLeft() => prevRoundTimeLeftPublic;
+
     public float GetCurrentRoundDuration()
     {
         if (CSVLoader.Instance != null)
@@ -226,8 +237,6 @@ public class GameManager : MonoBehaviour
         }
         return 60f;
     }
-    private float prevRoundTimeLeftPublic = 0f;
-    public float GetPrevRoundTimeLeft()   => prevRoundTimeLeftPublic;
 
     string FormatTime(float time)
     {

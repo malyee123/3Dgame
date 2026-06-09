@@ -20,7 +20,7 @@ public class SceneTransitionManager : MonoBehaviour
 
     private static readonly string[] loadingMessages =
     {
-        "로딩중..."
+        ""
     };
 
     void Awake()
