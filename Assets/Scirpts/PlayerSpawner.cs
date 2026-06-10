@@ -46,6 +46,9 @@ public class PlayerSpawner : MonoBehaviour
     private int baseCharacterLimit = 35;
     private int currentCharacterLimit = 35;
 
+    // 합성으로 소환 가능한 최고 결과 티어 (5티어는 조합표 전용)
+    public const int MAX_MERGE_RESULT_TIER = 4;
+
     private GameObject[] slotAuras;
     private int[] slotAuraTiers;
     private int[] slotOccupancy;
@@ -156,11 +159,9 @@ public class PlayerSpawner : MonoBehaviour
             if (cd != null && cd.tier >= 5) legends.Add(cd);
         if (legends.Count == 0) return;
         CharacterData chosen = legends[Random.Range(0, legends.Count)];
-        SyncSlotStateFromScene();
-        if (!HasAvailableSlot()) return;
-        string unitTag = GetUnitTag(chosen);
-        if (!TryGetSpawnSlot(unitTag, chosen.tier, out int spawnIndex)) return;
-        SpawnPlayer(spawnIndex, chosen, unitTag);
+        int slot = FindEmptySlot();
+        if (slot < 0) return;
+        SpawnCharacterAtSlot(chosen, slot);
     }
 
     public void SpawnRareUnits(int count)
@@ -330,6 +331,10 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (characterData == null) return false;
         int tier = Mathf.Max(1, characterData.tier);
+
+        // 5티어는 조합표 전용: 합성 결과가 MAX_MERGE_RESULT_TIER 초과하면 차단
+        if (tier + 1 > MAX_MERGE_RESULT_TIER) return false;
+
         int cost = characterData.upgradeCost;
         bool tierAllowed = UpgradeManager.Instance == null || (tier + 1) <= UpgradeManager.Instance.UnlockedTier;
         bool hasCoins = CoinManager.Instance != null && CoinManager.Instance.GetCoins() >= cost;
@@ -342,6 +347,10 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (characterData == null) return false;
         int tier = Mathf.Max(1, characterData.tier);
+
+        // 5티어는 조합표 전용: 유닛 파괴 전에 차단 (파괴 후 실패하면 유닛 손실)
+        if (tier + 1 > MAX_MERGE_RESULT_TIER) return false;
+
         List<PlayerAttack> slotUnits = GetUnitsInSlot(spawnIndex, unitTag, tier);
         if (slotUnits.Count < 3) return false;
         List<PlayerAttack> toRemove = slotUnits.GetRange(0, 3);
@@ -363,9 +372,22 @@ public class PlayerSpawner : MonoBehaviour
         SyncSlotStateFromScene();
         int finalSlot = -1;
         int maxUnits = nextData.tier >= 5 ? 1 : maxUnitsPerSlot;
+
+        // 1순위: 같은 캐릭터가 이미 있는 슬롯으로 이동
         if (tagToSlots.TryGetValue(newTag, out List<int> existingSlots))
             foreach (int s in existingSlots)
                 if (slotOccupancy[s] > 0 && slotOccupancy[s] < maxUnits) { finalSlot = s; break; }
+
+        // 2순위: 같은 캐릭터 없으면 합성이 일어난 슬롯(originalSlot)에 소환
+        if (finalSlot < 0)
+        {
+            if (originalSlot >= 0 &&
+                originalSlot < slotOccupancy.Length &&
+                slotOccupancy[originalSlot] == 0)
+                finalSlot = originalSlot;
+        }
+
+        // 3순위: originalSlot도 비어있지 않은 예외 케이스 → 랜덤 빈 슬롯
         if (finalSlot < 0)
         {
             List<int> emptySlots = new List<int>();
@@ -374,6 +396,7 @@ public class PlayerSpawner : MonoBehaviour
             if (emptySlots.Count > 0)
                 finalSlot = emptySlots[Random.Range(0, emptySlots.Count)];
         }
+
         if (finalSlot < 0) yield break;
         SpawnPlayer(finalSlot, nextData, newTag);
         StartCoroutine(MarkSlotMatesDirtyNextFrame(finalSlot));
@@ -556,5 +579,20 @@ public class PlayerSpawner : MonoBehaviour
         if (freeSpawnText == null) return;
         int count = AugmentManager.Instance != null ? AugmentManager.Instance.FreeSpawnCount : 0;
         freeSpawnText.text = $"무료소환 {count}회";
+    }
+
+    int FindEmptySlot()
+    {
+        if (slotOccupancy == null) return -1;
+        for (int i = 0; i < slotOccupancy.Length; i++)
+            if (slotOccupancy[i] == 0) return i;
+        return -1;
+    }
+
+    void SpawnCharacterAtSlot(CharacterData characterData, int slot)
+    {
+        if (characterData == null || slot < 0) return;
+        string unitTag = GetUnitTag(characterData);
+        SpawnPlayer(slot, characterData, unitTag);
     }
 }
