@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d72490bda0432fb45b9497e15c3713e1, type: 3}
   m_Name: "EC_Tier4_\uC804\uC0AC"
   m_EditorClassIdentifier: Assembly-CSharp::EncyclopediaCharacterData
-  characterName: "4\uD2F0\uC5B4 \uC804\uC0AC"
+  characterName: "\uC5D1\uC2A4\uD050\uC11C\uB108"
   tier: 4
   starRating: 4
   portraitSprite: {fileID: 5215318540660860647, guid: 1481ad271fb99354d9aa2e6643066834, type: 3}

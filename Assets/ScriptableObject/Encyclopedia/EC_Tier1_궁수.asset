@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d72490bda0432fb45b9497e15c3713e1, type: 3}
   m_Name: "EC_Tier1_\uAD81\uC218"
   m_EditorClassIdentifier: Assembly-CSharp::EncyclopediaCharacterData
-  characterName: "\uC6B0\uB9AC"
+  characterName: "\uC544\uCCD0"
   tier: 1
   starRating: 1
   portraitSprite: {fileID: 2814732546265260745, guid: 76186fd6e4c1d1748aee9b43ee664ae5, type: 3}
@@ -22,5 +22,5 @@ MonoBehaviour:
   range: 3
   skillIcons: []
   skillTooltipSprites: []
-  description: "\uD654\uC0B4\uC744 \uC3D8\uB294 \uAD81\uC218"
+  description: "\uD654\uC0B4\uC744 \uC3F4\uC11C \uACF5\uACA9\uD569\uB2C8\uB2E4"
   unlockRound: 0
