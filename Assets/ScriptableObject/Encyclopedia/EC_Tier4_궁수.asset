@@ -21,7 +21,7 @@ MonoBehaviour:
   attackSpeed: 2
   range: 3
   skillIcons:
-  - {fileID: 0}
+  - {fileID: -7073772176499653001, guid: 30bc31a2c06dde9409fdf4e84e6ea64d, type: 3}
   - {fileID: 2257080158496480965, guid: b6d557f8dd369a447b38020b699a7ede, type: 3}
   skillTooltipSprites:
   - {fileID: -1037338475385838535, guid: e52f9bfa53ce4904bb43425c2290bbc1, type: 3}
