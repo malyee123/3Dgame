@@ -20,8 +20,11 @@ MonoBehaviour:
   attackPower: 0
   attackSpeed: 0
   range: 0
-  skillSprites:
-  - {fileID: -8990440796685842187, guid: 4e2aaf794d61b6c449830020ca04cd98, type: 3}
-  skillDescriptions: []
+  skillIcons:
+  - {fileID: 0}
+  - {fileID: 0}
+  skillTooltipSprites:
+  - {fileID: 7103338031119965523, guid: df759e319899e1344981f0d5d186d0cd, type: 3}
+  - {fileID: 3775995850762033634, guid: 71d4698e01418c7419b9f20c7d6f0f84, type: 3}
   description: "\uB354\uB354\uC6B1 \uAC15\uB825\uD574\uC9C4 \uAC80\uC73C\uB85C \uACF5\uACA9\uD569\uB2C8\uB2E4"
   unlockRound: 3

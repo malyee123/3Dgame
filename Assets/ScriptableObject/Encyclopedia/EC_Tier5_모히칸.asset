@@ -20,10 +20,12 @@ MonoBehaviour:
   attackPower: 14000
   attackSpeed: 1
   range: 1.5
-  skillSprites:
-  - {fileID: -3376376717313772527, guid: 5668bbe46ceb1e047a5fc09a886c0fbb, type: 3}
-  - {fileID: -3479996250798640434, guid: 57549f653c7bc264f9da4d5029d3abd4, type: 3}
-  skillDescriptions: []
+  skillIcons:
+  - {fileID: 0}
+  - {fileID: -8632872584699474077, guid: e6000f23df69b064ab96d64ddff89e41, type: 3}
+  skillTooltipSprites:
+  - {fileID: 517088944067583356, guid: a2c19d96ba02f2c488d2287e8a07d34e, type: 3}
+  - {fileID: 292830605904743970, guid: 0ce813e758d89c147b42fb3b9d79b30b, type: 3}
   description: "\uC644\uBCBD\uD574\uC9C4 \uBC29\uD328\uB85C \uB9E4\uC6B0 \uAC15\uB825\uD55C
     \uACF5\uACA9\uC744 \uD569\uB2C8\uB2E4"
   unlockRound: 4

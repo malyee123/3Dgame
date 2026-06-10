@@ -23,6 +23,6 @@ MonoBehaviour:
   skillIcons:
   - {fileID: 8402482068406999263, guid: 702f15fa3e5ba204a90d3d63af12af29, type: 3}
   skillTooltipSprites:
-  - {fileID: -8014775254359065623, guid: 7c440fe6f739774478679e595527ee03, type: 3}
+  - {fileID: 4592548242861640144, guid: ba1e5f4de8d9d4d41a8c2c3e60881869, type: 3}
   description: "\uC870\uAE08 \uB354 \uAC15\uB825\uD574\uC9C4 \uD654\uC0B4\uB85C \uACF5\uACA9\uD569\uB2C8\uB2E4"
   unlockRound: 1
