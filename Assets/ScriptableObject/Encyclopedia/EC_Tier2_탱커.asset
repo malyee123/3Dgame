@@ -20,8 +20,9 @@ MonoBehaviour:
   attackPower: 150
   attackSpeed: 2
   range: 1.5
-  skillSprites:
-  - {fileID: 0}
-  skillDescriptions: []
+  skillIcons:
+  - {fileID: 1412526631690868143, guid: 3ed54c39d9d7bae4f9aa74de34bb9c69, type: 3}
+  skillTooltipSprites:
+  - {fileID: 2561234576434374349, guid: ea1adeeae8c00a947977088be3e5f707, type: 3}
   description: "\uC870\uAE08 \uB354 \uAC15\uB825\uD55C \uBC29\uD328\uB85C \uACF5\uACA9\uD569\uB2C8\uB2E4"
   unlockRound: 1

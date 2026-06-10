@@ -1266,7 +1266,7 @@ MonoBehaviour:
   - {fileID: 51313590}
   - {fileID: 474859937}
   starOn: {fileID: -760248212612917335, guid: 78f218d07c2d1cf409b9d33963f5d42d, type: 3}
-  starOff: {fileID: -1023116370124633151, guid: 9b650b9c05d47e2499ad4156f3fe4f0d, type: 3}
+  starOff: {fileID: -6146652454424701339, guid: da2ca8f00d2e3814593898c218cb797d, type: 3}
   txtAttack: {fileID: 508813725}
   txtSpeed: {fileID: 242361804}
   txtRange: {fileID: 443089417}
@@ -2249,7 +2249,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: -65}
-  m_SizeDelta: {x: 400, y: 85}
+  m_SizeDelta: {x: 800, y: 85}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2017377325
 CanvasRenderer:
