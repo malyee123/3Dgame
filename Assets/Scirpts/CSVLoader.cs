@@ -45,7 +45,8 @@ public class GameSettingsData
 [System.Serializable]
 public class SpecialMonsterStageData
 {
-    public int killCount;
+    public int stage;       // 스테이지 번호 (1, 2, 3...)
+    public int killCount;   // 누적 처치 횟수 기준
     public float hp;
     public float speed;
     public float lifetime;
@@ -87,8 +88,8 @@ public class CSVLoader : MonoBehaviour
     public List<RoundData> roundDataList = new List<RoundData>();
     public List<BossData> bossDataList = new List<BossData>();
     public List<UpgradeData> upgradeDataList = new List<UpgradeData>();
-    public List<AnvilRangeData>  anvilRangeList     = new List<AnvilRangeData>();
-    public List<SpawnCostData>   spawnCostDataList  = new List<SpawnCostData>();
+    public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
+    public List<SpawnCostData> spawnCostDataList = new List<SpawnCostData>();
     public List<SpecialMonsterStageData> specialMonsterDataList = new List<SpecialMonsterStageData>();
 
     public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
@@ -214,8 +215,8 @@ public class CSVLoader : MonoBehaviour
                 bossWaveLevel = ParseInt(col[2].Trim(), 1),
                 hp = ParseFloat(col[3].Trim(), 1000f),
                 speed = ParseFloat(col[4].Trim(), 1f),
-                reward = ParseInt(col[5].Trim(), 1),
-                defense = ParseFloat(col[6].Trim()),
+                defense = ParseFloat(col[5].Trim()),
+                reward = ParseInt(col[6].Trim(), 1),
                 forceDamageOne = col[7].Trim() == "1"
             });
         }
@@ -291,6 +292,8 @@ public class CSVLoader : MonoBehaviour
         if (specialWeightList.Count > 0) GameSettings.specialTierSpawnWeights = specialWeightList.ToArray();
     }
 
+    // ── 특수 몬스터 스탯 로드 ─────────────────────────────────
+    // CSV 컬럼 순서: stage,killCount,hp,speed,lifetime,coinReward,cooldown,defense
     void LoadSpecialMonsterStats()
     {
         specialMonsterDataList.Clear();
@@ -301,16 +304,17 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 6) continue;
+            if (col.Length < 7) continue;   // stage 컬럼 추가로 최소 7개
             specialMonsterDataList.Add(new SpecialMonsterStageData
             {
-                killCount = ParseInt(col[0].Trim()),
-                hp = ParseFloat(col[1].Trim(), 500f),
-                speed = ParseFloat(col[2].Trim(), 1.5f),
-                lifetime = ParseFloat(col[3].Trim(), 20f),
-                coinReward = ParseInt(col[4].Trim(), 3),
-                cooldown = ParseFloat(col[5].Trim(), 30f),
-                defense = col.Length >= 7 ? ParseFloat(col[6].Trim(), 0f) : 0f
+                stage = ParseInt(col[0].Trim(), 1),
+                killCount = ParseInt(col[1].Trim()),
+                hp = ParseFloat(col[2].Trim(), 500f),
+                speed = ParseFloat(col[3].Trim(), 1.5f),
+                lifetime = ParseFloat(col[4].Trim(), 20f),
+                coinReward = ParseInt(col[5].Trim(), 3),
+                cooldown = ParseFloat(col[6].Trim(), 30f),
+                defense = col.Length >= 8 ? ParseFloat(col[7].Trim(), 0f) : 0f
             });
         }
     }
@@ -337,20 +341,35 @@ public class CSVLoader : MonoBehaviour
         }
     }
 
-    public SpecialMonsterStageData GetSpecialMonsterData(int killCount)
+    // ── 특수 몬스터 데이터 조회 ──────────────────────────────
+    // stage 와 killCount 를 동시에 고려
+    // 해당 스테이지에서 killCount 이하인 항목 중 가장 높은 killCount 반환
+    public SpecialMonsterStageData GetSpecialMonsterData(int stage, int killCount)
     {
         SpecialMonsterStageData best = null;
         int bestKill = -1;
+
         foreach (SpecialMonsterStageData data in specialMonsterDataList)
         {
+            if (data.stage != stage) continue;
             if (data.killCount <= killCount && data.killCount > bestKill)
             {
                 bestKill = data.killCount;
                 best = data;
             }
         }
+
+        // 해당 스테이지 데이터가 없으면 스테이지 1 첫 번째 항목으로 폴백
+        if (best == null)
+        {
+            foreach (SpecialMonsterStageData data in specialMonsterDataList)
+            {
+                if (data.stage == stage) { best = data; break; }
+            }
+        }
         if (best == null && specialMonsterDataList.Count > 0)
             best = specialMonsterDataList[0];
+
         return best;
     }
 
@@ -368,7 +387,7 @@ public class CSVLoader : MonoBehaviour
             spawnCostDataList.Add(new SpawnCostData
             {
                 spawnCount = ParseInt(col[0].Trim()),
-                cost       = ParseInt(col[1].Trim(), 20)
+                cost = ParseInt(col[1].Trim(), 20)
             });
         }
     }

@@ -32,6 +32,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/DemoEndScene.unity
     guid: c4ad96fa2c9db3f4c9ea2a751342ee89
+  - enabled: 1
+    path: Assets/Scenes/StageClearScene.unity
+    guid: 11222df1ed5f12d46892a65d4504ecaf
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -1,7 +1,7 @@
 ﻿type,stage,min,max
-AttackDamage,1,5,20
-AttackSpeed,1,10,30
-DefenseDown,1,10,20
-BossTime,1,5,15
-EnemyLimit,1,5,15
-CharacterLimit,1,1,2
+AttackDamage,1,0,20
+AttackSpeed,1,0,10
+DefenseDown,1,0,5
+BossTime,1,0,10
+EnemyLimit,1,0,15
+CharacterLimit,1,0,2

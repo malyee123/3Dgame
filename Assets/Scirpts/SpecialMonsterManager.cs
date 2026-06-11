@@ -28,7 +28,8 @@ public class SpecialMonsterManager : MonoBehaviour
             spawnButton.onClick.AddListener(OnSpawnButtonPressed);
         }
 
-        var data = CSVLoader.Instance?.GetSpecialMonsterData(0);
+        // 현재 스테이지 기준으로 초기 쿨다운 설정
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(GetCurrentStage(), 0);
         if (data != null && data.cooldown > 0f)
         {
             isOnCooldown = true;
@@ -79,7 +80,8 @@ public class SpecialMonsterManager : MonoBehaviour
 
     private void StartCooldown()
     {
-        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
+        // 현재 스테이지 + 누적 처치 횟수 기준 쿨다운 적용
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(GetCurrentStage(), sessionKillCount);
         float cooldown = data != null ? data.cooldown : 30f;
         isOnCooldown = true;
         cooldownRemaining = cooldown;
@@ -98,7 +100,8 @@ public class SpecialMonsterManager : MonoBehaviour
         if (isOnField || isOnCooldown) return;
         if (specialMonsterPrefab == null) return;
 
-        var data = CSVLoader.Instance?.GetSpecialMonsterData(sessionKillCount);
+        // 현재 스테이지 + 누적 처치 횟수 기준 스탯 적용
+        var data = CSVLoader.Instance?.GetSpecialMonsterData(GetCurrentStage(), sessionKillCount);
         if (data == null) return;
 
         var go = Instantiate(specialMonsterPrefab, GetSpawnPosition(), Quaternion.identity);
@@ -118,8 +121,8 @@ public class SpecialMonsterManager : MonoBehaviour
         if (!isOnField) return;
         isOnField = false;
         currentMonster = null;
-        StartCooldown();
         sessionKillCount++;
+        StartCooldown();
     }
 
     private void UpdateButton()
@@ -127,4 +130,8 @@ public class SpecialMonsterManager : MonoBehaviour
         if (spawnButton != null)
             spawnButton.interactable = !isOnField && !isOnCooldown;
     }
+
+    // 현재 스테이지 반환 헬퍼
+    private int GetCurrentStage()
+        => GameManager.Instance != null ? GameManager.Instance.GetCurrentStage() : 1;
 }
