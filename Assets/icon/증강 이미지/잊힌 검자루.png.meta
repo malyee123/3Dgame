@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4741ec25c9bb7b34096723e967b31034
+guid: ab874651fc15ded4fa0a91bf9d54b078
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2056126039432432040
-    second: Group 18_0
+      213: -6885681596979983567
+    second: "\uC78A\uD78C \uAC80\uC790\uB8E8_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Group 18_0
+      name: "\uC78A\uD78C \uAC80\uC790\uB8E8_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 1381
-        height: 2163
+        height: 2169
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 856f23ec24c2773e0800000000000000
-      internalID: -2056126039432432040
+      spriteID: 13b4097c1152170a0800000000000000
+      internalID: -6885681596979983567
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Group 18_0: -2056126039432432040
+      "\uC78A\uD78C \uAC80\uC790\uB8E8_0": -6885681596979983567
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
