@@ -736,7 +736,7 @@ GameObject:
   - component: {fileID: 647650731}
   - component: {fileID: 647650730}
   m_Layer: 5
-  m_Name: QuitButton
+  m_Name: NextButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -837,7 +837,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8458772235204807552, guid: b094f5ce701c31242adf5fdf8873787d, type: 3}
+  m_Sprite: {fileID: -3110961475862630391, guid: 2973be87056f3bb47b70001851ab0071, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1105,7 +1105,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -5290275415717077459, guid: 77a059c3bcdd2e141a7d6aa282ba945d, type: 3}
+  m_Sprite: {fileID: -670960911930244833, guid: 3cb7a54263ed7294eb72ba6f22bf47a0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1125,7 +1125,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.65, y: 0.67, z: 1}
+  m_LocalScale: {x: 0.65, y: 0.83, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
