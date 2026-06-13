@@ -6661,17 +6661,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AnvilManager
   anvilSpriteSets:
   - stageSprites:
-    - {fileID: 4574663796395247912, guid: 9fb6b2e632a8fcd4880dd7c7ed07849a, type: 3}
+    - {fileID: -246090269865271084, guid: bcf6989ee336c9f47957e1b7442a6938, type: 3}
   - stageSprites:
-    - {fileID: -2056126039432432040, guid: 4741ec25c9bb7b34096723e967b31034, type: 3}
+    - {fileID: 8110364823196149376, guid: d9856118633adbb4a921673ae3a3333f, type: 3}
   - stageSprites:
-    - {fileID: -1417361314930368456, guid: 2d1dd02aeb8b51b4589aba57b575586c, type: 3}
+    - {fileID: -5640424272658868715, guid: b43ff8d3df7ec4648a27d3f071deb2ac, type: 3}
   - stageSprites:
-    - {fileID: 1633630543421584206, guid: bf26e971b359bce40adb8ae8b54f7b5c, type: 3}
+    - {fileID: -3139809206790091374, guid: e718871ee2722fb46bfe9c8a202cceb6, type: 3}
   - stageSprites:
-    - {fileID: -3974215247870688558, guid: 939c960c02bf39d4b8a0a0c7191fdb1b, type: 3}
+    - {fileID: -4132991733278612615, guid: 0c313dbe8a7296a459ceeec98a4774bf, type: 3}
   - stageSprites:
-    - {fileID: -643388138587257216, guid: 59531089df7cad34795d5404709b43ae, type: 3}
+    - {fileID: -8135793537748198177, guid: 7ed1429ea6a2cd442a2cc2907fc6c86b, type: 3}
 --- !u!1 &1123774374
 GameObject:
   m_ObjectHideFlags: 0

@@ -73,12 +73,12 @@ public class AnvilManager : MonoBehaviour
         }
         switch (type)
         {
-            case AnvilType.AttackDamage:   return Mathf.Round(Random.Range(5f, 21f));
-            case AnvilType.AttackSpeed:    return Mathf.Round(Random.Range(10f, 31f));
-            case AnvilType.DefenseDown:    return Mathf.Round(Random.Range(10f, 21f));
-            case AnvilType.BossTime:       return Mathf.Round(Random.Range(5f, 16f));
-            case AnvilType.EnemyLimit:     return Mathf.Round(Random.Range(5f, 16f));
-            case AnvilType.CharacterLimit: return Random.Range(1, 3);
+            case AnvilType.AttackDamage:   return Mathf.Round(Random.Range(0f, 20f));
+            case AnvilType.AttackSpeed:    return Mathf.Round(Random.Range(0f, 10f));
+            case AnvilType.DefenseDown:    return Mathf.Round(Random.Range(0f, 5f));
+            case AnvilType.BossTime:       return Mathf.Round(Random.Range(0f, 10f));
+            case AnvilType.EnemyLimit:     return Mathf.Round(Random.Range(0f, 15f));
+            case AnvilType.CharacterLimit: return Random.Range(0f, 2f);
             default: return 0f;
         }
     }
