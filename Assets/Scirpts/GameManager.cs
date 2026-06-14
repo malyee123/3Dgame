@@ -234,7 +234,7 @@ public class GameManager : MonoBehaviour
         enemyCountText.text  = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
         enemyCountText.color = currentEnemyCount >= maxEnemyCount * 0.8f
             ? Color.red
-            : Color.white;
+            : Color.black;
     }
 
     public float GetTotalTime()         => totalElapsedTime;
