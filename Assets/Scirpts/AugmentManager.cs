@@ -24,12 +24,12 @@ public enum AugmentType
 [System.Serializable]
 public class AugmentData
 {
-    public string augmentName;
-    public string description;
-    public string summary;
+    public string      augmentName;
+    public string      description;
+    public string      summary;
     public AugmentType type;
-    public Sprite sprite;
-    public int requiredTier;
+    public Sprite      sprite;
+    public int         requiredTier;
 }
 
 public class AugmentManager : MonoBehaviour
@@ -39,70 +39,70 @@ public class AugmentManager : MonoBehaviour
     [Header("Augment Sprites (기존 28 + 신규 6 = 총 34)")]
     public Sprite[] augmentSprites = new Sprite[34];
 
-    private bool hasBossSpecialCoinDouble = false;
-    private bool hasGiantSlayer = false;
-    private bool hasTheBigOne = false;
-    private bool hasExecutioner = false;
-    private bool hasTwinsOfChaos = false;
-    private bool hasLuckyDay = false;
-    private bool hasDoomArmy = false;
-    private bool hasSpeedBurst = false;
-    private bool hasWeakPoint = false;
-    private bool hasBouncingArrow = false;
-    private bool hasFateDice = false;
-    private float augmentDefenseDown = 0f;
-    private float passiveResonanceBonus = 0f;
-    private float dominatorBonusThreshold = 70f;
-    private float dominatorBonusMult = 2.0f;
-    private float dominatorPenaltyThreshold = 50f;
-    private float dominatorPenaltyMult = 0.5f;
-    private float allInDamageBonus = 0f;
-    private bool allInActive = false;
-    private float coinRewardMultiplier = 1f;
+    private bool  hasBossSpecialCoinDouble = false;
+    private bool  hasGiantSlayer           = false;
+    private bool  hasTheBigOne             = false;
+    private bool  hasExecutioner           = false;
+    private bool  hasTwinsOfChaos          = false;
+    private bool  hasLuckyDay              = false;
+    private bool  hasDoomArmy              = false;
+    private bool  hasSpeedBurst            = false;
+    private bool  hasWeakPoint             = false;
+    private bool  hasBouncingArrow         = false;
+    private bool  hasFateDice              = false;
+    private float augmentDefenseDown       = 0f;
+    private float passiveResonanceBonus    = 0f;
+    private float dominatorBonusThreshold  = 70f;
+    private float dominatorBonusMult       = 2.0f;
+    private float dominatorPenaltyThreshold= 50f;
+    private float dominatorPenaltyMult     = 0.5f;
+    private float allInDamageBonus         = 0f;
+    private bool  allInActive              = false;
+    private float coinRewardMultiplier     = 1f;
 
-    private bool hasBrokenBlade = false;
-    private bool hasForgottenHandle = false;
-    private bool hasForgottenSword = false;
-    private int cursedGemWavesLeft = 0;
+    private bool  hasBrokenBlade        = false;
+    private bool  hasForgottenHandle    = false;
+    private bool  hasForgottenSword     = false;
+    private int   cursedGemWavesLeft    = 0;
 
     // 잊혀진 영웅의 검: BrokenBlade(8%)×30% = 2.4f / ForgottenHandle(8%)×30% = 2.4f
     private const float SWORD_DAMAGE_BONUS = 2.4f;
-    private const float SWORD_SPEED_BONUS = 2.4f;
+    private const float SWORD_SPEED_BONUS  = 2.4f;
 
-    public bool HasGiantSlayer => hasGiantSlayer;
-    public bool HasTheBigOne => hasTheBigOne;
-    public bool HasExecutioner => hasExecutioner;
-    public bool HasTwinsOfChaos => hasTwinsOfChaos;
-    public bool HasBossSpecialCoinDouble => hasBossSpecialCoinDouble;
-    public bool HasLuckyDay => hasLuckyDay;
-    public bool HasDoomArmy => hasDoomArmy;
-    public bool HasSpeedBurst => hasSpeedBurst;
-    public bool HasWeakPoint => hasWeakPoint;
-    public bool HasBouncingArrow => hasBouncingArrow;
-    public bool HasFateDice => hasFateDice;
-    public float BonusDefenseDown => augmentDefenseDown;
-    public float PassiveResonanceBonus => passiveResonanceBonus;
-    public float AllInDamageBonus => allInDamageBonus;
-    public float CoinRewardMultiplier => coinRewardMultiplier;
+    public bool  HasGiantSlayer           => hasGiantSlayer;
+    public bool  HasTheBigOne             => hasTheBigOne;
+    public bool  HasExecutioner           => hasExecutioner;
+    public bool  HasTwinsOfChaos          => hasTwinsOfChaos;
+    public bool  HasBossSpecialCoinDouble => hasBossSpecialCoinDouble;
+    public bool  HasLuckyDay              => hasLuckyDay;
+    public bool  HasDoomArmy              => hasDoomArmy;
+    public bool  HasSpeedBurst            => hasSpeedBurst;
+    public bool  HasWeakPoint             => hasWeakPoint;
+    public bool  HasBouncingArrow         => hasBouncingArrow;
+    public bool  HasFateDice              => hasFateDice;
+    public float BonusDefenseDown         => augmentDefenseDown;
+    public float PassiveResonanceBonus    => passiveResonanceBonus;
+    public float AllInDamageBonus         => allInDamageBonus;
+    public float CoinRewardMultiplier     => coinRewardMultiplier;
     // 저주받은 보석: 킬 보상 차단 여부 (EnemyHealth.Die()에서 체크)
-    public bool IsKillGoldBlocked => cursedGemWavesLeft > 0;
+    public bool  IsKillGoldBlocked        => cursedGemWavesLeft > 0;
 
     public float GetDominatorDamageMultiplier()
     {
         if (GameManager.Instance == null) return 1f;
         int ec = GameManager.Instance.GetCurrentEnemyCount();
-        if (ec >= dominatorBonusThreshold) return dominatorBonusMult;
+        if (ec >= dominatorBonusThreshold)   return dominatorBonusMult;
         if (ec <= dominatorPenaltyThreshold) return dominatorPenaltyMult;
         return 1f;
     }
 
     private int freeSpawnCount = 0;
-    public int FreeSpawnCount => freeSpawnCount;
-    public void UseFreeSpawn() { if (freeSpawnCount > 0) freeSpawnCount--; }
+    public  int FreeSpawnCount => freeSpawnCount;
+    public  void UseFreeSpawn() { if (freeSpawnCount > 0) freeSpawnCount--; }
 
-    private List<string> activeSummaries = new List<string>();
+    private List<string>      activeSummaries  = new List<string>();
     private List<AugmentType> selectedAugments = new List<AugmentType>();
-    private AugmentData[] allAugments;
+    private AugmentData[]     allAugments;
 
     private Coroutine speedBurstCoroutine;
     private Coroutine fateDiceCoroutine;
@@ -186,8 +186,8 @@ public class AugmentManager : MonoBehaviour
 
         if (pool.Count == 0) return new AugmentData[0];
         int count = Mathf.Min(3, pool.Count);
-        List<AugmentData> result = new List<AugmentData>();
-        List<int> usedIndices = new List<int>();
+        List<AugmentData> result      = new List<AugmentData>();
+        List<int>          usedIndices = new List<int>();
         while (result.Count < count)
         {
             int idx = Random.Range(0, pool.Count);
@@ -372,11 +372,11 @@ public class AugmentManager : MonoBehaviour
         {
             if (GameManager.Instance == null) { yield return new WaitForSeconds(1f); continue; }
             float roundDuration = GameManager.Instance.GetCurrentRoundDuration();
-            float timeLeft = GameManager.Instance.GetRoundTimeLeft();
-            float elapsed = roundDuration - timeLeft;
-            bool inPenaltyZone = elapsed < 20f;
-            bool inBonusZone = timeLeft <= 10f;
-            float target = inBonusZone ? 200f : inPenaltyZone ? -30f : 0f;
+            float timeLeft      = GameManager.Instance.GetRoundTimeLeft();
+            float elapsed       = roundDuration - timeLeft;
+            bool inPenaltyZone  = elapsed < 20f;
+            bool inBonusZone    = timeLeft <= 10f;
+            float target        = inBonusZone ? 200f : inPenaltyZone ? -30f : 0f;
             SetSpeedBurstBonus(target);
             yield return new WaitForSeconds(0.5f);
         }
@@ -400,10 +400,10 @@ public class AugmentManager : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             if (GameManager.Instance == null) continue;
             float timeLeft = GameManager.Instance.GetRoundTimeLeft();
-            float prev = GameManager.Instance.GetPrevRoundTimeLeft();
-            bool newRound = prev > 0f && timeLeft > prev + 1f;
+            float prev     = GameManager.Instance.GetPrevRoundTimeLeft();
+            bool newRound  = prev > 0f && timeLeft > prev + 1f;
             if (!newRound) continue;
-            float roll = Random.Range(0.5f, 2.0f);
+            float roll      = Random.Range(0.5f, 2.0f);
             bool damageDice = Random.value > 0.5f;
             PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
             foreach (PlayerAttack unit in allUnits)
@@ -412,7 +412,7 @@ public class AugmentManager : MonoBehaviour
             {
                 if (unit == null) continue;
                 if (damageDice) unit.ApplyFateDiceDamage(roll);
-                else unit.ApplyFateDiceSpeed(roll);
+                else            unit.ApplyFateDiceSpeed(roll);
             }
         }
     }
@@ -484,8 +484,8 @@ public class AugmentManager : MonoBehaviour
         if (PlayerSpawner.Instance == null) return;
         PlayerAttack[] allUnits = FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None);
         if (allUnits.Length == 0) return;
-        float sellMult = PlayerSpawner.Instance.sellPriceMultiplier;
-        int totalGold = 0;
+        float sellMult  = PlayerSpawner.Instance.sellPriceMultiplier;
+        int   totalGold = 0;
         foreach (PlayerAttack unit in allUnits)
         {
             if (unit == null || unit.characterData == null) continue;
@@ -568,34 +568,34 @@ public class AugmentManager : MonoBehaviour
     public void ResetAugments()
     {
         hasBossSpecialCoinDouble = false;
-        hasGiantSlayer = false;
-        hasTheBigOne = false;
-        hasExecutioner = false;
-        hasTwinsOfChaos = false;
-        hasLuckyDay = false;
-        hasDoomArmy = false;
-        hasSpeedBurst = false;
-        hasWeakPoint = false;
-        hasBouncingArrow = false;
-        hasFateDice = false;
-        augmentDefenseDown = 0f;
-        passiveResonanceBonus = 0f;
-        allInDamageBonus = 0f;
-        allInActive = false;
-        coinRewardMultiplier = 1f;
-        currentSpeedBurstBonus = 0f;
-        freeSpawnCount = 0;
-        hasBrokenBlade = false;
-        hasForgottenHandle = false;
-        hasForgottenSword = false;
-        cursedGemWavesLeft = 0;
+        hasGiantSlayer           = false;
+        hasTheBigOne             = false;
+        hasExecutioner           = false;
+        hasTwinsOfChaos          = false;
+        hasLuckyDay              = false;
+        hasDoomArmy              = false;
+        hasSpeedBurst            = false;
+        hasWeakPoint             = false;
+        hasBouncingArrow         = false;
+        hasFateDice              = false;
+        augmentDefenseDown       = 0f;
+        passiveResonanceBonus    = 0f;
+        allInDamageBonus         = 0f;
+        allInActive              = false;
+        coinRewardMultiplier     = 1f;
+        currentSpeedBurstBonus   = 0f;
+        freeSpawnCount           = 0;
+        hasBrokenBlade           = false;
+        hasForgottenHandle       = false;
+        hasForgottenSword        = false;
+        cursedGemWavesLeft       = 0;
         activeSummaries.Clear();
         selectedAugments.Clear();
         if (speedBurstCoroutine != null) { StopCoroutine(speedBurstCoroutine); speedBurstCoroutine = null; }
-        if (fateDiceCoroutine != null) { StopCoroutine(fateDiceCoroutine); fateDiceCoroutine = null; }
-        if (PlayerSpawner.Instance != null) { PlayerSpawner.Instance.sellPriceMultiplier = 1f; PlayerSpawner.Instance.luckyDayMultiplier = 1f; }
-        if (CoinManager.Instance != null) { CoinManager.Instance.spawnCostMultiplier = 1f; CoinManager.Instance.huntersSenseActive = false; }
-        if (MergeManager.Instance != null) { MergeManager.Instance.upgradeCostMultiplier = 1f; MergeManager.Instance.mergeAccelActive = false; }
-        if (BossManager.Instance != null) BossManager.Instance.bossHpMultiplier = 1f;
+        if (fateDiceCoroutine   != null) { StopCoroutine(fateDiceCoroutine);   fateDiceCoroutine   = null; }
+        if (PlayerSpawner.Instance  != null) { PlayerSpawner.Instance.sellPriceMultiplier  = 1f; PlayerSpawner.Instance.luckyDayMultiplier = 1f; }
+        if (CoinManager.Instance    != null) { CoinManager.Instance.spawnCostMultiplier     = 1f; CoinManager.Instance.huntersSenseActive    = false; }
+        if (MergeManager.Instance   != null) { MergeManager.Instance.upgradeCostMultiplier  = 1f; MergeManager.Instance.mergeAccelActive     = false; }
+        if (BossManager.Instance    != null) BossManager.Instance.bossHpMultiplier = 1f;
     }
 }

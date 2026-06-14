@@ -150,7 +150,10 @@ public class EnemyHealth : MonoBehaviour
         }
         else
         {
-            CoinManager.Instance?.AddCoins(CoinManager.Instance.coinsPerKill, true);
+            // 저주받은 보석(CursedGem) 증강 적용 중에는 킬 골드 차단
+            bool killGoldBlocked = AugmentManager.Instance != null && AugmentManager.Instance.IsKillGoldBlocked;
+            if (!killGoldBlocked)
+                CoinManager.Instance?.AddCoins(CoinManager.Instance.coinsPerKill, true);
         }
 
         if (lastAttacker?.characterData != null)

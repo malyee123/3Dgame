@@ -39,11 +39,11 @@ public class AnvilManager : MonoBehaviour
     private int bonusEnemyLimit = 0;
     private int bonusCharacterLimit = 0;
 
-    public float BonusAttackDamage  => bonusAttackDamage;
-    public float BonusAttackSpeed   => bonusAttackSpeed;
-    public float BonusDefenseDown   => bonusDefenseDown;
-    public float BonusBossTime      => bonusBossTime;
-    public int   BonusEnemyLimit    => bonusEnemyLimit;
+    public float BonusAttackDamage   => bonusAttackDamage;
+    public float BonusAttackSpeed    => bonusAttackSpeed;
+    public float BonusDefenseDown    => bonusDefenseDown;
+    public float BonusBossTime       => bonusBossTime;
+    public int   BonusEnemyLimit     => bonusEnemyLimit;
     public int   BonusCharacterLimit => bonusCharacterLimit;
 
     private int cachedStage = 1;
@@ -66,19 +66,23 @@ public class AnvilManager : MonoBehaviour
             AnvilRangeData range = CSVLoader.Instance.GetAnvilRange(type, cachedStage);
             if (range != null)
             {
+                // CharacterLimit / EnemyLimit: 정수형 Random.Range(min, max+1) 사용
+                // float Random.Range는 max값을 포함(inclusive)하므로
+                // Mathf.Round 적용 시 max+1 결과가 나올 수 있는 버그 수정
                 if (type == AnvilType.CharacterLimit || type == AnvilType.EnemyLimit)
-                    return Mathf.Round(Random.Range(range.min, range.max + 1));
+                    return Random.Range(Mathf.RoundToInt(range.min), Mathf.RoundToInt(range.max) + 1);
+
                 return Mathf.Round(Random.Range(range.min, range.max));
             }
         }
         switch (type)
         {
-            case AnvilType.AttackDamage:   return Mathf.Round(Random.Range(0f, 20f));
-            case AnvilType.AttackSpeed:    return Mathf.Round(Random.Range(0f, 10f));
-            case AnvilType.DefenseDown:    return Mathf.Round(Random.Range(0f, 5f));
-            case AnvilType.BossTime:       return Mathf.Round(Random.Range(0f, 10f));
-            case AnvilType.EnemyLimit:     return Mathf.Round(Random.Range(0f, 15f));
-            case AnvilType.CharacterLimit: return Random.Range(0f, 2f);
+            case AnvilType.AttackDamage:   return Mathf.Round(Random.Range(5f, 21f));
+            case AnvilType.AttackSpeed:    return Mathf.Round(Random.Range(10f, 31f));
+            case AnvilType.DefenseDown:    return Mathf.Round(Random.Range(10f, 21f));
+            case AnvilType.BossTime:       return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.EnemyLimit:     return Mathf.Round(Random.Range(5f, 16f));
+            case AnvilType.CharacterLimit: return Random.Range(1, 3);
             default: return 0f;
         }
     }
