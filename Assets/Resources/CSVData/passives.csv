@@ -20,11 +20,11 @@ Tier4_3,DoubleDamageChance,16,3,0
 Tier4_3,ExecuteChance,100,3,0
 Tier4_4,AreaSpeedDownChance,16,0.5,9999
 Tier4_4,SpecialCoinOnKillChance,1,0,0
-Tier5_1,SlamChance,16,1500,2
-Tier5_1,ManaSkill,250,3,0.1
+Tier5_1,SlamChance,16,2200,2
+Tier5_1,ManaSkill,300,3,0.1
 Tier5_2,BossDamageDouble,0,0,0
 Tier5_2,ManaSkill,500,10,0
-Tier5_3,DoubleDamageChance,16,5,0
-Tier5_3,ManaSkill,800,0,0
-Tier5_4,MagicMissileChance,12,2500,0
-Tier5_4,ManaSkill,4000,0,0
+Tier5_3,DoubleDamageChance,16,4000,0
+Tier5_3,ManaSkill,33333,0,0
+Tier5_4,MagicMissileChance,12,5000,0
+Tier5_4,ManaSkill,9000,0,0
