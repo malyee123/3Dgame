@@ -33,13 +33,15 @@ public class MergeManager : MonoBehaviour
     [HideInInspector] public bool mergeAccelActive = false;
 
     private PlayerAttack selectedUnit;
-    private bool justSelected = false;
+    private bool suppressActionButtons = false;
     private GameObject currentRangeIndicator;
     private PlayerAttack cachedLeader;
     private int currentSkillIndex = -1;
 
-    private static readonly string[] tier5Names = { "Tier5_1", "Tier5_2", "Tier5_3", "Tier5_4" };
+    // 추가: 전체 UI의 레이캐스트를 제어할 CanvasGroup
+    private CanvasGroup uiCanvasGroup;
 
+    private static readonly string[] tier5Names = { "Tier5_1", "Tier5_2", "Tier5_3", "Tier5_4" };
     private static readonly string[] skillNames = { "심연의 균열", "광전사의 각성", "심판의 일격", "천벌" };
     private static readonly string[] skillDescs =
     {
@@ -54,6 +56,13 @@ public class MergeManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         if (tooltipPanel != null) tooltipPanel.SetActive(false);
+
+        // unitActionUI에 CanvasGroup이 없다면 자동으로 동적 추가하여 캐싱합니다.
+        if (unitActionUI != null)
+        {
+            uiCanvasGroup = unitActionUI.GetComponent<CanvasGroup>();
+            if (uiCanvasGroup == null) uiCanvasGroup = unitActionUI.AddComponent<CanvasGroup>();
+        }
     }
 
     void Start()
@@ -74,7 +83,20 @@ public class MergeManager : MonoBehaviour
 
     void Update()
     {
-        if (justSelected) { justSelected = false; return; }
+        // 핵심 수정 사항: suppressActionButtons가 활성화되어 있는 동안
+        if (suppressActionButtons)
+        {
+            // 캐릭터를 클릭했던 마우스가 아직 떼어지지 않았으면 계속 입력을 막아둔다
+            if (Input.GetMouseButton(0)) return;
+
+            suppressActionButtons = false;
+
+            // 마우스가 완전히 떼어진 뒤에만 하위 모든 UI가 마우스 입력을 받도록 허용
+            if (uiCanvasGroup != null) uiCanvasGroup.blocksRaycasts = true;
+
+            RefreshMergeUI();
+            return;
+        }
 
         if (unitActionUI != null && unitActionUI.activeSelf && currentSkillIndex >= 0)
             UpdateManaUI(currentSkillIndex);
@@ -92,7 +114,10 @@ public class MergeManager : MonoBehaviour
         if (selectedUnit == unit) { HideUnitActionUI(); return; }
         selectedUnit = unit;
         cachedLeader = null;
-        justSelected = true;
+
+        // 중요: 유닛을 새로 선택하는 순간 플래그를 켜고 레이캐스트를 즉시 차단합니다.
+        suppressActionButtons = true;
+        if (uiCanvasGroup != null) uiCanvasGroup.blocksRaycasts = false;
 
         if (unitActionUI != null && unit != null)
         {
@@ -125,6 +150,11 @@ public class MergeManager : MonoBehaviour
         selectedUnit = null;
         cachedLeader = null;
         currentSkillIndex = -1;
+        suppressActionButtons = false;
+
+        // 닫힐 때는 기본 상태(true)로 복원해 줍니다.
+        if (uiCanvasGroup != null) uiCanvasGroup.blocksRaycasts = true;
+
         if (unitActionUI != null) unitActionUI.SetActive(false);
         HideRangeIndicator();
     }
@@ -133,6 +163,10 @@ public class MergeManager : MonoBehaviour
     {
         if (currentRangeIndicator != null) { Destroy(currentRangeIndicator); currentRangeIndicator = null; }
     }
+
+    // 버그의 원인이었던 예전 로직 메서드들은 완전히 삭제하거나 주석 처리하셔도 됩니다.
+    // void SetActionButtonsRaycast(bool enabled) { ... }
+    // void SetGraphicRaycast(Button button, bool enabled) { ... }
 
     int GetTier5Index()
     {
@@ -207,20 +241,22 @@ public class MergeManager : MonoBehaviour
     {
         if (selectedUnit?.characterData != null)
         {
+            if (sellButton != null) sellButton.interactable = true;
+
             if (sellPriceText != null)
             {
                 int count = 0;
                 foreach (PlayerAttack unit in FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None))
                     if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
                 float mult = PlayerSpawner.Instance != null ? PlayerSpawner.Instance.sellPriceMultiplier : 1f;
-                sellPriceText.text = $"판매  {Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)} G";
+                sellPriceText.text = $"판매 : {Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)}";
             }
 
             if (mergePriceText != null)
             {
                 int baseCost = selectedUnit.characterData.upgradeCost;
                 int actualCost = GetActualUpgradeCost(baseCost);
-                mergePriceText.text = $"합성  {actualCost} G";
+                mergePriceText.text = $"합성 : {actualCost}";
             }
         }
 
