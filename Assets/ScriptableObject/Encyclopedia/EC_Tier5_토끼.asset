@@ -24,8 +24,8 @@ MonoBehaviour:
   - {fileID: -8533755588913080409, guid: ac92b86cd09b8f34f956315f58b31520, type: 3}
   - {fileID: 6106648732997196388, guid: 389594bc1741fe448aeb4c99c89a09ff, type: 3}
   skillTooltipSprites:
-  - {fileID: -6010377362792588198, guid: 63ddc038baad74f44bef9ad5eee69070, type: 3}
-  - {fileID: 7737783888467101698, guid: 097b0fe7e3c44df4c8c431efd8a508a8, type: 3}
+  - {fileID: 7269519901995060396, guid: d83055dbe86e0374a8ea28622ca34402, type: 3}
+  - {fileID: -6720078747453146268, guid: b9c854191008aa847adc9628058f55f9, type: 3}
   description: "\uC644\uBCBD\uD574\uC9C4 \uAC80\uC73C\uB85C \uB9E4\uC6B0 \uAC15\uB825\uD55C
     \uACF5\uACA9\uC744 \uD569\uB2C8\uB2E4"
   unlockRound: 4
