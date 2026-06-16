@@ -3184,6 +3184,26 @@ MonoBehaviour:
     sprite: {fileID: 8497361150501103851, guid: 20369320560c2e44f8dd1d269cf3bc26, type: 3}
   - key: stage
     sprite: {fileID: 1584721951186659005, guid: 5b9269182da9d6443ab24262d06cd383, type: 3}
+  - key: merge
+    sprite: {fileID: -9173680771258503008, guid: 3ba1be2e10ac45d44a36c8434497d760, type: 3}
+  - key: sell
+    sprite: {fileID: -489636911293580125, guid: e72bc4ec0cc85bd41ae31e249c74ca1a, type: 3}
+  - key: spawn
+    sprite: {fileID: -4848329244456854130, guid: 1c9587afaf5b1594da3fe235ccde85c7, type: 3}
+  - key: special
+    sprite: {fileID: -7417397746319513613, guid: bbea9a0d6b9a9e14484b3bf8c879b14e, type: 3}
+  - key: anvil
+    sprite: {fileID: 6444406972126655912, guid: 41a4acb0d7694be49a6b17727d5bb63e, type: 3}
+  - key: speed
+    sprite: {fileID: 2690449651797723312, guid: 56fb266ef311a9e4dbf8f7a30b5b75cf, type: 3}
+  - key: augment
+    sprite: {fileID: -5239151342490112387, guid: eb344d93ec8ca4141a58131ff72cdbff, type: 3}
+  - key: boss1
+    sprite: {fileID: 4478402806013016230, guid: f7d9675188884d646bd22f19e41f917d, type: 3}
+  - key: boss2
+    sprite: {fileID: -6769652845282367222, guid: 8ff397a736d4c304bb4ee1dce7e0080a, type: 3}
+  - key: boss3
+    sprite: {fileID: 807267123523944897, guid: e3684619c0bc66a46bc4f7a35f407d18, type: 3}
   koreanFont: {fileID: 11400000, guid: a901d30328bf34743bf7032266fb26ab, type: 2}
 --- !u!4 &1758662918
 Transform:

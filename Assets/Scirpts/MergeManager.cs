@@ -13,6 +13,7 @@ public class MergeManager : MonoBehaviour
     public GameObject unitActionUI;
     public Button mergeButton;
     public CanvasGroup mergeButtonCanvasGroup;
+    public TextMeshProUGUI mergePriceText;
     public Button sellButton;
     public TextMeshProUGUI sellPriceText;
 
@@ -29,7 +30,7 @@ public class MergeManager : MonoBehaviour
     public Canvas gameCanvas;
 
     [HideInInspector] public float upgradeCostMultiplier = 1f;
-    [HideInInspector] public bool  mergeAccelActive        = false;
+    [HideInInspector] public bool mergeAccelActive = false;
 
     private PlayerAttack selectedUnit;
     private bool justSelected = false;
@@ -204,13 +205,23 @@ public class MergeManager : MonoBehaviour
 
     void RefreshMergeUI()
     {
-        if (sellPriceText != null && selectedUnit?.characterData != null)
+        if (selectedUnit?.characterData != null)
         {
-            int count = 0;
-            foreach (PlayerAttack unit in FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None))
-                if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
-            float mult = PlayerSpawner.Instance != null ? PlayerSpawner.Instance.sellPriceMultiplier : 1f;
-            sellPriceText.text = $"{Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)}G";
+            if (sellPriceText != null)
+            {
+                int count = 0;
+                foreach (PlayerAttack unit in FindObjectsByType<PlayerAttack>(FindObjectsSortMode.None))
+                    if (unit != null && unit.spawnIndex == selectedUnit.spawnIndex) count++;
+                float mult = PlayerSpawner.Instance != null ? PlayerSpawner.Instance.sellPriceMultiplier : 1f;
+                sellPriceText.text = $"판매  {Mathf.RoundToInt(selectedUnit.characterData.sellPrice * count * mult)} G";
+            }
+
+            if (mergePriceText != null)
+            {
+                int baseCost = selectedUnit.characterData.upgradeCost;
+                int actualCost = GetActualUpgradeCost(baseCost);
+                mergePriceText.text = $"합성  {actualCost} G";
+            }
         }
 
         if (currentSkillIndex >= 0) return;

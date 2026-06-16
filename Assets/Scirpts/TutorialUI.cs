@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class TutorialUI : MonoBehaviour
 {
     private List<TutorialPageData> pages;
-    private Dictionary<string, Sprite> iconMap;
+    private Dictionary<string, TutorialManager.IconEntry> iconMap;
     private TMP_FontAsset koreanFont;
     private Action onClosed;
     private int pageIndex;
@@ -16,12 +16,13 @@ public class TutorialUI : MonoBehaviour
     private TextMeshProUGUI contentText;
     private TextMeshProUGUI pageIndicatorText;
     private Image iconImage;
+    private RectTransform iconRect;
     private GameObject iconObj;
     private Button prevButton;
     private Button nextButton;
     private TextMeshProUGUI nextButtonLabel;
 
-    public static TutorialUI Show(List<TutorialPageData> pages, Dictionary<string, Sprite> iconMap, TMP_FontAsset koreanFont, Action onClosed)
+    public static TutorialUI Show(List<TutorialPageData> pages, Dictionary<string, TutorialManager.IconEntry> iconMap, TMP_FontAsset koreanFont, Action onClosed)
     {
         GameObject canvasObj = new GameObject("TutorialCanvas");
         Canvas canvas = canvasObj.AddComponent<Canvas>();
@@ -65,7 +66,7 @@ public class TutorialUI : MonoBehaviour
         titleRect.offsetMin = Vector2.zero;
         titleRect.offsetMax = Vector2.zero;
 
-        RectTransform iconRect = CreateUIObject("Icon", card, out iconImage);
+        iconRect = CreateUIObject("Icon", card, out iconImage);
         iconImage.preserveAspect = true;
         iconRect.anchorMin = new Vector2(0.5f, 0.5f);
         iconRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -78,7 +79,7 @@ public class TutorialUI : MonoBehaviour
         contentText = contentRect.gameObject.AddComponent<TextMeshProUGUI>();
         SetupText(contentText, 34, FontStyles.Normal, TextAlignmentOptions.Top, Color.white);
         contentRect.anchorMin = new Vector2(0.06f, 0.16f);
-        contentRect.anchorMax = new Vector2(0.94f, 0.55f);
+        contentRect.anchorMax = new Vector2(0.94f, 0.46f);
         contentRect.offsetMin = Vector2.zero;
         contentRect.offsetMax = Vector2.zero;
 
@@ -153,9 +154,10 @@ public class TutorialUI : MonoBehaviour
         contentText.text = page.content;
         pageIndicatorText.text = (pageIndex + 1) + " / " + pages.Count;
 
-        if (!string.IsNullOrEmpty(page.iconKey) && iconMap.TryGetValue(page.iconKey, out Sprite sprite) && sprite != null)
+        if (!string.IsNullOrEmpty(page.iconKey) && iconMap.TryGetValue(page.iconKey, out TutorialManager.IconEntry entry) && entry.sprite != null)
         {
-            iconImage.sprite = sprite;
+            iconImage.sprite = entry.sprite;
+            iconRect.sizeDelta = new Vector2(entry.width, entry.height);
             iconObj.SetActive(true);
         }
         else

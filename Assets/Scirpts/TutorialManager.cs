@@ -20,15 +20,17 @@ public class TutorialManager : MonoBehaviour
     {
         public string key;
         public Sprite sprite;
+        public float width = 900f;
+        public float height = 220f;
     }
 
     [Header("아이콘 매핑 (tutorial.csv의 icon 컬럼과 key가 일치해야 함)")]
     [SerializeField] private IconEntry[] iconEntries;
 
-    [Header("한글 폰트 (비워두면 TMP 기본 폰트 사용)")]
+    [Header("한글 폰트 (비워두면 씬에 있는 다른 TMP 폰트를 자동 사용)")]
     [SerializeField] private TMP_FontAsset koreanFont;
 
-    private Dictionary<string, Sprite> iconMap = new Dictionary<string, Sprite>();
+    private Dictionary<string, IconEntry> iconMap = new Dictionary<string, IconEntry>();
 
     private TutorialUI activeUI;
     private bool gamePaused;
@@ -59,7 +61,7 @@ public class TutorialManager : MonoBehaviour
             if (entry == null || string.IsNullOrEmpty(entry.key)) continue;
             if (!iconMap.ContainsKey(entry.key))
             {
-                iconMap.Add(entry.key, entry.sprite);
+                iconMap.Add(entry.key, entry);
             }
         }
     }
@@ -110,7 +112,9 @@ public class TutorialManager : MonoBehaviour
         if (pages == null || pages.Count == 0)
         {
             if (!string.IsNullOrEmpty(prefsKeyToSet))
+            {
                 PlayerPrefs.SetInt(prefsKeyToSet, 1);
+            }
             return;
         }
 
@@ -129,7 +133,7 @@ public class TutorialManager : MonoBehaviour
             {
                 if (tmp.font != null)
                 {
-                    fontToUse = tmp.font;   
+                    fontToUse = tmp.font;
                     break;
                 }
             }
