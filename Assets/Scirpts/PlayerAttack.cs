@@ -597,7 +597,7 @@ public class PlayerAttack : MonoBehaviour
         float interval = unit.manaSkillIntervalPublic > 0f ? unit.manaSkillIntervalPublic : 0.1f;
 
         const float pitHalfW = 0.15f;
-        const float pitHalfH = 0.25f;
+        const float pitHalfH = 0.15f;
 
         bool isBorderCase = Mathf.Abs(pitPosition.x) >= 4.5f;
         Quaternion rotation = isBorderCase

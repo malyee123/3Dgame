@@ -14,7 +14,8 @@ public class DemoEndUI : MonoBehaviour
     void Start()
     {
         if (messageText != null)
-            messageText.text = "데모 버전 플레이 해주셔서 감사합니다";
+            messageText.text = "다음 스테이지는 개발 예정입니다.\n" +
+    "감사합니다";
 
         float totalTime = PlayerPrefs.GetFloat("LastTotalTime", 0f);
         if (totalTimeText != null)

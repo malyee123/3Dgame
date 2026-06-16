@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     public int maxEnemyCount = 200;
 
     [Header("Boss Wave Settings")]
-    public int   bossWaveInterval  = 10;
+    public int bossWaveInterval = 10;
     public float bossRoundDuration = 40f;
 
     [Header("UI")]
@@ -20,26 +20,26 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI totalTimerText;
     public TextMeshProUGUI stageText;
 
-    private int   currentEnemyCount  = 0;
-    private int   currentRound       = 1;
-    private int   currentStage       = 1;
+    private int currentEnemyCount = 0;
+    private int currentRound = 1;
+    private int currentStage = 1;
     private float roundTimeLeft;
-    private float currentRoundDuration = 60f;  // 현재 라운드 총 시간 (SpeedBurst 등에서 사용)
-    private float totalElapsedTime   = 0f;
-    private bool  isGameOver         = false;
-    private bool  isBossWave         = false;
-    private bool  isWarning          = false;
+    private float currentRoundDuration = 60f;
+    private float totalElapsedTime = 0f;
+    private bool isGameOver = false;
+    private bool isBossWave = false;
+    private bool isWarning = false;
     private EnemySpawner enemySpawner;
 
     private int anvilEnemyLimitBonus = 0;
 
-    private int   prevEnemyCount      = -1;
-    private int   prevMaxEnemyCount   = -1;   // maxEnemyCount 변동 감지용
-    private int   prevRound           = -1;
-    private int   prevRoundTimeLeft   = -1;
+    private int prevEnemyCount = -1;
+    private int prevMaxEnemyCount = -1;
+    private int prevRound = -1;
+    private int prevRoundTimeLeft = -1;
     private float prevRoundTimeLeftPublic = 0f;
-    private int   prevTotalTimeSeconds= -1;
-    private int   prevStage           = -1;
+    private int prevTotalTimeSeconds = -1;
+    private int prevStage = -1;
 
     public bool IsWarning => isWarning;
 
@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver || isWarning) return;
         totalElapsedTime += Time.deltaTime;
-        roundTimeLeft    -= Time.deltaTime;
+        roundTimeLeft -= Time.deltaTime;
         UpdateUIIfChanged();
         if (roundTimeLeft <= 0f) NextRound();
     }
@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
     public void AddEnemyLimit(int amount)
     {
         anvilEnemyLimitBonus += amount;
-        maxEnemyCount        += amount;
-        prevMaxEnemyCount     = -1;   // 강제 갱신
+        maxEnemyCount += amount;
+        prevMaxEnemyCount = -1;
         UpdateEnemyCountUI();
     }
 
@@ -89,19 +89,19 @@ public class GameManager : MonoBehaviour
             RoundData data = CSVLoader.Instance.GetRoundData(round, currentStage);
             if (data != null)
             {
-                roundTimeLeft        = data.roundDuration;
+                roundTimeLeft = data.roundDuration;
                 currentRoundDuration = data.roundDuration;
-                maxEnemyCount        = data.maxEnemyCount + anvilEnemyLimitBonus;
+                maxEnemyCount = data.maxEnemyCount + anvilEnemyLimitBonus;
                 return;
             }
         }
-        roundTimeLeft        = 60f;
+        roundTimeLeft = 60f;
         currentRoundDuration = 60f;
-        maxEnemyCount        = 200 + anvilEnemyLimitBonus;
+        maxEnemyCount = 200 + anvilEnemyLimitBonus;
     }
 
     public void OnEnemySpawned() { currentEnemyCount++; UpdateEnemyCountUI(); if (currentEnemyCount >= maxEnemyCount) GameOver(); }
-    public void OnEnemyDied()    { currentEnemyCount = Mathf.Max(0, currentEnemyCount - 1); UpdateEnemyCountUI(); }
+    public void OnEnemyDied() { currentEnemyCount = Mathf.Max(0, currentEnemyCount - 1); UpdateEnemyCountUI(); }
 
     public void OnBossKilled()
     {
@@ -124,28 +124,33 @@ public class GameManager : MonoBehaviour
 
     // ══════════════════════════════════════════════════════
     //  스테이지 클리어
-    //  Stage 1 → StageClearScene (클리어 보상 표시)
-    //  Stage 2 → DemoEndScene   (기존 동작 유지)
-    //  기타    → StageClearScene
+    //  Stage 1, 2        → StageClearScene (다음 스테이지 CSV 데이터가 있어야 다음 스테이지로 진행 가능)
+    //  Stage 3 (최초)     → DemoEndScene   (데모 종료 안내, 다음 스테이지 해금 안 함)
+    //  Stage 3 (재클리어) → StageClearScene (다음 스테이지 버튼 비활성 상태로 표시)
     // ══════════════════════════════════════════════════════
+    private const int DEMO_END_STAGE = 3;
+
     void StageClear()
     {
         isGameOver = true;
 
-        // 다음 스테이지 즉시 해금
+        // 다음 스테이지 해금
+        // - 데모 마지막 스테이지(DEMO_END_STAGE)까지만 허용
+        // - 그리고 다음 스테이지의 CSV 데이터(rounds.csv 등)가 실제로 존재할 때만 허용
+        //   (기획 데이터가 아직 없는 스테이지로 진입해 깨진 화면이 뜨는 것을 방지)
+        int maxAvailableStage = CSVLoader.Instance != null ? CSVLoader.Instance.GetMaxStage() : currentStage;
         int unlockedStage = PlayerPrefs.GetInt("UnlockedStage", 1);
-        if (currentStage >= unlockedStage)
+        if (currentStage < DEMO_END_STAGE && currentStage < maxAvailableStage && currentStage >= unlockedStage)
             PlayerPrefs.SetInt("UnlockedStage", currentStage + 1);
 
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
-        PlayerPrefs.SetInt("LastRound",       currentRound);
-        PlayerPrefs.SetInt("ClearedStage",    currentStage);   // StageClearUI에서 사용
+        PlayerPrefs.SetInt("LastRound", currentRound);
+        PlayerPrefs.SetInt("ClearedStage", currentStage);
         PlayerPrefs.Save();
         Time.timeScale = 1f;
 
-        if (currentStage == 2)
+        if (currentStage == DEMO_END_STAGE)
         {
-            // 2스테이지 클리어 → 데모 종료 씬 (최초 1회)
             if (PlayerPrefs.GetInt("DemoEndShown", 0) == 0)
             {
                 PlayerPrefs.SetInt("DemoEndShown", 1);
@@ -154,12 +159,11 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                SceneLoader.GoTo("LobbyScene");
+                SceneLoader.GoTo("StageClearScene");
             }
             return;
         }
 
-        // 1스테이지 (및 기타) → 클리어 씬으로 이동
         SceneLoader.GoTo("StageClearScene");
     }
 
@@ -182,7 +186,7 @@ public class GameManager : MonoBehaviour
         {
             isBossWave = true;
             if (enemySpawner != null) enemySpawner.SetPaused(true);
-            roundTimeLeft        = bossRoundDuration;
+            roundTimeLeft = bossRoundDuration;
             currentRoundDuration = bossRoundDuration;
             BossManager.Instance?.TrySpawnBoss();
             AugmentManager.Instance?.OnBossWaveStart();
@@ -193,7 +197,7 @@ public class GameManager : MonoBehaviour
     {
         isGameOver = true;
         PlayerPrefs.SetFloat("LastTotalTime", totalElapsedTime);
-        PlayerPrefs.SetInt("LastRound",       currentRound);
+        PlayerPrefs.SetInt("LastRound", currentRound);
         PlayerPrefs.Save();
         Time.timeScale = 1f;
         SceneLoader.GoTo("GameOverScene");
@@ -202,10 +206,10 @@ public class GameManager : MonoBehaviour
     void UpdateAllUI()
     {
         UpdateEnemyCountUI();
-        if (roundText      != null) roundText.text      = $"Round: {currentRound}";
-        if (roundTimerText != null) roundTimerText.text  = $"Time: {Mathf.CeilToInt(roundTimeLeft)}s";
-        if (totalTimerText != null) totalTimerText.text  = $"Total: {FormatTime(totalElapsedTime)}";
-        if (stageText      != null) stageText.text       = $"Stage: {currentStage}";
+        if (roundText != null) roundText.text = $"Round: {currentRound}";
+        if (roundTimerText != null) roundTimerText.text = $"Time: {Mathf.CeilToInt(roundTimeLeft)}s";
+        if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}";
+        if (stageText != null) stageText.text = $"Stage: {currentStage}";
     }
 
     void UpdateUIIfChanged()
@@ -213,42 +217,37 @@ public class GameManager : MonoBehaviour
         prevRoundTimeLeftPublic = roundTimeLeft;
 
         int ceilTimeLeft = Mathf.CeilToInt(roundTimeLeft);
-        if (currentRound  != prevRound)           { prevRound           = currentRound;  if (roundText      != null) roundText.text      = $"Round: {currentRound}"; }
-        if (ceilTimeLeft  != prevRoundTimeLeft)    { prevRoundTimeLeft   = ceilTimeLeft;  if (roundTimerText != null) roundTimerText.text  = $"Time: {ceilTimeLeft}s"; }
+        if (currentRound != prevRound) { prevRound = currentRound; if (roundText != null) roundText.text = $"Round: {currentRound}"; }
+        if (ceilTimeLeft != prevRoundTimeLeft) { prevRoundTimeLeft = ceilTimeLeft; if (roundTimerText != null) roundTimerText.text = $"Time: {ceilTimeLeft}s"; }
         int totalSec = (int)totalElapsedTime;
-        if (totalSec      != prevTotalTimeSeconds) { prevTotalTimeSeconds = totalSec;     if (totalTimerText != null) totalTimerText.text  = $"Total: {FormatTime(totalElapsedTime)}"; }
-        if (currentStage  != prevStage)            { prevStage           = currentStage; if (stageText      != null) stageText.text       = $"Stage: {currentStage}"; }
+        if (totalSec != prevTotalTimeSeconds) { prevTotalTimeSeconds = totalSec; if (totalTimerText != null) totalTimerText.text = $"Total: {FormatTime(totalElapsedTime)}"; }
+        if (currentStage != prevStage) { prevStage = currentStage; if (stageText != null) stageText.text = $"Stage: {currentStage}"; }
     }
 
-    // ── Enemy Count UI — 80% 이상 시 빨간색 ─────────────────
-    // maxEnemyCount 에는 증강/모루 보너스가 이미 포함되어 있음
     void UpdateEnemyCountUI()
     {
         if (currentEnemyCount == prevEnemyCount &&
-            maxEnemyCount     == prevMaxEnemyCount) return;
+            maxEnemyCount == prevMaxEnemyCount) return;
 
-        prevEnemyCount    = currentEnemyCount;
+        prevEnemyCount = currentEnemyCount;
         prevMaxEnemyCount = maxEnemyCount;
 
         if (enemyCountText == null) return;
 
-        enemyCountText.text  = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
+        enemyCountText.text = $"Enemies: {currentEnemyCount}/{maxEnemyCount}";
         enemyCountText.color = currentEnemyCount >= maxEnemyCount * 0.8f
             ? Color.red
             : Color.black;
     }
 
-    public float GetTotalTime()         => totalElapsedTime;
-    public int   GetCurrentRound()      => currentRound;
-    public int   GetCurrentStage()      => currentStage;
-    public float GetRoundTimeLeft()     => roundTimeLeft;
+    public float GetTotalTime() => totalElapsedTime;
+    public int GetCurrentRound() => currentRound;
+    public int GetCurrentStage() => currentStage;
+    public float GetRoundTimeLeft() => roundTimeLeft;
     public float GetPrevRoundTimeLeft() => prevRoundTimeLeftPublic;
 
-    // 현재 화면에 존재하는 적의 수 (전장의 지배자 증강에서 사용)
     public int GetCurrentEnemyCount() => currentEnemyCount;
 
-    // 현재 라운드의 전체 길이 (보스 웨이브는 bossRoundDuration, 일반 웨이브는 CSV roundDuration)
-    // 순간 가속(SpeedBurst) 증강의 elapsed = roundDuration - timeLeft 계산에 사용
     public float GetCurrentRoundDuration() => isBossWave ? bossRoundDuration : currentRoundDuration;
 
     string FormatTime(float time)

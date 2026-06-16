@@ -348,6 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DemoEndUI
   messageText: {fileID: 1104423983}
+  totalTimeText: {fileID: 0}
   lobbyButton: {fileID: 960081603}
   quitButton: {fileID: 1391190463}
 --- !u!4 &1044071028
@@ -430,8 +431,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB370\uBAA8 \uBC84\uC804 \uD50C\uB808\uC774 \uD574\uC8FC\uC154\uC11C
-    \uAC10\uC0AC\uD569\uB2C8\uB2E4"
+  m_text: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0\uB294 \uAC1C\uBC1C \uC608\uC815\uC785\uB2C8\uB2E4.\n\uAC10\uC0AC\uD569\uB2C8\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: de88880c68d424344a175e4aa56d7341, type: 2}
   m_sharedMaterial: {fileID: -2741660018913726341, guid: de88880c68d424344a175e4aa56d7341, type: 2}

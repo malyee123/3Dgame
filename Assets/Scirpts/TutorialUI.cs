@@ -71,7 +71,7 @@ public class TutorialUI : MonoBehaviour
         iconRect.anchorMin = new Vector2(0.5f, 0.5f);
         iconRect.anchorMax = new Vector2(0.5f, 0.5f);
         iconRect.pivot = new Vector2(0.5f, 0.5f);
-        iconRect.sizeDelta = new Vector2(220, 220);
+        iconRect.sizeDelta = new Vector2(900, 220);
         iconRect.anchoredPosition = new Vector2(0f, 120f);
         iconObj = iconRect.gameObject;
 
