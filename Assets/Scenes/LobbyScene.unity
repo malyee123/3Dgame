@@ -1432,7 +1432,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1474930512897356151, guid: e1dd3d48350d7b941866d679bfa7be79, type: 3}
+  m_Sprite: {fileID: 8497361150501103851, guid: 20369320560c2e44f8dd1d269cf3bc26, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3176,10 +3176,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
   iconEntries:
-  - key: 
-    sprite: {fileID: 0}
-  - key: 
-    sprite: {fileID: 0}
+  - key: upgrade
+    sprite: {fileID: -5129802428149711299, guid: 7641d49e4ab28294d857c4923aa810cf, type: 3}
+  - key: passive
+    sprite: {fileID: -6959069639705999168, guid: a6367a74f4714db4793098ff0db1bcb4, type: 3}
+  - key: compendium
+    sprite: {fileID: 8497361150501103851, guid: 20369320560c2e44f8dd1d269cf3bc26, type: 3}
+  - key: stage
+    sprite: {fileID: 1584721951186659005, guid: 5b9269182da9d6443ab24262d06cd383, type: 3}
   koreanFont: {fileID: 11400000, guid: a901d30328bf34743bf7032266fb26ab, type: 2}
 --- !u!4 &1758662918
 Transform:
