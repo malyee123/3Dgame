@@ -54,6 +54,8 @@ public class SettingsManager : MonoBehaviour
             quitButton.onClick.RemoveAllListeners();
             quitButton.onClick.AddListener(QuitGame);
         }
+
+        TutorialManager.Instance?.TryShowLobbyTutorial();
     }
 
     void Update()

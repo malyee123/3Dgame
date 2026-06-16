@@ -45,8 +45,8 @@ public class GameSettingsData
 [System.Serializable]
 public class SpecialMonsterStageData
 {
-    public int stage;       // 스테이지 번호 (1, 2, 3...)
-    public int killCount;   // 누적 처치 횟수 기준
+    public int stage;
+    public int killCount;
     public float hp;
     public float speed;
     public float lifetime;
@@ -71,6 +71,16 @@ public class AnvilRangeData
     public float max;
 }
 
+[System.Serializable]
+public class TutorialPageData
+{
+    public int step;
+    public int page;
+    public string title;
+    public string content;
+    public string iconKey;
+}
+
 public class CSVLoader : MonoBehaviour
 {
     public static CSVLoader Instance { get; private set; }
@@ -81,6 +91,7 @@ public class CSVLoader : MonoBehaviour
     public TextAsset specialMonsterCSV;
     public TextAsset anvilSettingsCSV;
     public TextAsset spawnCostCSV;
+    public TextAsset tutorialCSV;
 
     [Header("Character Data List")]
     public CharacterData[] characterDataList;
@@ -91,6 +102,7 @@ public class CSVLoader : MonoBehaviour
     public List<AnvilRangeData> anvilRangeList = new List<AnvilRangeData>();
     public List<SpawnCostData> spawnCostDataList = new List<SpawnCostData>();
     public List<SpecialMonsterStageData> specialMonsterDataList = new List<SpecialMonsterStageData>();
+    public List<TutorialPageData> tutorialDataList = new List<TutorialPageData>();
 
     public GameSettingsData GameSettings { get; private set; } = new GameSettingsData();
 
@@ -118,6 +130,7 @@ public class CSVLoader : MonoBehaviour
         LoadSpecialMonsterStats();
         LoadAnvilSettings();
         LoadSpawnCostData();
+        LoadTutorialStats();
     }
 
     void LoadCharacterStats()
@@ -215,8 +228,8 @@ public class CSVLoader : MonoBehaviour
                 bossWaveLevel = ParseInt(col[2].Trim(), 1),
                 hp = ParseFloat(col[3].Trim(), 1000f),
                 speed = ParseFloat(col[4].Trim(), 1f),
-                defense = ParseFloat(col[5].Trim()),
-                reward = ParseInt(col[6].Trim(), 1),
+                reward = ParseInt(col[5].Trim()),
+                defense = ParseInt(col[6].Trim(), 1),
                 forceDamageOne = col[7].Trim() == "1"
             });
         }
@@ -292,8 +305,6 @@ public class CSVLoader : MonoBehaviour
         if (specialWeightList.Count > 0) GameSettings.specialTierSpawnWeights = specialWeightList.ToArray();
     }
 
-    // ── 특수 몬스터 스탯 로드 ─────────────────────────────────
-    // CSV 컬럼 순서: stage,killCount,hp,speed,lifetime,coinReward,cooldown,defense
     void LoadSpecialMonsterStats()
     {
         specialMonsterDataList.Clear();
@@ -304,7 +315,7 @@ public class CSVLoader : MonoBehaviour
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
             string[] col = line.Split(',');
-            if (col.Length < 7) continue;   // stage 컬럼 추가로 최소 7개
+            if (col.Length < 7) continue;
             specialMonsterDataList.Add(new SpecialMonsterStageData
             {
                 stage = ParseInt(col[0].Trim(), 1),
@@ -341,38 +352,6 @@ public class CSVLoader : MonoBehaviour
         }
     }
 
-    // ── 특수 몬스터 데이터 조회 ──────────────────────────────
-    // stage 와 killCount 를 동시에 고려
-    // 해당 스테이지에서 killCount 이하인 항목 중 가장 높은 killCount 반환
-    public SpecialMonsterStageData GetSpecialMonsterData(int stage, int killCount)
-    {
-        SpecialMonsterStageData best = null;
-        int bestKill = -1;
-
-        foreach (SpecialMonsterStageData data in specialMonsterDataList)
-        {
-            if (data.stage != stage) continue;
-            if (data.killCount <= killCount && data.killCount > bestKill)
-            {
-                bestKill = data.killCount;
-                best = data;
-            }
-        }
-
-        // 해당 스테이지 데이터가 없으면 스테이지 1 첫 번째 항목으로 폴백
-        if (best == null)
-        {
-            foreach (SpecialMonsterStageData data in specialMonsterDataList)
-            {
-                if (data.stage == stage) { best = data; break; }
-            }
-        }
-        if (best == null && specialMonsterDataList.Count > 0)
-            best = specialMonsterDataList[0];
-
-        return best;
-    }
-
     void LoadSpawnCostData()
     {
         spawnCostDataList.Clear();
@@ -392,12 +371,81 @@ public class CSVLoader : MonoBehaviour
         }
     }
 
+    void LoadTutorialStats()
+    {
+        tutorialDataList.Clear();
+        if (tutorialCSV == null) return;
+
+        string raw = tutorialCSV.text;
+        if (raw.Length > 0 && raw[0] == '\uFEFF')
+            raw = raw.Substring(1);
+
+        string[] lines = raw.Split('\n');
+        if (lines.Length < 2) return;
+
+        string firstDataLine = string.Empty;
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string t = lines[i].Trim();
+            if (!string.IsNullOrEmpty(t)) { firstDataLine = t; break; }
+        }
+        char sep = firstDataLine.Contains('\t') ? '\t' : ',';
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            string[] col = line.Split(sep);
+            if (col.Length < 5) continue;
+            tutorialDataList.Add(new TutorialPageData
+            {
+                step = ParseInt(col[0].Trim(), 1),
+                page = ParseInt(col[1].Trim(), 1),
+                title = col[2].Trim(),
+                content = col[3].Trim(),
+                iconKey = col[4].Trim()
+            });
+        }
+    }
+
     public int GetSpawnCost(int spawnCount)
     {
         int result = GameSettings?.spawnCost ?? 20;
         foreach (SpawnCostData data in spawnCostDataList)
             if (spawnCount >= data.spawnCount) result = data.cost;
         return result;
+    }
+
+    public List<TutorialPageData> GetTutorialPages(int step)
+    {
+        List<TutorialPageData> result = new List<TutorialPageData>();
+        foreach (TutorialPageData data in tutorialDataList)
+            if (data.step == step) result.Add(data);
+        result.Sort((a, b) => a.page.CompareTo(b.page));
+        return result;
+    }
+
+    public SpecialMonsterStageData GetSpecialMonsterData(int stage, int killCount)
+    {
+        SpecialMonsterStageData best = null;
+        int bestKill = -1;
+        foreach (SpecialMonsterStageData data in specialMonsterDataList)
+        {
+            if (data.stage != stage) continue;
+            if (data.killCount <= killCount && data.killCount > bestKill)
+            {
+                bestKill = data.killCount;
+                best = data;
+            }
+        }
+        if (best == null)
+        {
+            foreach (SpecialMonsterStageData data in specialMonsterDataList)
+                if (data.stage == stage) { best = data; break; }
+        }
+        if (best == null && specialMonsterDataList.Count > 0)
+            best = specialMonsterDataList[0];
+        return best;
     }
 
     public AnvilRangeData GetAnvilRange(AnvilType type, int stage)

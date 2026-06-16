@@ -117,6 +117,9 @@ public class BossManager : MonoBehaviour
         if (GameManager.Instance != null)
             GameManager.Instance.ExtendRoundTime(GameManager.Instance.bossRoundDuration);
         if (GameManager.Instance != null) GameManager.Instance.OnEnemySpawned();
+
+        int currentRound = GameManager.Instance != null ? GameManager.Instance.GetCurrentRound() : 0;
+        TutorialManager.Instance?.TryShowBossTutorial(data.stage, currentRound);
     }
 
     public bool IsBossAlive() => currentBoss != null && currentBoss.activeSelf;

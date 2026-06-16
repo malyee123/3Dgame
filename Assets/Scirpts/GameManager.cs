@@ -57,6 +57,7 @@ public class GameManager : MonoBehaviour
         ApplyRoundData(currentRound);
         if (enemySpawner != null) enemySpawner.ApplyRoundSettings(currentRound);
         UpdateAllUI();
+        TutorialManager.Instance?.TryShowGameTutorial();
     }
 
     void Update()
