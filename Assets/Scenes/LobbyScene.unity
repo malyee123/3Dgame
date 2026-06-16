@@ -307,7 +307,7 @@ MonoBehaviour:
     delay: 0.5
   - fromScene: GameScene
     toScene: StageClearScene
-    panel: {fileID: 647165547}
+    panel: {fileID: 884203655}
     delay: 0.5
 --- !u!4 &19872847
 Transform:
@@ -3290,6 +3290,10 @@ MonoBehaviour:
     height: 220
   - key: anvil
     sprite: {fileID: 6444406972126655912, guid: 41a4acb0d7694be49a6b17727d5bb63e, type: 3}
+    width: 900
+    height: 220
+  - key: recipe
+    sprite: {fileID: 18426353582023062, guid: cb7f8ef6b56152b41b2e7894a17f2757, type: 3}
     width: 900
     height: 220
   - key: speed
