@@ -305,6 +305,10 @@ MonoBehaviour:
     toScene: DemoEndScene
     panel: {fileID: 647165547}
     delay: 0.5
+  - fromScene: GameScene
+    toScene: StageClearScene
+    panel: {fileID: 647165547}
+    delay: 0.5
 --- !u!4 &19872847
 Transform:
   m_ObjectHideFlags: 0
@@ -839,6 +843,7 @@ RectTransform:
   - {fileID: 1955524728}
   - {fileID: 815061565}
   - {fileID: 647165548}
+  - {fileID: 884203656}
   m_Father: {fileID: 19872847}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1943,6 +1948,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 880056410}
+  m_CullTransparentMesh: 1
+--- !u!1 &884203655
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 884203656}
+  - component: {fileID: 884203658}
+  - component: {fileID: 884203657}
+  m_Layer: 0
+  m_Name: Panel_Game_to_StageClearScene
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &884203656
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884203655}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 292476436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &884203657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884203655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -2793559401914731730, guid: 119693a4185a2f344b71d1c0d36acfa5, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &884203658
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884203655}
   m_CullTransparentMesh: 1
 --- !u!1 &1062789901
 GameObject:
@@ -3178,32 +3258,60 @@ MonoBehaviour:
   iconEntries:
   - key: upgrade
     sprite: {fileID: -5129802428149711299, guid: 7641d49e4ab28294d857c4923aa810cf, type: 3}
+    width: 900
+    height: 220
   - key: passive
     sprite: {fileID: -6959069639705999168, guid: a6367a74f4714db4793098ff0db1bcb4, type: 3}
+    width: 900
+    height: 220
   - key: compendium
     sprite: {fileID: 8497361150501103851, guid: 20369320560c2e44f8dd1d269cf3bc26, type: 3}
+    width: 900
+    height: 220
   - key: stage
     sprite: {fileID: 1584721951186659005, guid: 5b9269182da9d6443ab24262d06cd383, type: 3}
+    width: 900
+    height: 220
   - key: merge
     sprite: {fileID: -9173680771258503008, guid: 3ba1be2e10ac45d44a36c8434497d760, type: 3}
+    width: 900
+    height: 220
   - key: sell
     sprite: {fileID: -489636911293580125, guid: e72bc4ec0cc85bd41ae31e249c74ca1a, type: 3}
+    width: 900
+    height: 220
   - key: spawn
     sprite: {fileID: -4848329244456854130, guid: 1c9587afaf5b1594da3fe235ccde85c7, type: 3}
+    width: 900
+    height: 220
   - key: special
     sprite: {fileID: -7417397746319513613, guid: bbea9a0d6b9a9e14484b3bf8c879b14e, type: 3}
+    width: 900
+    height: 220
   - key: anvil
     sprite: {fileID: 6444406972126655912, guid: 41a4acb0d7694be49a6b17727d5bb63e, type: 3}
+    width: 900
+    height: 220
   - key: speed
     sprite: {fileID: 2690449651797723312, guid: 56fb266ef311a9e4dbf8f7a30b5b75cf, type: 3}
+    width: 900
+    height: 220
   - key: augment
     sprite: {fileID: -5239151342490112387, guid: eb344d93ec8ca4141a58131ff72cdbff, type: 3}
+    width: 900
+    height: 220
   - key: boss1
     sprite: {fileID: 4478402806013016230, guid: f7d9675188884d646bd22f19e41f917d, type: 3}
+    width: 900
+    height: 220
   - key: boss2
     sprite: {fileID: -6769652845282367222, guid: 8ff397a736d4c304bb4ee1dce7e0080a, type: 3}
+    width: 900
+    height: 220
   - key: boss3
     sprite: {fileID: 807267123523944897, guid: e3684619c0bc66a46bc4f7a35f407d18, type: 3}
+    width: 900
+    height: 220
   koreanFont: {fileID: 11400000, guid: a901d30328bf34743bf7032266fb26ab, type: 2}
 --- !u!4 &1758662918
 Transform:

@@ -19,14 +19,17 @@ public class SceneTransitionManager : MonoBehaviour
         public float delay = 1f;
     }
 
-    [Header("씬별 전환 설정 (6개)")]
+    [Header("씬별 전환 설정 (7개)")]
     [Tooltip(
         "Element 0: LobbyScene       → PassiveUpgradeScene\n" +
         "Element 1: StageSelectScene → GameScene\n" +
         "Element 2: LobbyScene       → UpgradeScene\n" +
         "Element 3: LobbyScene       → CompendiumScene\n" +
         "Element 4: GameScene        → GameOverScene\n" +
-        "Element 5: GameScene        → DemoEndScene")]
+        "Element 5: GameScene        → DemoEndScene\n" +
+        "Element 6: GameScene        → StageClearScene\n"
+        )]
+
     public TransitionConfig[] transitionConfigs;
 
     // defaultPanel / defaultDelay 제거
