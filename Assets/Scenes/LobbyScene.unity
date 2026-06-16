@@ -3175,7 +3175,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ade0766b8e7ae7340970c8d1572b5d68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
-  iconEntries: []
+  iconEntries:
+  - key: 
+    sprite: {fileID: 0}
+  - key: 
+    sprite: {fileID: 0}
   koreanFont: {fileID: 11400000, guid: a901d30328bf34743bf7032266fb26ab, type: 2}
 --- !u!4 &1758662918
 Transform:
