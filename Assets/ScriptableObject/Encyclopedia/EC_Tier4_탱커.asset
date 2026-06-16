@@ -19,7 +19,7 @@ MonoBehaviour:
   fullBodySprite: {fileID: -2455609296604243175, guid: 3300f7053eef9734aa5a448ba209a5eb, type: 3}
   attackPower: 3000
   attackSpeed: 2
-  range: 1
+  range: 1.5
   skillIcons:
   - {fileID: -8332125718833699075, guid: 940156c15b54ef6419da9aa51a976a12, type: 3}
   - {fileID: -2423972314601432263, guid: eb39d2c107ec3094da1da5af2d4313db, type: 3}

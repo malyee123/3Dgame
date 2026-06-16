@@ -17,7 +17,7 @@ MonoBehaviour:
   starRating: 5
   portraitSprite: {fileID: 7453812271890555271, guid: 9a697ed2864c6664a9d3af5f4dd8c3ad, type: 3}
   fullBodySprite: {fileID: 7453812271890555271, guid: d26c58a5678365b4f9582cd8d996e857, type: 3}
-  attackPower: 14000
+  attackPower: 18000
   attackSpeed: 1
   range: 1.5
   skillIcons:
